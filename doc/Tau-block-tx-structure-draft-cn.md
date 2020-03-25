@@ -3,7 +3,6 @@
  ----------------|----------------|------------------|----------------------
  1   |version        | 1          |  "0x1" as initial default, increase block through version 
  2   |option         | 1          |  "0x1" as initial default
- 3   |chainid        | 32         |  "0x0" as TAU main chain or others for branch chain
  4   |blockno        | 8          |  "0x1" 
  5   |basetarget     | 8          |  for POT - Proof of Transaction calculation
  6   |cumulativedifficulty    | 8       | current consensus chain parameter
@@ -12,8 +11,8 @@
  9   |iforger      | 46       | forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node
  10  |timestamp    | 4        | unix timestamp for winning the block package right
  11  |previoushash | 32       | link previou block
- 12  |stateroot    | 32       | hash of state database MPT, merkle patrecia tree, in ipfs cid
- 13  |txs       | *       | transactions content
+ 12  |stateroot    | 32       | HAMT state root cid, not garantee "undeletability"
+ 13  |txs       | *       | json transactions content，10 transaction for now.
  14  |signature    | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
@@ -22,7 +21,6 @@
  ----------------|----------------|------------------|----------------------
 1   | version       | 1        |  "0x1" as default
 2   | option        | 1        |  "0x1" as default
-3   | chainid       | 32       |  "0x0" as TAU main chain or others for branch chain
 4   | blockhash     | 32       |  "0x0" similar to EOS TAPOS, witness of the block within the mutable range point in a chosen chain, must fill in to promote community engagement for high security
 5   | nounce        | 8        |  "0x1" similar to ETH nounce to prevent replay transactions
 6   | timestamp     | 4        | tx timestamp, tx expire in 12 hours
@@ -31,11 +29,11 @@
 9  | receiver      | 20       | tx receiver in TAU system
 10  | amount        | 5        | transfer amount
 11  | txfee           | 1        | transaction fee
-15  | relay           | 32        | cid of the relay and multi-address, mobile node connect to relay and incentivate with fee
+15  | relay           | *        | relay and multi-address in json, mobile node connect to relay and incentivate with fee
 16  | relayfee           | 1        | relay fee, current version set to zero until the relay private key is supported to do wring
 17  | signature     | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte
 
-4 - optional; #12-#14 are for different type of transactions fields.
+#12-#14 are for different type of transactions fields.
 
 # Miner info update transaction - all users are miner
  No              |  Key           | Size-Byte        |  Notes
@@ -50,6 +48,8 @@
 12  | referid      | 32           | the past CID referred in new message
 13  | content        | 1024          | the title/intro of the message
 14  | attachment      | 32           | The attachment in ipfs CID format, miner is not reponsible for "undeletabilit" of this content
+
+## All cid field is not garantee "undeletability"
 
 # Dev Discussion logs
 ### 20191118
@@ -220,14 +220,3 @@ IPFS Cid区分信息类型的方案：可以类似与CID version实现，message
 		7.1 随着Block(n)的确定，以及Tau链中Stateless的设计，此时节点的Mining实际已经跟上了主链脚步
 
 	8. 本节点同时维护一个出块时间列表，到达出块时间更新本地节点信息，本节点从N高度变更到N+1高度了，开始下一轮询问，转到Step 4
-```
-
-#### 多链应用下的交易类型，目前草稿：
-
-### New chain transaction tbd
- No              |  Key           | Size-Byte        |  Notes
- ----------------|----------------|------------------|----------------------
-12  | name             | 20       | 论坛版块名字
-13  | contact          | 32       | 版块管理员联系方式，暂定为telegram id
-14  | intro            | 256      | 论坛版块的标题，内容摘要，抽象hash等
-15  | description      | 33       | 论坛版块的描述细节，message type+ IPFS Cid形式存在
