@@ -11,7 +11,7 @@
  9   |iforger      | 46       | forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node
  10  |timestamp    | 4        | unix timestamp for winning the block package right
  11  |previoushash | 32       | link previou block
- 12  |stateroot    | 32       | HAMT state root cid, not garantee "undeletability"
+ 12  |stateroot    | 32       | HAMT state root cid, garantee "undeletability" on news add state nodes
  13  |txs       | *       | json transactions content，10 transaction for now.
  14  |signature    | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
