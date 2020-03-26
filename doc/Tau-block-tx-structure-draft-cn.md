@@ -1,17 +1,18 @@
-# Block 
+# Block  - draft 
  No              |  Key           | Size-Byte        |  Notes
  ----------------|----------------|------------------|----------------------
- 1   |version        | 1          |  "0x1" as initial default, increase block through version 
+ 1   |version        | 1          |  "0x1" as initial default 
  2   |option         | 1          |  "0x1" as initial default
+ 3   |chainid        | 8          |  "0x1" as TAU mainchain; for future blocktree expansion
  4   |blockno        | 8          |  "0x1" 
  5   |basetarget     | 8          |  for POT - Proof of Transaction calculation
  6   |cumulativedifficulty    | 8       | current consensus chain parameter
  7   |generationsignature     | 32      | for POT calculation, #7 x power x time
  8   |tforger      | 20       | forger/miner address used in TAU system, for IPLD index and display
- 9   |iforger      | 46       | forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node
+ 9   |iforger      | 46       | forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node 
  10  |timestamp    | 4        | unix timestamp for winning the block package right
- 11  |previoushash | 32       | link previou block
- 12  |stateroot    | 32       | HAMT state root cid, garantee "undeletability" on newly add state nodes
+ 11  |previousroot | 32       | link previou state root
+ 12  |keys    | *       | key-values as result of execute transaction both wiring and message. for message, use tx-signature-hash for locator
  13  |txs       | *       | json transactions content，10 transaction for now.
  14  |signature    | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
@@ -21,11 +22,12 @@
  ----------------|----------------|------------------|----------------------
 1   | version       | 1        |  "0x1" as default
 2   | option        | 1        |  "0x1" as default
+3   | chainid       | 8        |  "0x1" as default mainchain; for future blocktree reserve
 4   | blockhash     | 32       |  "0x0" similar to EOS TAPOS, witness of the block within the mutable range point in a chosen chain, must fill in to promote community engagement for high security
 5   | nounce        | 8        |  "0x1" similar to ETH nounce to prevent replay transactions
 6   | timestamp     | 4        | tx timestamp, tx expire in 12 hours
 7   | tsender       | 20       | tx sender address in TAU system, for IPLD index and display
-8   | isender       | 46       | tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. 
+8   | isender       | 46       | tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
 9  | receiver      | 20       | tx receiver in TAU system
 10  | amount        | 5        | transfer amount
 11  | txfee           | 1        | transaction fee
@@ -39,17 +41,17 @@
  No              |  Key           | Size-Byte        |  Notes
  ----------------------|----------------|------------------|----------------------
 12  | contactname      | 32         | the defaul is your telegram id or other anything
-13  | name             | 20         | nickname
-14  | profile          | 32         | user profile in ipfs cid format, miner is not reponsible for "undeletabilit" of this content
+13  | name             | 256         | nickname
+14  | profile          | 1024         | user profile
 
-# Message transaction
+# Message and wiring transaction
  No              |  Key           | Size-Byte        |  Notes
  ----------------|----------------|------------------|----------------------
-12  | referid      | 32           | the past CID referred in new message
-13  | content        | 1024          | the title/intro of the message
-14  | attachment      | 32           | The attachment in ipfs CID format, miner is not reponsible for "undeletabilit" of this content
+12  | referid      | 32           | the previous tx signature-hash or receiver address referred in new message; equal sender for a save note, equal receiver for a wiring
+13  | title        | 256          | the title of message or wiring memo
+14  | content      | 1024           | The content
 
-## All cid field is not garantee "undeletability"
+## removed all CID in design other than the "previous state root" 
 
 # Dev Discussion logs
 ### 20191118
