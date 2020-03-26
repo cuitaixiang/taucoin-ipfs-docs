@@ -1,10 +1,10 @@
-# Block  - draft 
+# State  - draft 
  No  |  field        | Size     |  Key   |  Notes
  ----|---------------|----------|--------|--------
  1   |version        | 1          |"version" | "0x1" as initial default 
  2   |option         | 1          |tforger + "option"| "0x1" as default, reserver for unknown needs 
  3   |chainid        | 8          |"chainid"|"0x1" as TAU mainchain; for future blocktree expansion 
- 4   |blockno        | 8          |"blockno"|"0x1" 
+ 4   |statenumber       | 8          |"statenumber"|"0x1" 
  5   |basetarget     | 8          |"basetarget"|for POT - Proof of Transaction calculation 
  6   |cumulativedifficulty    | 8       |"cumulativedifficulty"|current consensus chain parameter 
  7   |generationsignature     | 32      |"generationsignature"|for POT calculation, #7 x power x time
@@ -13,7 +13,7 @@
  10  |timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
  11  |previousroot | 32       |"previousroot"|link previou state root
  13  |state    | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
- 14  |signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+ 14 |signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
 # Transaction - all variables in source code
@@ -30,13 +30,13 @@
 9  | treceiver      | 20       |tsender + nounce + "treciver| tx receiver in TAU system
 10  | amount        | 5        |tsender + nounce + "amount" |transfer amount
 11  | txfee           | 1        |tsender + nounce + "txfee" |transaction fee
-15  | relay           | *        |tsender + nounce + "relay" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
+15  | relay_maddr           | *        |tsender + nounce + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
+11  | relay_iaddr           | 1        |tsender + nounce + "relay_iaddr" | ipfs address for relay
 16  | relayfee           | 1        |tsender + nounce +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
 10  | sender balance        | 5        |tsender + "balance" |transfer amount
 10  | receiver balance        | 5        |treceiver + "balance" |transfer amount
-10  | relay balance        | 5        |relay + "balance" |transfer amount
-
-17  | signature     | 65       |"signature" |r: 32 bytes, s: 32 bytes, v: 1 byte
+10  | relay balance        | 5        |relay_iaddr + "balance" |transfer amount
+17  | signature     | 65       |tsender + nounce + "signature" |r: 32 bytes, s: 32 bytes, v: 1 byte
 
 #12-#14 are for different type of transactions fields.
 
