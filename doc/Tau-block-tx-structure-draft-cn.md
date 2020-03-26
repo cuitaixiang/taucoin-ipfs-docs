@@ -17,13 +17,10 @@ state_n_value(sort(key))_signature    | 65       |"signature"|r: 32 bytes, s: 32
 
 # Transaction T (T=1-10)
   field        | Size     |  Key   |  Notes
----------------|----------|--------|--------
+----------------------|----------|--------|--------
 tx 1 signature hash | 32 |1 + "txSigHash"| eg. 1txSigHash = hash1
-tx 2 signature hash | 32 |2 + "txSigHash"| eg. 2txSigHash = hash2
-..
+tx .. signature hash | 32 |.. + "txSigHash"| eg. 2txSigHash = hash2
 tx T signature hash | 32 |T + "txSigHash"| eg. TtxSigHash = hashT
-
-
 txsender TAU address | 20 |TtxSigHash + "txsenderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
 txsender nounce  | 8      |TtxSigHash + txsenderTAUaddr + "nounce"| eg hashTTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
 version        | 8        |txsenderTAUaddr(T) + "nounce" + "version" | "0x1" as initial default 
