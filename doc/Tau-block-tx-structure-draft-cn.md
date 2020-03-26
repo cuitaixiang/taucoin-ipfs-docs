@@ -1,32 +1,30 @@
-# State  - draft 
- No  |  field        | Size     |  Key   |  Notes
- ----|---------------|----------|--------|--------
- 1   |version        | 1          |"version" | "0x1" as initial default 
- 2   |option         | 1          |tforger + "option"| "0x1" as default, reserver for unknown needs 
- 3   |chainid        | 8          |"chainid"|"0x1" as TAU mainchain; for future blocktree expansion 
- 4   |statenumber       | 8          |"statenumber"|"0x1" 
- 5   |basetarget     | 8          |"basetarget"|for POT - Proof of Transaction calculation 
- 6   |cumulativedifficulty    | 8       |"cumulativedifficulty"|current consensus chain parameter 
- 7   |generationsignature     | 32      |"generationsignature"|for POT calculation, #7 x power x time
- 8   |tforger      | 20       |"tfoger"|forger/miner address used in TAU system, for IPLD index and display 
- 9   |iforger      | 46       |"iforger"|forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node 
- 10  |timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
- 11  |previousroot | 32       |"previousroot"|link previou state root
- 13  |state    | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
- 14 |signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+# Chain State  - draft 
+  field        | Size     |  Key   |  Notes
+---------------|----------|--------|--------
+timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
+chain ID       | 8        |"chainID"|"0x1" as mainchain; for future blocktree expansion 
+version        | 8        |chainID + "version" | "0x1" as initial default 
+state number   | 8        |chainID + "stateNumber"| e.g 0x1statenumber = 100
+base target    | 8        |chainID + "basetarget"|for POT - Proof of Transaction calculation 
+cumulative difficulty    | 8       |chainID + "cumulativedifficulty"|current consensus chain parameter 
+generation signature     | 32      |chainID + "generationsignature"|for POT calculation,  x power x time
+miner TAU address    | 20       |chainID +"minerTAUaddr"| based on miner private key, this is the coins wiring address for the chain, it is the TAU address in the core.
+miner chain address blance  |  5        |chainID +minerTAUaddr + "balance" |miner balance after this block execution with tx fee
+miner app address      | 46       |chainID +"minerAppAddr"|mining app node address, in IPFS system, for peer connections; minerChainAddr to minerAppAddr is 1 to many relation in single chain; n to m relationship in muliple chain; a chain account can mine on multiple ipfs nodes which can be changed along time. 
+previous HAMT state root | 32       |chainID +"previousroot"|link previou hamt state root
+state array for tx   | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
+signature    | 65       |chainID +"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
 # Transaction - all variables in source code
- No  |  field        | Size     |  Key   |  Notes
- ----|---------------|----------|--------|--------
-5   | nounce        | 8        | tsender + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-1   | version       | 1        |tsender + nounce + "version" | "0x1" as default, several one tsender can send many txs; eg. Taddress100version = 0x1
-2   | option        | 1        |tsender + nounce + "option" | "0x1" as default
-3   | chainid       | 8        |tsender + nounce + "chainid"| "0x1" as default mainchain; for future blocktree reserve
-4   | roothash     | 32       |tsender + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-6   | timestamp     | 4        |tsender + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
-7   | tsender       | 20       |tsender + nounce + "tsender"|tx sender address in TAU system, for IPLD index and display
-8   | isender       | 46       |tsender + nounce + "isender" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
+  field        | Size     |  Key   |  Notes
+---------------|----------|--------|--------
+sender TAU address      | 20       |chainID + "tsender"|tx sender address in TAU system, for IPLD index and display
+sender nounce  | 8        |chainID + tsender + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+version        | 8        |chainID + tsender + nounce + "version" | "0x1" as initial default 
+roothash     | 32       |chainID + tsender + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+timestamp     | 4        |chainID + tsender + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
+sender app address       | 46       |tsender + nounce + "isender" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
 9  | treceiver      | 20       |tsender + nounce + "treciver| tx receiver in TAU system
 10  | amount        | 5        |tsender + nounce + "amount" |transfer amount
 11  | txfee           | 1        |tsender + nounce + "txfee" |transaction fee
