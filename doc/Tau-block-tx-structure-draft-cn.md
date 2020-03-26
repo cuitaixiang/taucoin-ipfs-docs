@@ -1,55 +1,58 @@
 # Block  - draft 
- No              |  Key           | Size-Byte        |  Notes
- ----------------|----------------|------------------|----------------------
- 1   |version        | 1          |  "0x1" as initial default 
- 2   |option         | 1          |  "0x1" as initial default
- 3   |chainid        | 8          |  "0x1" as TAU mainchain; for future blocktree expansion
- 4   |blockno        | 8          |  "0x1" 
- 5   |basetarget     | 8          |  for POT - Proof of Transaction calculation
- 6   |cumulativedifficulty    | 8       | current consensus chain parameter
- 7   |generationsignature     | 32      | for POT calculation, #7 x power x time
- 8   |tforger      | 20       | forger/miner address used in TAU system, for IPLD index and display
- 9   |iforger      | 46       | forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node 
- 10  |timestamp    | 4        | unix timestamp for winning the block package right
- 11  |previousroot | 32       | link previou state root
- 12  |keys    | *       | key-values as result of execute transaction both wiring and message. for message, use tx-signature-hash for locator
- 13  |txs       | *       | json transactions content，10 transaction for now.
- 14  |signature    | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+ No  |  field        | Size     |  Key   |  Notes
+ ----|---------------|----------|--------|--------
+ 1   |version        | 1          |"version" | "0x1" as initial default 
+ 2   |option         | 1          |tforger + "option"| "0x1" as default, reserver for unknown needs 
+ 3   |chainid        | 8          |"chainid"|"0x1" as TAU mainchain; for future blocktree expansion 
+ 4   |blockno        | 8          |"blockno"|"0x1" 
+ 5   |basetarget     | 8          |"basetarget"|for POT - Proof of Transaction calculation 
+ 6   |cumulativedifficulty    | 8       |"cumulativedifficulty"|current consensus chain parameter 
+ 7   |generationsignature     | 32      |"generationsignature"|for POT calculation, #7 x power x time
+ 8   |tforger      | 20       |"tfoger"|forger/miner address used in TAU system, for IPLD index and display 
+ 9   |iforger      | 46       |"iforger"|forger/miner address used in IPFS system, for peer connection; tforger to iforger is 1 to many relation, a TAU account can mine on multiple ipfs device/node 
+ 10  |timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
+ 11  |previousroot | 32       |"previousroot"|link previou state root
+ 13  |state    | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
+ 14  |signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
-# Transaction
- No              |  Key           | Size-Byte        |  Notes
- ----------------|----------------|------------------|----------------------
-1   | version       | 1        |  "0x1" as default
-2   | option        | 1        |  "0x1" as default
-3   | chainid       | 8        |  "0x1" as default mainchain; for future blocktree reserve
-4   | blockhash     | 32       |  "0x0" similar to EOS TAPOS, witness of the block within the mutable range point in a chosen chain, must fill in to promote community engagement for high security
-5   | nounce        | 8        |  "0x1" similar to ETH nounce to prevent replay transactions
-6   | timestamp     | 4        | tx timestamp, tx expire in 12 hours
-7   | tsender       | 20       | tx sender address in TAU system, for IPLD index and display
-8   | isender       | 46       | tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
-9  | receiver      | 20       | tx receiver in TAU system
-10  | amount        | 5        | transfer amount
-11  | txfee           | 1        | transaction fee
-15  | relay           | *        | relay and multi-address in json, mobile node connect to relay and incentivate with fee
-16  | relayfee           | 1        | relay fee, current version set to zero until the relay private key is supported to do wring
-17  | signature     | 65       | r: 32 bytes, s: 32 bytes, v: 1 byte
+# Transaction - all variables in source code
+ No  |  field        | Size     |  Key   |  Notes
+ ----|---------------|----------|--------|--------
+5   | nounce        | 8        | tsender + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+1   | version       | 1        |tsender + nounce + "version" | "0x1" as default, several one tsender can send many txs; eg. Taddress100version = 0x1
+2   | option        | 1        |tsender + nounce + "option" | "0x1" as default
+3   | chainid       | 8        |tsender + nounce + "chainid"| "0x1" as default mainchain; for future blocktree reserve
+4   | roothash     | 32       |tsender + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+6   | timestamp     | 4        |tsender + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
+7   | tsender       | 20       |tsender + nounce + "tsender"|tx sender address in TAU system, for IPLD index and display
+8   | isender       | 46       |tsender + nounce + "isender" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
+9  | treceiver      | 20       |tsender + nounce + "treciver| tx receiver in TAU system
+10  | amount        | 5        |tsender + nounce + "amount" |transfer amount
+11  | txfee           | 1        |tsender + nounce + "txfee" |transaction fee
+15  | relay           | *        |tsender + nounce + "relay" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
+16  | relayfee           | 1        |tsender + nounce +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+10  | sender balance        | 5        |tsender + "balance" |transfer amount
+10  | receiver balance        | 5        |treceiver + "balance" |transfer amount
+10  | relay balance        | 5        |relay + "balance" |transfer amount
+
+17  | signature     | 65       |"signature" |r: 32 bytes, s: 32 bytes, v: 1 byte
 
 #12-#14 are for different type of transactions fields.
 
 # Miner info update transaction - all users are miner
- No              |  Key           | Size-Byte        |  Notes
- ----------------------|----------------|------------------|----------------------
-12  | contactname      | 32         | the defaul is your telegram id or other anything
-13  | name             | 256         | nickname
-14  | profile          | 1024         | user profile
+ No  |  field        | Size     |  Key   |  Notes
+ ----|---------------|----------|--------|--------
+12  | name      | 32         |tsender + nounce + "name"|the defaul is your telegram id or other anything (key=tsender+contactname)
+13  | contact             | 65         |tsender + nounce + "contact"| nickname 
+14  | profile          | 1024         |tsender + nounce + "profile"| user profile 
 
 # Message and wiring transaction
- No              |  Key           | Size-Byte        |  Notes
- ----------------|----------------|------------------|----------------------
-12  | referid      | 32           | the previous tx signature-hash or receiver address referred in new message; equal sender for a save note, equal receiver for a wiring
-13  | title        | 256          | the title of message or wiring memo
-14  | content      | 1024           | The content
+ No  |  field        | Size     |  Key   |  Notes
+ ----|---------------|----------|--------|--------
+12  | optcode    | 32           |tsender + nounce +"optcode" |0 means self save, 1 means thread head, 2 means comments 
+13  | thread        | 65          |tsender + nounce + "thread" |the thread sigature
+14  | title/content      | 1024           |tsender + nounce + "content" |The message
 
 ## removed all CID in design other than the "previous state root" 
 
