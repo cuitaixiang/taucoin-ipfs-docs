@@ -2,28 +2,27 @@
   field        | Size     |  Key   |  Notes
 ---------------|----------|--------|--------
 timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
-chain ID       | 8        |"chainID"|"0x1" as mainchain; for future blocktree expansion 
-version        | 8        |chainID + "version" | "0x1" as initial default 
-state number   | 8        |chainID + "stateNumber"| e.g 0x1statenumber = 100
-base target    | 8        |chainID + "basetarget"|for POT - Proof of Transaction calculation 
-cumulative difficulty    | 8       |chainID + "cumulativedifficulty"|current consensus chain parameter 
-generation signature     | 32      |chainID + "generationsignature"|for POT calculation,  x power x time
-miner TAU address    | 20       |chainID +"minerTAUaddr"| based on miner private key, this is the coins wiring address for the chain, it is the TAU address in the core.
-miner chain address blance  |  5        |chainID +minerTAUaddr + "balance" |miner balance after this block execution with tx fee
-miner app address      | 46       |chainID +"minerAppAddr"|mining app node address, in IPFS system, for peer connections; minerChainAddr to minerAppAddr is 1 to many relation in single chain; n to m relationship in muliple chain; a chain account can mine on multiple ipfs nodes which can be changed along time. 
-previous HAMT state root | 32       |chainID +"previousroot"|link previou hamt state root
+version        | 8        |"version" | "0x1" as initial default 
+state number   | 8        |"stateNumber"| e.g 0x1statenumber = 100
+base target    | 8        |"basetarget"|for POT - Proof of Transaction calculation 
+cumulative difficulty    | 8       |"cumulativedifficulty"|current consensus chain parameter 
+generation signature     | 32      |"generationsignature"|for POT calculation,  x power x time
+miner TAU address    | 20       |"minerTAUaddr"| based on miner TAU private key, this is the coins wiring address.
+miner chain address blance  |  5        |minerTAUaddr + "balance" |miner balance after this block execution with tx fee
+miner app address      | 46       |minerTAUaddr + "minerAppAddr"|mining app node address, in IPFS system, for peer connections; minerChainAddr to minerAppAddr is 1 to many relation in single chain; n to m relationship in muliple chain; a chain account can mine on multiple ipfs nodes which can be changed along time. 
+previous HAMT state root | 32       |"previousroot"|link previou hamt state root
 state array for tx   | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
-signature    | 65       |chainID +"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
 # Transaction - all variables in source code
   field        | Size     |  Key   |  Notes
 ---------------|----------|--------|--------
-sender TAU address      | 20       |chainID + "tsender"|tx sender address in TAU system, for IPLD index and display
-sender nounce  | 8        |chainID + tsender + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-version        | 8        |chainID + tsender + nounce + "version" | "0x1" as initial default 
-roothash     | 32       |chainID + tsender + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-timestamp     | 4        |chainID + tsender + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
+sender TAU address   | 20 |"senderTAUaddr"|tx sender address in TAU system, for IPLD index and display
+sender nounce  | 8        |senderTAUaddr + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+version        | 8        |senderTAUaddr + nounce + "version" | "0x1" as initial default 
+roothash       | 32       |senderTAUaddr + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+timestamp      | 4        |senderTAUaddr + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
 sender app address       | 46       |tsender + nounce + "isender" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
 9  | treceiver      | 20       |tsender + nounce + "treciver| tx receiver in TAU system
 10  | amount        | 5        |tsender + nounce + "amount" |transfer amount
