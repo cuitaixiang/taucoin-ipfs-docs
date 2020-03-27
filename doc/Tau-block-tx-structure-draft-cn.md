@@ -1,4 +1,4 @@
-# Chain State  - draft 
+# Chain Level State  - all the keys are chain-wide unique 
   field        | Size     |  Key   |  Notes
 ---------------|----------|--------|--------
 timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
@@ -12,33 +12,41 @@ miner TAU address blance  |  5        |minerTAUaddr + "balance" |miner balance a
 miner IPLD address      | 46       |minerTAUaddr + "minerIPLDaddr"|mining app node address, in IPFS system, for peer connections; minerChainAddr to minerAppAddr is 1 to many relation in single chain; n to m relationship in muliple chain; a chain account can mine on multiple ipfs nodes which can be changed along time. 
 previous HAMT state root | 32       |"previousroot"|link previou hamt state root
 state array for tx   | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
-state_n_value(sort(key))_signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+full new state k-v hash orderred-array and signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
 # Transaction T (T=1-10)
   field        | Size     |  Key   |  Notes
 ----------------------|----------|--------|--------
-tx 1 signature hash | 32 |1 + "txSigHash"| eg. 1txSigHash = hash1
-tx .. signature hash | 32 |.. + "txSigHash"| eg. 2txSigHash = hash2
-tx T signature hash | 32 |T + "txSigHash"| eg. TtxSigHash = hashT
-txsender TAU address | 20 |TtxSigHash + "txsenderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
-txsender nounce  | 8      |TtxSigHash + txsenderTAUaddr + "nounce"| eg hashTTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-version        | 8        |txsenderTAUaddr(T) + "nounce" + "version" | "0x1" as initial default 
-roothash       | 32       |txsenderTAUaddr(T) + "nounce" + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-timestamp      | 4        |txsenderTAUaddr(T) + "nounce" + "timestamp" |tx timestamp, tx expire in 12 hours
-txsender IPLD address       | 46       |txsenderTAUaddr(T) + "txSenderIPLDaddr" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
-treceiver      | 20       |n + txsenderTAUaddr + nounce + "treciver| tx receiver in TAU system
-amount        | 5        |tsender + nounce + "amount" |transfer amount
-txfee           | 1        |tsender + nounce + "txfee" |transaction fee
-relay_maddr           | *        |tsender + nounce + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
-relay_iaddr           | 1        |tsender + nounce + "relay_iaddr" | ipfs address for relay
-relayfee           | 1        |tsender + nounce +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+tx JSON #1    | 32 | "txJSON_1"| eg. txJSON_1= {"","",signature}
+tx JSON #T | 32 |"txJSON"+T| eg. txJSON_T ={"","",signature}
+
+.. | .. |..| an example of transaction #1 JSON execution result for future verify
+
+hash of #1 tx json|32| no_1_txJSONhash | no_1_txJSONhash = hash(no_1_txJSON)
+txsender TAU address | 20 |no_1_txJSONhash + "txsenderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
+txsender IPLD address       | 46       |no_1_txJSONhash + txsenderTAUaddr + "txSenderIPLDaddr" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
+txsender nounce  | 8      |no_1_txJSONhash + txsenderTAUaddr + "nounce"| eg hashTTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
 sender balance        | 5        |tsender + "balance" |transfer amount
 txsender nounce  | 8        |txsenderTAUaddr + "nounce"| "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
 
 10  | receiver balance        | 5        |treceiver + "balance" |transfer amount
 10  | relay balance        | 5        |relay_iaddr + "balance" |transfer amount
-17  | tx_k_v_signature     | 65       |tsender + nounce + "signature" |r: 32 bytes, s: 32 bytes, v: 1 byte
+
+
+
+
+
+version        | 8        |no_1_txJSONhash + txsenderTAUaddr + nounce + "version" | "0x1" as initial default 
+roothash       | 32       |no_1_txJSONhash + txsenderTAUaddr + nounce + "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+timestamp      | 4        |no_1_txJSONhash + txsenderTAUaddr + nounce + "timestamp" |tx timestamp, tx expire in 12 hours
+treceiver      | 20       |no_1_txJSONhash + "treciver| tx receiver in TAU system
+amount        | 5        |tsender + nounce + "amount" |transfer amount
+txfee           | 1        |tsender + nounce + "txfee" |transaction fee
+relay_maddr           | *        |tsender + nounce + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
+relay_iaddr           | 1        |tsender + nounce + "relay_iaddr" | ipfs address for relay
+relayfee           | 1        |tsender + nounce +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+
 
 #12-#14 are for different type of transactions fields.
 
