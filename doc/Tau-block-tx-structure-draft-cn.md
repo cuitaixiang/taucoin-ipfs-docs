@@ -1,157 +1,64 @@
-# Chain Level State  - no block json, at state level only many key-vallue pairs; keys are defined protocol and will be hashed in hamt
-  field        | Size     |  Key   |  Notes
+# Chain Level State  -  many key-vallue pairs; keys are defined in the protocol and will be hashed in hamt
+  field        | Size     |  Key   |  value and notes
 ---------------|----------|--------|--------
-timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
-version        | 8        |"version" | "0x1" as initial default 
-state n   | 8        |"stateNumber"| e.g 0x1stateNumber = 100
-base target    | 8        |"basetarget"|for POT - Proof of Transaction calculation 
-cumulative difficulty    | 8       |"cumulativedifficulty"|current consensus chain parameter 
-generation signature     | 32      |"generationsignature"|for POT calculation,  x power x time
-miner TAU address    | 20       |"minerTAUaddr"| based on miner TAU private key, this is the coins wiring address.
-miner TAU address blance  |  5        |minerTAUaddr + "balance" |miner balance after this block execution with tx fee
-miner IPLD address      | 46       |minerTAUaddr + "minerIPLDaddr"|mining app node address, in IPFS system, for peer connections; minerChainAddr to minerAppAddr is 1 to many relation in single chain; n to m relationship in muliple chain; a chain account can mine on multiple ipfs nodes which can be changed along time. 
-previous HAMT state root | 32       |"previousroot"|link previou hamt state root
-state array for tx   | *       |*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
-full new state k-v hash orderred-array and signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
-
+timestamp    | 4        				|"timestamp"	|unix timestamp for
+version        | 8        				|"version" 	| "0x1" as initial default 
+state n   | 8        					|"stateNumber"	| e.g 0x1stateNumber = 100
+base target    | 8        				|"baseTarget"	|for POT - Proof of Transaction calculation 
+cumulative difficulty    | 8       			|"cumulativeDifficulty"|current consensus chain parameter 
+generation signature     | 32      			|"generationSignature"|for POT calculation,  x power x time
+miner TAU address    | 20       			|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
+miner IPLD address | 46 				|minerTAUaddr + "IPLDaddr"	| Ta..xIPLDaddr = QMa..x; updated in each new mined block
+miner TAU address blance |  5 				|minerTAUaddr + "balance" |Ta..xbalance= 1000; miner balance after the block execution to get tx fee
+previous HAMT state root | 32       			|"previousroot"|link previou hamt state root
+state array for tx   | *       				|*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
+full state k-v hash orderred-array and signature | 65   |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 # Transactions: assume this block only include 2 transaction
   field        | Size     |  Key   |  Notes
 ----------------------|----------|--------|--------
-tx JSON #1    | 32 | "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}
-tx 1 sender nounce  | 8      |senderTAUaddr + "nounce"| hashTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-tx JSON #1    | 32 | "txJSON_2"| eg. txJSON_2= {"","",signature}
-tx 2 sender nounce  | 8      |senderTAUaddr + "nounce"| hashTa..xnounce = 20
+tx JSON #1    | 32 		| "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}
+tx 1 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+tx JSON #1    | 32 		| "txJSON_2"	| eg. txJSON_2= {"","",signature}
+tx 2 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 20
 
-sender's tx identifier for tx 1 |32| senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg reference with changing nounce
 .. | .. |..| an example of transaction #T JSON execution result
-sender TAU address | 20 |Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
-sender IPLD address       | 46       |Ta..x100Hash + senderTAUaddr + "SenderIPLDaddr" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
-relay_maddr           | *        |Ta..x100Hash + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
-relay_ipld_addr           | 1        |Ta..x100Hash + "relay_ipld_addr" | ipfs address for relay
-receiver TAU address | 20 |Ta..x100Hash + "txreceriverTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
-
-version        | 8        |Ta..x100Hash  + "version" | "0x1" as initial default 
-roothash       | 32       |Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-timestamp      | 4        |Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
-amount        | 5        |Ta..x100Hash+ "amount" |transfer amount
-txfee           | 1        |Ta..x100Hash + "txfee" |transaction fee
-relayfee           | 1        |Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+----------------------|----------|--------|--------
+sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
+sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
+relay_ipld_addr    | 46        		|Ta..x100Hash + "relayIPLDaddr" |hash("Ta..x"+"10")relayIPLDAddr = Qm...
+receiver TAU address | 20 		|Ta..x100Hash + "receriverTAUaddr"|e.g hash("Ta..x"+"10")receiverTAUaddr = Ta..x
+version        | 8        		|Ta..x100Hash  + "version" | "0x1" as initial default 
+roothash       | 32       		|Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+timestamp      | 4       		|Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
+amount        | 5        		|Ta..x100Hash+ "amount" |transfer amount
+txfee           | 1        		|Ta..x100Hash + "txfee" |transaction fee
+relayfee           | 1        		|Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wiring
 # for Message and wiring transaction
-tx optcode    | 32       |Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
-msg thread hash      | 65       | Ta..x100Hash + "thread" |the referred tx hash 
-msg title/content      | 1024           |no_1_txJSONhash + "content" |The message; all messages forms up history
+.. | .. |..| an example of transaction #T JSON execution result
+----------------------|----------|--------|--------
+tx optcode    | 32       	|Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
+msg thread hash      | 65       |Ta..x100Hash + "thread" |the referred hash(writerTAUaddr+nounce) 
+msg title/content      | 1024   |Ta..x100Hash + "content" |The message; all messages forms up history
+
+# state wide results
 # for User info update transaction
+.. | .. |..| an example of transaction #T JSON execution result
+----------------------|----------|--------|--------
 sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
-sender contact info           | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
-sender profile          | 1024         |senderTAUaddr + "profile"| user profile 
+sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
+sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
 
-.. state wide results
-sender balance        | 5        |senderTAUaddr + "balance" |
+
+.. | .. |..| an example of transaction #T JSON execution result
+----------------------|----------|--------|--------
+sender balance        | 5       |senderTAUaddr + "balance" |
 relay balance        | 5        |relay_ipld_addr + "balance" |
-receiver balance        | 5        |receriverTAUaddr + "balance" |
-
+receiver balance        | 5     |receriverTAUaddr + "balance" |
+relay_maddr           | *       |relayIPLDaddr + "maddr" |Qm...maddr = {...}; in json, for mobile node connect to relay
+sender IPLD address    | 4      |senderTAUaddr + "IPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
 ## how tx json look like
 
-# Dev Discussion logs
-### 20191118
-- 考虑IPLD和区块数据信息统一以及效率问题，设计字段都有效保留；
-- nodeid改名为bootstrapid
-- 考虑多链结构下的区块信息流，加入chainid-genesis transaction hash字段以做区分；
----
-### 20191125
-- 考虑非矿工用户，只关心内容，进而减少其同步数据的流量；
-- 根据上述需求，加入两个区分交易类型的merkle root：mmerkleroot, cmerkleroot;  
-   - mmerkleroot: 信息交易(New chain transaction, persnonal info transaction, new message transaction)的MR
-   - cmerkleroot: 代币转账交易的MR
----
-### 20191126
-- 区块中的交易merkle root，改为单层交易root, ![如图](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/imgfile/txrootcid.jpg)
-- Merkle root对于本应用而言，无优势，单层root结构可以无缝对接IPLD数据格式，效率也高；
----
-### 20191204
-- 考虑以太坊的设计，实现快速同步账户状态数据，增加stateroot字段；
-```
-stateroot是Merkle Patricia Trie的根哈希.
-```
-- MPT树的Value记录了账户状态(余额，Power-Nounce, 信息交易)，根据MPT来获取账户信息交易；
-- 信息交易的获取根源从stateroot出发，因而将mtxroot和ctxroot合并为txroot；
-
-
-##### 问题讨论：
-```
-Shared MPT的实现方案？
-```
-
-### 20200213
-- 考虑IPFS效率问题，block header中加入MultiAddress信息：IP Info+ NodeId Info
-- 交易中在以后版本中考虑中继节点信息
-
----
-### 20200214
-- 经过讨论，IPFS 可以利用dnt findpeer找到NodeId Info对应的IP Info, 只保留NodeId。
-
----
-### 20200218
-- 还原之前的讨论内容，block header中加入中继节点信息，该信息以MultiAddress形式加入。[详见说明](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/doc/p2p-network-relay-solution.md)
-
----
-### 20200221
-- block header中加入矿工节点信息，该信息仅表现为IPFS cid形式。[详见说明](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/doc/Tau-address-instructions.md)
-
-
-## Transaction
-### 20191118
-- 考虑forum应用以及交易过期问题，去除expiretime字段；
-- 考虑IPLD和区块数据信息统一以及效率问题，其他设计字段有效保留；
-- 考虑多链结构下的交易信息流，加入chainid-genesis transaction hash字段以做区分；  
----
-### 20191125
-- New name transaction中加入profile字段，扩展为个人简介交易；
-- new chain, message transaction中的abstract字段名修改为title；
-- 信息类型由纯文字类型扩展到文字、图片、链接、视频四种类型，信息类型的由IPFS Cid区分；
-
-##### 问题讨论：
-```
-IPFS Cid区分信息类型的方案：可以类似与CID version实现，message type+ cidv0
-```
-- message type:
-  - 0 -> 纯文字
-  - 1 -> 包含链接
-  - 2 -> 包含图片
-  - 3 -> 包含视频
-  - ...
----
-### 20200205
-- new chain, message transaction中的title字段名修改为intro；
-- intro由三部分組成：title+ 內容摘要(前144個bytes)+ IPFS Cid hash(图片hash, voice Hash等)
-- IPFS Cid区分信息类型的方案暂定为：message type+ cidv0
-- message type:
-  - 0 -> 纯文字
-  - 1 -> 包含链接
-  - 2 -> 包含图片
-  - 3 -> 包含视频
-  - ...
----
-### 20200214
-- 交易中加入主链BlockHash, 以达到'TaPOS'。 [TaPOS说明](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/doc/TaPoS.md)
-
----
-### 20200218
-- 上链的CID对应的文件大小，矿工要做一次验证以防攻击. [CID对应文件说明](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/doc/Taucoin-ipfs-cid-instructions-cn.md)
-
----
-### 20200221
-- 交易中加入可选字段：Sender节点信息，该信息仅表现为IPFS cid形式。
-- 交易中加入可选字段：中继节点信息，该信息以MultiAddress的形式加入，为可选字段。
-- 上述两个可选字段的加入，[详见说明](https://github.com/Tau-Coin/taucoin-ipfs-docs/blob/master/doc/Tau-address-instructions.md)。
-
----
-
-### 20200226
-- 账户信息中只存在balance, nounce<=>power.
-- 在现有的框架下，可以适应于多链系统，Shared MPT不再适用。
----
 
 ### 20200304
 - 讨论的问题主要是解决IPFS中的Peer Routing问题
