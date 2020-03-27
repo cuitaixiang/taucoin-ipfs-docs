@@ -1,4 +1,4 @@
-# Chain Level State  - no block json, at state level only many key-vallue pairs
+# Chain Level State  - no block json, at state level only many key-vallue pairs; keys are defined protocol and will be hashed in hamt
   field        | Size     |  Key   |  Notes
 ---------------|----------|--------|--------
 timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
@@ -15,48 +15,41 @@ state array for tx   | *       |*|key-values as result of execute both wiring an
 full new state k-v hash orderred-array and signature    | 65       |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 
 
-# Transaction T (T=1-10)
+# Transactions: assume this block only include 2 transaction
   field        | Size     |  Key   |  Notes
 ----------------------|----------|--------|--------
-tx JSON #1    | 32 | "txJSON_1"| eg. txJSON_1= {"","",signature}
-tx JSON #T | 32 |"txJSON"+T| eg. txJSON_T ={"","",signature}
+tx JSON #1    | 32 | "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}
+tx 1 sender nounce  | 8      |senderTAUaddr + "nounce"| hashTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+tx JSON #1    | 32 | "txJSON_2"| eg. txJSON_2= {"","",signature}
+tx 2 sender nounce  | 8      |senderTAUaddr + "nounce"| hashTa..xnounce = 20
 
-.. | .. |..| an example of transaction #1 JSON execution result
-.. Context
-hash of #1 tx json|32| no_1_txJSONhash | no_1_txJSONhash = hash(no_1_txJSON)
-.. vars - address
-sender TAU address | 20 |no_1_txJSONhash + "txsenderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
-sender IPLD address       | 46       |no_1_txJSONhash + txsenderTAUaddr + "txSenderIPLDaddr" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
-relay_maddr           | *        |no_1_txJSONhash + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
-relay_ipld_addr           | 1        |no_1_txJSONhash + "relay_ipld_addr" | ipfs address for relay
-receiver TAU address | 20 |no_1_txJSONhash + "txreceriverTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
-.. vars - others
-version        | 8        |no_1_txJSONhash  + "version" | "0x1" as initial default 
-roothash       | 32       |no_1_txJSONhash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-timestamp      | 4        |no_1_txJSONhash +  "timestamp" |tx timestamp, tx expire in 12 hours
-amount        | 5        |no_1_txJSONhash+ "amount" |transfer amount
-txfee           | 1        |no_1_txJSONhash + "txfee" |transaction fee
-relayfee           | 1        |no_1_txJSONhash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+sender's tx identifier for tx 1 |32| senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg reference with changing nounce
+.. | .. |..| an example of transaction #T JSON execution result
+sender TAU address | 20 |Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
+sender IPLD address       | 46       |Ta..x100Hash + senderTAUaddr + "SenderIPLDaddr" |tx sender address in IPFS system, for locating tx file in IPFS; tsender to isender is 1 to many relations; a TAU sender can send on multiple devices. for relay, t=i.
+relay_maddr           | *        |Ta..x100Hash + "relay_maddr" |relay and multi-address in json, mobile node connect to relay and incentivate with fee
+relay_ipld_addr           | 1        |Ta..x100Hash + "relay_ipld_addr" | ipfs address for relay
+receiver TAU address | 20 |Ta..x100Hash + "txreceriverTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x; tx sender address in TAU system, for IPLD index and display
 
-.. results
-sender nounce  | 8      |senderTAUaddr + "nounce"| eg hashTTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
+version        | 8        |Ta..x100Hash  + "version" | "0x1" as initial default 
+roothash       | 32       |Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+timestamp      | 4        |Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
+amount        | 5        |Ta..x100Hash+ "amount" |transfer amount
+txfee           | 1        |Ta..x100Hash + "txfee" |transaction fee
+relayfee           | 1        |Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wring
+# for Message and wiring transaction
+tx optcode    | 32       |Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
+msg thread hash      | 65       | Ta..x100Hash + "thread" |the referred tx hash 
+msg title/content      | 1024           |no_1_txJSONhash + "content" |The message; all messages forms up history
+# for User info update transaction
+sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
+sender contact info           | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
+sender profile          | 1024         |senderTAUaddr + "profile"| user profile 
+
+.. state wide results
 sender balance        | 5        |senderTAUaddr + "balance" |
 relay balance        | 5        |relay_ipld_addr + "balance" |
 receiver balance        | 5        |receriverTAUaddr + "balance" |
-
-# Miner info update transaction - all users are miner
- No  |  field        | Size     |  Key   |  Notes
- ----|---------------|----------|--------|--------
-sender name      | 32         |senderTAUaddr + "name"|the defaul is your telegram id or other anything (key=tsender+contactname)
-sender contact             | 65         |senderTAUaddr+ "contact"| nickname 
-sender profile          | 1024         |senderTAUaddr + "profile"| user profile 
-
-# Message and wiring transaction
- No  |  field        | Size     |  Key   |  Notes
- ----|---------------|----------|--------|--------
-senderTAUaddr + nounce + optcode    | 32       |senderTAUaddr + nounce +"optcode" |0 means self save, 1 means thread head, 2 means comments 
-senderTAUaddr + nounce + thread        | 65       | 0: private; 1: public; 2:  no_1_txJSONhash + "thread" |the referred tx hash 
-title/content      | 1024           |senderTAUaddr + nounce + "content" |The message; all messages forms up history
 
 ## how tx json look like
 
