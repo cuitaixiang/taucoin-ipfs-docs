@@ -1,4 +1,4 @@
-# Chain Level State  - all the keys are chain-wide unique 
+# Chain Level State  - no block json, at state level only many key-vallue pairs
   field        | Size     |  Key   |  Notes
 ---------------|----------|--------|--------
 timestamp    | 4        |"timestamp"|unix timestamp for winning the block package right
@@ -54,8 +54,8 @@ sender profile          | 1024         |senderTAUaddr + "profile"| user profile
 # Message and wiring transaction
  No  |  field        | Size     |  Key   |  Notes
  ----|---------------|----------|--------|--------
-no_1_txJSONhash optcode    | 32       |no_1_txJSONhash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
-no_1_txJSONhash thread        | 65       | 0: private; 1: public; 2:  no_1_txJSONhash + "thread" |the referred tx hash 
+senderTAUaddr + nounce + optcode    | 32       |senderTAUaddr + nounce +"optcode" |0 means self save, 1 means thread head, 2 means comments 
+senderTAUaddr + nounce + thread        | 65       | 0: private; 1: public; 2:  no_1_txJSONhash + "thread" |the referred tx hash 
 title/content      | 1024           |senderTAUaddr + nounce + "content" |The message; all messages forms up history
 
 ## how tx json look like
