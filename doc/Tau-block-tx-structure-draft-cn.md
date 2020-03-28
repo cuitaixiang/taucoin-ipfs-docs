@@ -17,8 +17,8 @@ miner IPLD address | 46 		|Ta..xIPLDaddr 	| Qma..x
 miner relay multiaddress | flexible 	|Ta..xRelayMaddr | {...}
 
 # Transactions, this block only include 1 transaction
-
-senderNounceTxJason = {
+# senderNounceTxJason = 
+{
 //sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
 //sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
 //receiver TAU address | 20 		|Ta..x100Hash + "receriverTAUaddr"|e.g hash("Ta..x"+"10")receiverTAUaddr = Ta..x
@@ -35,7 +35,6 @@ senderNounceTxJason = {
 //msgAttachment size	|8|
 //msgAattachment cid	|32|
 # for User info update transaction
-----------------------|----------|--------|--------
 //sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
 //sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
 //sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
