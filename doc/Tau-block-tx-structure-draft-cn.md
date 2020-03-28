@@ -10,36 +10,34 @@
 
 # Chain Level State with entry point of "cid" + peersID
 field description    | Size     |  Key exmple  |  example value and notes
----------------|----------|--------|--------
-current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions| tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+---------------|----------|--------|------------------------------------------------------------------
+current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
 miner TAU address blance |  5 		|Ta..xBalance 	|1000; miner balance after the block execution to get tx fee
 miner IPLD address | 46 		|Ta..xIPLDaddr 	| Qma..x
 miner relay multiaddress | flexible 	|Ta..xRelayMaddr | {...}
 
 # Transactions, this block only include 1 transaction
 # senderNounceTxJason = 
-{
-//sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
-//sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
-//receiver TAU address | 20 		|Ta..x100Hash + "receriverTAUaddr"|e.g hash("Ta..x"+"10")receiverTAUaddr = Ta..x
-//version        | 8        		|Ta..x100Hash  + "version" | "0x1" as initial default 
-//roothash       | 32       		|Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-//timestamp      | 4       		|Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
-//amount        | 5        		|Ta..x100Hash+ "amount" |transfer amount
-////txfee           | 1        		|Ta..x100Hash + "txfee" |transaction fee
-//signature
-# for Message transaction
-//sender tx optcode    | 32       | senderNounceOptcoide = Ta..x100 +"optcode" |0 means self save with private key encryption, 1 means message thread head, 2 means comments to thread, 3 send to a TAU address with encryption of public key
-//optvalue = 2: "other sender address + nounce"; 3:  message receive TAU address, which leads to public key
-// msg title/content      | 1024   |
-//msgAttachment size	|8|
-//msgAattachment cid	|32|
-# for User info update transaction
-//sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
-//sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
-//sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
-//sender publickey
-}
+sender TAU address,20 bytes;
+receiver TAU address,20;
+version,8, "0x1" default;
+roothash,32,similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state;
+timestamp,4,tx timestamp, tx expire in 12 hours;
+amount,5;
+txfee;
+signature
+## for Message transaction
+sender tx optcode,1,0 means self save with private key encryption, 1 means message thread head, 2 means comments to thread, 3 send to a TAU address with encryption of public key;
+optvalue = 2: "other sender address + tx nounce"; 3:  message receive TAU address, which leads to public key
+msg title/content,1024;
+msgAttachment size,8;
+msgAattachment cid,32;
+## for User info update transaction
+sender nick name,32,Ta..xNickname=imorpheus;
+sender contact info,65,Ta..xContact = ..,your telegram id or any well know social media account;
+sender profile,1024,senderTAUaddr + "profile";
+sender publickey
+
 
 # Output: 
 field intro       | Size     | Sample Key   |  Value and Notes
