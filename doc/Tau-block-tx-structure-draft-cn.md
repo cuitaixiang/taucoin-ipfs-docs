@@ -51,7 +51,6 @@ sender IPLD address    | 4      	|Ta..xIPLDaddr" |Ta..xIPLDaddr=QMa...x; tx send
 sender balance        | 5       	|Ta..xBalance" | 10000
 receiver balance        | 5     	|receriverTAUaddr + "balance" |
 
-## how tx json look like
 
 
 ### 20200304
