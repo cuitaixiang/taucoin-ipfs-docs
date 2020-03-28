@@ -1,25 +1,28 @@
-# Chain Level State  -  many key-vallue pairs; keys are defined in the protocol and will be hashed in hamt
+# Chain Level State  -  keys are defined in the protocol and will be hash-stored in hamt, all global export
   field        | Size     |  Key   |  value and notes
 ---------------|----------|--------|--------
-timestamp    | 4        				|"timestamp"	|unix timestamp for
-version        | 8        				|"version" 	| "0x1" as initial default 
-state n   | 8        					|"stateNumber"	| e.g 0x1stateNumber = 100
-base target    | 8        				|"baseTarget"	|for POT - Proof of Transaction calculation 
-cumulative difficulty    | 8       			|"cumulativeDifficulty"|current consensus chain parameter 
-generation signature     | 32      			|"generationSignature"|for POT calculation,  x power x time
-miner TAU address    | 20       			|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
+stateJSONContent | * | stateNumber+"JSONContent" | 00678JSON={ 
+//timestamp    | 4        				|"timestamp"	|unix timestamp for
+//version        | 8        				|"version" 	| "0x1" as initial default 
+//state number   | 8        					|"stateNumber"	| e.g 0x1stateNumber = 100
+//base target    | 8        				|"baseTarget"	|for POT - Proof of Transaction calculation 
+//cumulative difficulty    | 8       			|"cumulativeDifficulty"|current consensus chain parameter 
+//generation signature     | 32      			|"generationSignature"|for POT calculation,  x power x time
+//miner TAU address    | 20       			|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
+//JSON for transactions| tx JSON #1    | 32 		| "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}		tx JSON #1    | 32 		| "txJSON_2"	| eg. txJSON_2= {"","",signature}
+// miner ipld address|46|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
+// previous hamt state root
+//signature | 65   |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+}
 miner IPLD address | 46 				|minerTAUaddr + "IPLDaddr"	| Ta..xIPLDaddr = QMa..x; updated in each new mined block
 miner TAU address blance |  5 				|minerTAUaddr + "balance" |Ta..xbalance= 1000; miner balance after the block execution to get tx fee
-previous HAMT state root | 32       			|"previousroot"|link previou hamt state root
-state array for tx   | *       				|*|key-values as result of execute both wiring and message. for message, use tx-signature-hash for locator; account_balance(Ta..x=1); account_nounce(Ta..xNounce=100); account_nounce_msg(Tax..x+100+msg="hello world")
-full state k-v hash orderred-array and signature | 65   |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
+previous HAMT state root | 32 | 00678previousRoot | cid10000; this is for travese the states to immutable point, a block does not know own hash. In verification, this value gives your fast access to previous state hash
 
 # Transactions: assume this block only include 2 transaction
   field        | Size     |  Key   |  Notes
 ----------------------|----------|--------|--------
-tx JSON #1    | 32 		| "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}
 tx 1 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-tx JSON #1    | 32 		| "txJSON_2"	| eg. txJSON_2= {"","",signature}
+
 tx 2 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 20
 
 .. | .. |..| an example of transaction #T JSON execution result
