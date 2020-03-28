@@ -9,7 +9,7 @@ miner IPLD address | 46 		|Ta..xIPLDaddr | Qma..x
 # Transactions, this block only include 1 transaction
   field intro       | Size     | Sample Key   |  Value and Notes
 ----------------------|----------|--------|--------
-
+senderNounceTxJason = {
 //sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
 //sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
 //relay_ipld_addr    | 46        		|Ta..x100Hash + "relayIPLDaddr" |hash("Ta..x"+"10")relayIPLDAddr = Qm...
@@ -20,32 +20,37 @@ miner IPLD address | 46 		|Ta..xIPLDaddr | Qma..x
 //amount        | 5        		|Ta..x100Hash+ "amount" |transfer amount
 ////txfee           | 1        		|Ta..x100Hash + "txfee" |transaction fee
 //relayfee           | 1        		|Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wiring
-# for Message and wiring transaction
-.. | .. |..| an example of transaction #T JSON execution result
-----------------------|----------|--------|--------
-sender tx optcode    | 32       | senderNounceOptcoide = Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
-msg thread hash      | 65       |senderNouceThread = Ta..x100Hash + "thread" |the referred hash(writerTAUaddr+nounce) 
-msg title/content      | 1024   |sendernouncecontentTa..x100Hash + "content" |The message; all messages forms up history
-
-# state wide results
+//signature
+# for Message transaction
+//sender tx optcode    | 32       | senderNounceOptcoide = Ta..x100 +"optcode" |0 means self save with private key encryption, 1 means message thread head, 2 means comments to thread, 3 send to a TAU address with encryption of public key
+//optvalue = 2: "other sender address + nounce"; 3:  message receive TAU address, which leads to public key
+// msg title/content      | 1024   |
+//msgAttachment size
+//msgAattachment cid
 # for User info update transaction
-.. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
-sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
-sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
-sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
-sender profile attachementSize |8|
-sender profile attachment  |46 |
+//sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
+//sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
+//sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
+//sender publickey
+//sender profile attachementSize |8|
+//sender profile attachment  |46 |
+}
 
-
-.. | .. |..| an example of transaction #T JSON execution result
+Output: 
 ----------------------|----------|--------|--------
-sender balance        | 5       |senderTAUaddr + "balance" |
-tx sender nounce  | 8      	|senderTAUaddr + "nounce"| Ta..xnounce = 10; to prevent replay transactions, nounce is also used as power. Real address power is sqrt(nounce)
-relay balance        | 5        |relay_ipld_addr + "balance" |
+sender nick name      | 32         |Ta..xNickname |imorpheus
+sender contact info   | 65         |Ta..xContact  | your telegram id or any well know social media account
+sender profile        | 1024       |Ta..xProfile"| user profile 
+sender publickey	|*|Ta..xPulibkey | ....
+sender profile attachementSize |8| Ta..xProfileAttachmentSize | 10G
+sender profile attachment  |46 | Ta..xProfileAttachment | CID
+sender IPLD address    | 4      |senderTAUaddr + "IPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
+sender balance        | 5       |Ta..xBalance" | 10000
+sender nounce  | 8      	|Ta..xNounce"|10; to prevent replay transactions, nounce is also used as power. Real address power is sqrt(nounce)
+relay balance        | 5        |Qm..xBalance" | 1000
 receiver balance        | 5     |receriverTAUaddr + "balance" |
 relay_maddr           | *       |relayIPLDaddr + "maddr" |Qm...maddr = {...}; in json, for mobile node random walk on relays, at this moment only connects to one day a time, but after a while will switch to other relay at random
-sender IPLD address    | 4      |senderTAUaddr + "IPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
 ## how tx json look like
 
 
