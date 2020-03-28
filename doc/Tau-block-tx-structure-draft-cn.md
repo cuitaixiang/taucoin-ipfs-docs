@@ -7,8 +7,7 @@ miner IPLD address | 46 		|Ta..xIPLDaddr | Qma..x
 * new node online to boost minging: 1. random walk connecting one relay; 2. random walk connecting one peer; 3. ask for the future state cid according to CBC (correct by construction); 4. traverse 144 states using the cid; 5. random walk to next peer, go to step 3, until half of the know mining peers are traversed. 6. based on the safest state n, start of mining by asking longest chain. for a full nodes, it will verify state 1 - n in the background. 
 
 # Transactions, this block only include 1 transaction
-  field intro       | Size     | Sample Key   |  Value and Notes
-----------------------|----------|--------|--------
+
 senderNounceTxJason = {
 //sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
 //sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
@@ -38,6 +37,8 @@ senderNounceTxJason = {
 }
 
 Output: 
+  field intro       | Size     | Sample Key   |  Value and Notes
+
 ----------------------|----------|--------|--------
 sender nick name      | 32         |Ta..xNickname |imorpheus
 sender contact info   | 65         |Ta..xContact  | your telegram id or any well know social media account
