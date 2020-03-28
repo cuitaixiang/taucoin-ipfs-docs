@@ -1,7 +1,8 @@
 # Chain Level State  -  keys are defined in the protocol and will be hash-stored in hamt, all global export
   field        | Size     |  Key   |  value and notes
 ---------------|----------|--------|--------
-stateJSONContent | * | stateNumber+"JSONContent" | 00678JSON={ 
+stateJSON provides all the vars in json format for pick up. 
+stateJSONContent | * | stateNumber+"JSONContent" | statJSONcontent={ 
 //timestamp    | 4        				|"timestamp"	|unix timestamp for
 //version        | 8        				|"version" 	| "0x1" as initial default 
 //state number   | 8        					|"stateNumber"	| e.g 0x1stateNumber = 100
@@ -14,9 +15,7 @@ stateJSONContent | * | stateNumber+"JSONContent" | 00678JSON={
 // previous hamt state root
 //signature | 65   |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
 }
-miner IPLD address | 46 				|minerTAUaddr + "IPLDaddr"	| Ta..xIPLDaddr = QMa..x; updated in each new mined block
 miner TAU address blance |  5 				|minerTAUaddr + "balance" |Ta..xbalance= 1000; miner balance after the block execution to get tx fee
-previous HAMT state root | 32 | 00678previousRoot | cid10000; this is for travese the states to immutable point, a block does not know own hash. In verification, this value gives your fast access to previous state hash
 
 # Transactions: assume this block only include 2 transaction
   field        | Size     |  Key   |  Notes
@@ -27,22 +26,22 @@ tx 2 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 20
 
 .. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
-sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
-sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
-relay_ipld_addr    | 46        		|Ta..x100Hash + "relayIPLDaddr" |hash("Ta..x"+"10")relayIPLDAddr = Qm...
-receiver TAU address | 20 		|Ta..x100Hash + "receriverTAUaddr"|e.g hash("Ta..x"+"10")receiverTAUaddr = Ta..x
-version        | 8        		|Ta..x100Hash  + "version" | "0x1" as initial default 
-roothash       | 32       		|Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
-timestamp      | 4       		|Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
-amount        | 5        		|Ta..x100Hash+ "amount" |transfer amount
-txfee           | 1        		|Ta..x100Hash + "txfee" |transaction fee
-relayfee           | 1        		|Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wiring
+//sender's tx identifier for tx 1 |32	|senderTAUaddr + nounce +"hash" | Ta..xNounceHash = hash("Ta..x"+"10"); good for history msg direct reference with changing nounce
+//sender TAU address | 20 		|Ta..x100Hash + "senderTAUaddr"|e.g hashTtxsenderTAUaddr = Ta..x
+//relay_ipld_addr    | 46        		|Ta..x100Hash + "relayIPLDaddr" |hash("Ta..x"+"10")relayIPLDAddr = Qm...
+//receiver TAU address | 20 		|Ta..x100Hash + "receriverTAUaddr"|e.g hash("Ta..x"+"10")receiverTAUaddr = Ta..x
+//version        | 8        		|Ta..x100Hash  + "version" | "0x1" as initial default 
+//roothash       | 32       		|Ta..x100Hash +  "roothash"| "0x0" similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state, must fill in to promote community engagement for high security and basic data knowledge
+//timestamp      | 4       		|Ta..x100Hash +  "timestamp" |tx timestamp, tx expire in 12 hours
+//amount        | 5        		|Ta..x100Hash+ "amount" |transfer amount
+////txfee           | 1        		|Ta..x100Hash + "txfee" |transaction fee
+//relayfee           | 1        		|Ta..x100Hash +"relayfee"  |relay fee, current version set to zero until the relay private key is supported to do wiring
 # for Message and wiring transaction
 .. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
-tx optcode    | 32       	|Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
-msg thread hash      | 65       |Ta..x100Hash + "thread" |the referred hash(writerTAUaddr+nounce) 
-msg title/content      | 1024   |Ta..x100Hash + "content" |The message; all messages forms up history
+sender tx optcode    | 32       | senderNounceOptcoide = Ta..x100Hash +"optcode" |0 means self save, 1 means thread head, 2 means comments 
+msg thread hash      | 65       |senderNouceThread = Ta..x100Hash + "thread" |the referred hash(writerTAUaddr+nounce) 
+msg title/content      | 1024   |sendernouncecontentTa..x100Hash + "content" |The message; all messages forms up history
 
 # state wide results
 # for User info update transaction
@@ -51,11 +50,14 @@ msg title/content      | 1024   |Ta..x100Hash + "content" |The message; all mess
 sender nick name      | 32         |senderTAUaddr + "name"| e.g imorpheus
 sender contact info   | 65         |senderTAUaddr+ "contact"| your telegram id or any well know social media account
 sender profile        | 1024       |senderTAUaddr + "profile"| user profile 
+sender profile attachementSize |8|
+sender profile attachment  |46 |
 
 
 .. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
 sender balance        | 5       |senderTAUaddr + "balance" |
+sender nounce | 8 |
 relay balance        | 5        |relay_ipld_addr + "balance" |
 receiver balance        | 5     |receriverTAUaddr + "balance" |
 relay_maddr           | *       |relayIPLDaddr + "maddr" |Qm...maddr = {...}; in json, for mobile node connect to relay
