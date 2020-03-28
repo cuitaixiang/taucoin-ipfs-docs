@@ -1,28 +1,13 @@
-# Chain Level State  -  keys are defined in the protocol and will be hash-stored in hamt, all global export
-  field        | Size     |  Key   |  value and notes
+# Chain Level State with entry point of "cid" + peersID
+field description     | Size     |  Key exmple Key   |  example value and notes
 ---------------|----------|--------|--------
-stateJSON provides all the vars in json format for pick up. 
-stateJSONContent | * | stateNumber+"JSONContent" | statJSONcontent={ 
-//timestamp    | 4        				|"timestamp"	|unix timestamp for
-//version        | 8        				|"version" 	| "0x1" as initial default 
-//state number   | 8        					|"stateNumber"	| e.g 0x1stateNumber = 100
-//base target    | 8        				|"baseTarget"	|for POT - Proof of Transaction calculation 
-//cumulative difficulty    | 8       			|"cumulativeDifficulty"|current consensus chain parameter 
-//generation signature     | 32      			|"generationSignature"|for POT calculation,  x power x time
-//miner TAU address    | 20       			|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
-//JSON for transactions| tx JSON #1    | 32 		| "txJSON_1"| eg. txJSON_1= {"Ta..x","",signature}		tx JSON #1    | 32 		| "txJSON_2"	| eg. txJSON_2= {"","",signature}
-// miner ipld address|46|"minerTAUaddr"	| minerTAUaddr = "Ta..x"; 
-// previous hamt state root
-//signature | 65   |"signature"|r: 32 bytes, s: 32 bytes, v: 1 byte, when at #6 same difficulty, high signature number wins.
-}
-miner TAU address blance |  5 				|minerTAUaddr + "balance" |Ta..xbalance= 1000; miner balance after the block execution to get tx fee
-
-# Transactions: assume this block only include 2 transaction
+current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions| tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+miner TAU address blance |  5 		|Ta..xBalance |1000; miner balance after the block execution to get tx fee
+miner IPLD address | 46 		|Ta..xIPLDaddr | Qma..x
+* 
+# Transactions, this block only include 1 transaction
   field        | Size     |  Key   |  Notes
 ----------------------|----------|--------|--------
-tx 1 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 10; "0x1" similar to ETH nounce to prevent replay transactions, nounce is also used as power and message text key components.eq. TaddressNounce = 100
-
-tx 2 sender nounce  | 8      	|senderTAUaddr + "nounce"| hashTa..xnounce = 20
 
 .. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
@@ -57,10 +42,10 @@ sender profile attachment  |46 |
 .. | .. |..| an example of transaction #T JSON execution result
 ----------------------|----------|--------|--------
 sender balance        | 5       |senderTAUaddr + "balance" |
-sender nounce | 8 |
+tx sender nounce  | 8      	|senderTAUaddr + "nounce"| Ta..xnounce = 10; to prevent replay transactions, nounce is also used as power. Real address power is sqrt(nounce)
 relay balance        | 5        |relay_ipld_addr + "balance" |
 receiver balance        | 5     |receriverTAUaddr + "balance" |
-relay_maddr           | *       |relayIPLDaddr + "maddr" |Qm...maddr = {...}; in json, for mobile node connect to relay
+relay_maddr           | *       |relayIPLDaddr + "maddr" |Qm...maddr = {...}; in json, for mobile node random walk on relays, at this moment only connects to one day a time, but after a while will switch to other relay at random
 sender IPLD address    | 4      |senderTAUaddr + "IPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
 ## how tx json look like
 
