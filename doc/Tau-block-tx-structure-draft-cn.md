@@ -1,10 +1,11 @@
+# TAU - The Autonomous Unlimited Cloud for publishing.
 * new node online to fast mining: 
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
-3. start mining based on curent root cid, or at least genesis cid, and propose n+1 and ask for the future state cid according to CBC (correct by construction); 
+3. start mining based on curent root cid, or on genesis cid, and propose n+1 and request other miner peers for the future state cid according to CBC (correct by construction); 
 4. traverse 144 states using the cid; 
 5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
-6. based on the safest state n, start of mining by asking random peers longest chain. for a full nodes, it will verify state #1 to #n in the background. 
+6. based on the CBC safety state k, start of mining off k and asking random peers longest chain. if k is out of mutable range, then err. for a full nodes, it will verify state #1 to #n in the background. for no wifi or no power, switch to the light mode only collect votes without verifying, tag along and publish tx state.
 7. when new recorded mining nodes increase 33%, due to 1/3 BFT, go to step (1). 
 (nodes receive unsolicit voting, only takes transaction json, not mining part)
 
@@ -12,44 +13,37 @@
 field description    | Size     |  Key exmple  |  example value and notes
 ---------------|----------|--------|------------------------------------------------------------------
 current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
-miner TAU address blance |  5 		|Ta..xBalance 	|1000; miner balance after the block execution to get tx fee
-miner IPLD address | 46 		|Ta..xIPLDaddr 	| Qma..x
-miner relay multiaddress | flexible 	|Ta..xRelayMaddr | {...}
+miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
+miner IPLD address | 46 		|Tsender..xIPLDaddr 	| Qma..x
+miner relay multiaddress | flexible 	|Tsender..xRelayMaddr | {...}
 
 # Transactions, this block only include 1 transaction
 # senderNounceTxJason = 
 sender TAU address,20 bytes;
-receiver TAU address,20;
+receiver TAU address,20; for message and profile, you can wire bonus along the tx
 version,8, "0x1" default;
 roothash,32,similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state;
 timestamp,4,tx timestamp, tx expire in 12 hours;
 amount,5;
 txfee;
 signature
-## for Message transaction
-sender tx optcode,1,0 means self save with private key encryption, 1 means message thread head, 2 means comments to thread, 3 send to a TAU address with encryption of public key;
-optvalue = 2: "other sender address + tx nounce"; 3:  message receive TAU address, which leads to public key
+## for Message transaction - only support publishing now like youtube. 
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread. self can comments on own.
 msg title/content,1024;
 msgAttachment size,8;
-msgAattachment cid,32;
+msgAattachment cid,32; support commercial relay service, tau operate free text, upstream free, downstream up to 2g each address.
 ## for User info update transaction
-sender nick name,32,Ta..xNickname=imorpheus;
-sender contact info,65,Ta..xContact = ..,your telegram id or any well know social media account;
-sender profile,1024,senderTAUaddr + "profile";
-sender publickey
+sender profile json,1024,senderTAUaddr + "profile";
 
 
 # Output: 
 field intro       | Size     | Sample Key   |  Value and Notes
 ----------------------|----------|--------|--------
-sender nounce  | 8      		|Ta..xNounce"|10; to prevent replay transactions, nounce is also used as power. Real address power is sqrt(nounce)
-sender nick name      | 32         	|Ta..xNickname |imorpheus
-sender contact info   | 65         	|Ta..xContact  | your telegram id or any well know social media account
-sender profile        | 1024       	|Ta..xProfile"| user profile 
-sender publickey	|*		|Ta..xPulibkey | ....
-sender IPLD address    | 4      	|Ta..xIPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
-sender balance        | 5       	|Ta..xBalance" | 10000
-receiver balance        | 5     	|receriverTAUaddr + "balance" |
+sender nounce         | 8      		|Tsender..xNounce"|10; to prevent replay transactions and use as POT power. 
+sender profile        | 1024       	|Tsender..xProfile"| user profile {...} your telegram id or any well know social media account
+sender IPLD address    | 4      	|Tsender..xIPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
+sender balance        | 5       	|Tsender..xBalance" | 10000
+receiver balance        | 5     	|Treceiver..xBalance" | 10000
 
 
 
