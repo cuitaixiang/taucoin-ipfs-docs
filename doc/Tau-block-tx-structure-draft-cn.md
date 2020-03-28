@@ -1,10 +1,19 @@
+* new node online to fast mining: 
+1. random walk connecting one relay; 
+2. random walk connecting one miner from miner discovery list from statechain; 
+3. start mining based on curent root cid, or at least genesis cid, and propose n+1 and ask for the future state cid according to CBC (correct by construction); 
+4. traverse 144 states using the cid; 
+5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
+6. based on the safest state n, start of mining by asking random peers longest chain. for a full nodes, it will verify state #1 to #n in the background. 
+7. when new recorded mining nodes increase 33%, due to 1/3 BFT, go to step (1). 
+(nodes receive unsolicit voting, only takes transaction json, not mining part)
+
 # Chain Level State with entry point of "cid" + peersID
 field description    | Size     |  Key exmple  |  example value and notes
 ---------------|----------|--------|--------
 current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions| tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
 miner TAU address blance |  5 		|Ta..xBalance |1000; miner balance after the block execution to get tx fee
 miner IPLD address | 46 		|Ta..xIPLDaddr | Qma..x
-* new node online to boost minging: 1. random walk connecting one relay; 2. random walk connecting one peer; 3. ask for the future state cid according to CBC (correct by construction); 4. traverse 144 states using the cid; 5. random walk to next peer, go to step 3, until half of the know mining peers are traversed. 6. based on the safest state n, start of mining by asking longest chain. for a full nodes, it will verify state 1 - n in the background. 
 
 # Transactions, this block only include 1 transaction
 
