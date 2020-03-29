@@ -70,7 +70,7 @@ previous hamt state root,
 }
 
 ## exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: 0-coinbase, 1-wiring, 2-message.
-### coinbase tx
+### -coinbase tx
 ### 3a. sender/minerNounceJSON ={
 
 version,8, "0x1" as default;
@@ -92,7 +92,7 @@ stateNumber, 8;
 ### 4a. sender/miner nounce	|8;
 ### 5a. sender/miner balance        | 5;
 
-### Coins Wiring
+### -Coins Wiring
 ### 3b. senderNounceJSON = {
 
 opt_code, 8, 1;
@@ -119,7 +119,7 @@ senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; I
 ### 5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
 ### 6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
-### Message transaction
+### -Message transaction
 ### 3c. senderNounceJSON = {
 
 opt_code, 8, 2;
