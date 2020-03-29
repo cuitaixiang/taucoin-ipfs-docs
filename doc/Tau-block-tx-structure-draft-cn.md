@@ -9,7 +9,7 @@
 5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
 6. based on the CBC safety state k, start of mining off k and asking random peers longest chain. if k is out of mutable range, then err. as a full nodes, it will verify state #1 to #n in the background. 
 7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1).
-* nodes receive unsolicit voting, only takes transactions
+* nodes only response to request of blocks, never self push blocks to others. Every one is one way. 
 
 ## steps for stateless miner: require wifi and plug to download partial history, missing wifi or plug will fall to normal user mode
 0. turn on wake-lock and wifi-lock
