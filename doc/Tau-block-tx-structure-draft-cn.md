@@ -47,11 +47,16 @@ amount,5;
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 thread = CID
 signature , 65 }}
-## sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
-## sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
+### sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
+### sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
+## export to global 3 key-values: 
+field intro       | Size     | Sample Key   |  Value and Notes
+----------------------|----------|--------|--------
+sender nounce	|8 			|Ta..xNounce"	10;used as power
+sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
+receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
-
-# 2. senderNounceJson = {
+## 2. senderNounceJson = {
 opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
 sender TAU address,20 bytes;
 nounce, 8, aks POT power;
@@ -62,15 +67,29 @@ amount,5, type 1, 2;
 txfee;
 ## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+field intro       | Size     | Sample Key   |  Value and Notes
+----------------------|----------|--------|--------
+sender nounce	|8 			|Ta..xNounce"	10;used as power
+sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
+receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
-## 3. for Message transaction type 3 only
+## 3. for Message transaction type 3 only senderNounceJson = {
+opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
+sender TAU address,20 bytes;
+nounce, 8, aks POT power;
+receiver TAU address,20, type 2;
+version,8, "0x1" as default;
+timestamp,4,tx expire in 12 hours;
+amount,5, type 1, 2;
+txfee;
+## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
+senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
 msgJSON,1024;
 msgAttachmentSize,8;
 msgAattachmentCid,32;
 ## signature , 65 }
 
-# export to global 3 key-values: 
 field intro       | Size     | Sample Key   |  Value and Notes
 ----------------------|----------|--------|--------
 sender nounce	|8 			|Ta..xNounce"	10;used as power
