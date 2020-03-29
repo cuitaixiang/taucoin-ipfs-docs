@@ -8,17 +8,17 @@
 3. traverse 144 history states from the miner and keep accounting of the root array; 
 mining based on curent root and build&validate (n+1) state JSON; when connection timeout, go to step(1)
 4. go to step (1), until half of the know mining peers are traversed. 
-5. calculate the CBC safety state k, if k it out of mutable range, that is n-144, then go to step (1). 
+5. calculate the CBC safety state k, if k it out of mutable range, that is n-ONEWEEK, then go to step (1). 
 6. random walk until connect to a next relay; random walk until connect to a next miner
-7. start mining by asking the peers longest chain, and verify n-144 to n+1, when peers timeout, go to step (6)
+7. start mining by asking the peers longest chain, and verify n-ONEWEEK to n+1, when peers timeout, go to step (6)
 8. when new added mining nodes increase 33% or self-disconnected 12 hours, go to step (1).
-* miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
+* miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync. mutable range is set for one week. 
 
 ### steps for normal users on battery or 4G 
 0. open android wake-lock and wifi-lock
 1. random walk until connect to a next relay, and keep a list of know relays; random walk until connect to a next miner, and keep a list of know addresses with power and balance and swarm connection history; note: combine relay and peer randomness to reduce connection jam;
 2. request the miner peer for the n+1 state according to CBC (correct by construction); 
-3. traverse 144 history states from the miner and keep accounting of the root array; mining based on curent safty k to propose k+1 state with own tx uppon request; when connection timeout, go to step(1)
+3. traverse ONEWEEK history states from the miner and keep accounting of the root array; mining based on curent safty k to propose k+1 state with own tx uppon request; when connection timeout, go to step(1)
 4. update the CBC safety state k, then go to step (1). 
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
 
