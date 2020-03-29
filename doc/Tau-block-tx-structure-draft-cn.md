@@ -61,7 +61,7 @@ sender/miner nounce, 8, mining is treated as a tx sending to self, nounce ++;
 
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 
 
-txJSON; {original JSON from peers}
+txJSON; {original JSON from peers for wiring and message type 1&2}
 
 previous hamt state root,
 
