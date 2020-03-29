@@ -38,12 +38,12 @@ field description    | Size     |  Key exmple  |  example value and notes
 current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
 miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
 miner IPLD address | 46 		|Tsender..xIPLDaddr 	| Qma..x
-miner relay multiaddress | flexible 	|Tsender..xRelayMaddr | {...}
 
-# Transactions, this block only include 1 transaction
+# Transactions JSON, this block only include 1 transaction
 # senderNounceTxJason = 
 sender TAU address,20 bytes;
 receiver TAU address,20; for message and profile, you can wire bonus along the tx
+relay TAU address
 version,8, "0x1" default;
 roothash,32,similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state;
 timestamp,4,tx timestamp, tx expire in 12 hours;
@@ -55,8 +55,8 @@ thread = "other sender address + tx nounce"; if thread equal self sender nounce,
 msg title/content,1024;
 msgAttachment size,8;
 msgAattachment cid,32; support commercial relay service, tau operate free text, upstream free, downstream up to 2g each address.
-## for User info update transaction
-sender profile json,1024,senderTAUaddr + "profile";
+## for miner or relay profile update transaction
+sender profile json,1024,senderTAUaddr + "profile"; {type: relay; relay multiaddress: {}; or type: miner }; Ta..xProfile={relay; ipfs/qm.../}
 
 
 # Output: 
@@ -67,6 +67,8 @@ sender profile        | 1024       	|Tsender..xProfile"| user profile {...} your
 sender IPLD address    | 4      	|Tsender..xIPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
 sender balance        | 5       	|Tsender..xBalance" | 10000
 receiver balance        | 5     	|Treceiver..xBalance" | 10000
+sender nounce relay | 32 | Ta..x10relay = Trelay..x  ( Trelay..xpofile/relay = ipfs/...
+
 
 
 
