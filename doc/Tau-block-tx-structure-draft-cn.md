@@ -37,9 +37,22 @@ mining based on curent root k and build&validate (n+1) state JSON; when connecti
 4. update the CBC safety state k, then go to step (1). 
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
 
-# Chain Level State with entry point of "cid" + peersID; miner = sender, mining is send one transaction to own
+# State structure with entry point of "cid" + peersID, key-values are:
 
-current state JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;sender/miner TAU address, 20; sender/miner nounce, 8, mining is treated as sending to own;senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+statJSONcontent={ 
+version,8; 
+timestamp, 4; 
+state number, 8; 
+base target, 8; 
+cumulative difficulty,8 ; 
+generation signature,32;
+sender/miner TAU address, 20; 
+sender/miner nounce, 8, mining is treated as a tx sending to self, nounce ++;
+senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 
+txJSON; {}
+previous hamt state root,
+32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.
+}
 
 # exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: mining, wiring, message.
 ## 1 sender/minerNounceJSON ={
