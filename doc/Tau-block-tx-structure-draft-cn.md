@@ -1,4 +1,4 @@
-# TAU - blockchain cloud for unlimited data publishing.
+# TAU - community cloud for unlimited data publishing.
 
 ## TAU is designed to enable mobile device. Two types of modes exists, which are miner and normal user. 
 ### procedures for miner, which requires wifi and power plugged, and missing wifi or plug will switch to normal user mode, 
