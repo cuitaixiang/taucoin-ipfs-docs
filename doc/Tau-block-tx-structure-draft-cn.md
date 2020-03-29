@@ -1,13 +1,36 @@
-# TAU - The Autonomous Unlimited Cloud for publishing.
-* new node online to fast mining: 
+# TAU - blockchain cloud for unlimited data publishing.
+
+## algo for state full miner on wifi, plug: 
+0. open wake-lock and wifi-lock
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
 3. start mining based on curent root cid, or on genesis cid, and propose n+1 and request other miner peers for the future state cid according to CBC (correct by construction); 
 4. traverse 144 states using the cid; 
 5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
-6. based on the CBC safety state k, start of mining off k and asking random peers longest chain. if k is out of mutable range, then err. for a full nodes, it will verify state #1 to #n in the background. for no wifi or no power, switch to the light mode only collect votes without verifying, tag along and publish tx state.
-7. when new recorded mining nodes increase 33%, due to 1/3 BFT, go to step (1). 
-(nodes receive unsolicit voting, only takes transaction json, not mining part)
+6. based on the CBC safety state k, start of mining off k and asking random peers longest chain. if k is out of mutable range, then err. as a full nodes, it will verify state #1 to #n in the background. 
+7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1).
+* nodes receive unsolicit voting, only takes transactions
+
+## algo for  stateless miner on wifi, plug: 
+0. turn off wake-lock and wifi-lock
+1. random walk connecting one relay; 
+2. random walk connecting one miner from miner discovery list from statechain; 
+3. start mining based on curent root cid, or on genesis cid, and propose n+1 and request other miner peers for the future state cid according to CBC (correct by construction); 
+4. traverse 144 states using the cid; 
+5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
+6. based on the CBC safety state k, start of mining off k and asking random peers longest chain. if k is out of mutable range, then err. as a full nodes, it will verify state #1 to #n in the background. 
+7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1).
+* nodes receive unsolicit voting, only takes transactions
+
+## algo for normal user, statefull and stateless miners on battery or 4G: 
+1. random walk connecting one relay; 
+2. random walk connecting one miner from miner discovery list from statechain; 
+3. start propose own block based on curent root cid, or on genesis cid, and request other miner peers for the future state cid according to CBC (correct by construction); 
+4. traverse 144 states using the cid; 
+5. random walk to next miner peer, go to step (3), until half of the know mining peers are traversed. 
+6. based on the CBC safety state k, if k is out of mutable range, then err.
+7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1). 
+* nodes receive unsolicit voting, only takes transactions
 
 # Chain Level State with entry point of "cid" + peersID
 field description    | Size     |  Key exmple  |  example value and notes
