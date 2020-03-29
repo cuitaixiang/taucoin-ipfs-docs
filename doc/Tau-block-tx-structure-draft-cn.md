@@ -54,7 +54,7 @@ previous hamt state root,
 
 }
 
-### Key-3 exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: 0-coinbase, 1-wiring, 2-message.
+### Key-3 three type Transactions: 0-coinbase, 1-wiring, 2-message.
 ### -coinbase tx
 ### Key-3a. sender/minerNounceJSON ={
 
@@ -130,4 +130,4 @@ AttachmentSize,8; use HAMT store multimedia, the result blocks number
 
 ### Key-4c sender nounce, 8 	
 ### Key-5c sender balance, 5    
-### Key-6c senderNounceAttachment1 .. senderNounceAttachmentSize) = {cbor}
+### Key-6c senderNounceAttachment(1 .. senderNounceAttachmentSize) = {cbor}
