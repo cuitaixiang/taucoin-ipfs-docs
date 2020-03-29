@@ -32,42 +32,49 @@
 7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1). 
 * nodes receive unsolicit voting, only takes transactions
 
-# Chain Level State with entry point of "cid" + peersID
+# Chain Level State with entry point of "cid" + peersID; miner = sender, mining is send one transaction to own
 field description    | Size     |  Key exmple  |  example value and notes
 ---------------|----------|--------|------------------------------------------------------------------
-current JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
-miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
-miner IPLD address | 46 		|Tsender..xIPLDaddr 	| Qma..x
-
-# Transactions JSON, this block only include 1 transaction
-# senderNounceTxJason = 
+current state JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;sender/miner TAU address, 20; sender/miner nounce, 8, mining is treated as sending to own;senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+sender/minerNounceJSON ={
+opt_code, 8, 0: mining tx, 1:wiring transaction; 3:message tx
 sender TAU address,20 bytes;
-receiver TAU address,20; for message and profile, you can wire bonus along the tx
-relay TAU address
-version,8, "0x1" default;
-roothash,32,similar to EOS TAPOS, witness of the stateroot within the mutable range point in a chosen state;
-timestamp,4,tx timestamp, tx expire in 12 hours;
+nounce, 8, aks POT power;
+version,8, "0x1" as default;
+timestamp,4,tx expire in 12 hours;
 amount,5;
+senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+thread = CID
+signature , 65 }}
+sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
+sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
+
+# Transactions Nounce JSON, exported, this block only include 1 transaction
+# senderNounceJson = {
+opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
+sender TAU address,20 bytes;
+nounce, 8, aks POT power;
+receiver TAU address,20, type 2;
+version,8, "0x1" as default;
+timestamp,4,tx expire in 12 hours;
+amount,5, type 1, 2;
 txfee;
-signature
-## for Message transaction - only support publishing now like youtube. 
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread. self can comments on own.
-msg title/content,1024;
-msgAttachment size,8;
-msgAattachment cid,32; support commercial relay service, tau operate free text, upstream free, downstream up to 2g each address.
-## for miner or relay profile update transaction
-sender profile json,1024,senderTAUaddr + "profile"; {type: relay; relay multiaddress: {}; or type: miner }; Ta..xProfile={relay; ipfs/qm.../}
+## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
+senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 
+## for Message transaction type 3 only
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
+msgJSON,1024;
+msgAttachmentSize,8;
+msgAattachmentCid,32;
+## signature , 65 }
 
-# Output: 
+# export to global 3 key-values: 
 field intro       | Size     | Sample Key   |  Value and Notes
 ----------------------|----------|--------|--------
-sender nounce         | 8      		|Tsender..xNounce"|10; to prevent replay transactions and use as POT power. 
-sender profile        | 1024       	|Tsender..xProfile"| user profile {...} your telegram id or any well know social media account
-sender IPLD address    | 4      	|Tsender..xIPLDaddr" |Ta..xIPLDaddr=QMa...x; tx sender address in IPFS system, for locating tx file in IPFS, updated in each new tx
-sender balance        | 5       	|Tsender..xBalance" | 10000
-receiver balance        | 5     	|Treceiver..xBalance" | 10000
-sender nounce relay | 32 | Ta..x10relay = Trelay..x  ( Trelay..xpofile/relay = ipfs/...
+sender nounce	|8 			|Ta..xNounce"	10;used as power
+sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
+receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
 
 
