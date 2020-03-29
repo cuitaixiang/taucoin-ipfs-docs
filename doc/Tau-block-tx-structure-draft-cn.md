@@ -33,10 +33,11 @@
 * nodes receive unsolicit voting, only takes transactions
 
 # Chain Level State with entry point of "cid" + peersID; miner = sender, mining is send one transaction to own
-field description    | Size     |  Key exmple  |  example value and notes
----------------|----------|--------|------------------------------------------------------------------
+
 current state JSON Content | flexible | JSONContent| statJSONcontent={ timestamp, 4 bytes; version,8; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;sender/miner TAU address, 20; sender/miner nounce, 8, mining is treated as sending to own;senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; JSON for transactions,tx JSON #1; miner ipld address,46; previous hamt state root,32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
-sender/minerNounceJSON ={
+
+# exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: mining, wiring, message.
+## 1 sender/minerNounceJSON ={
 opt_code, 8, 0: mining tx, 1:wiring transaction; 3:message tx
 sender TAU address,20 bytes;
 nounce, 8, aks POT power;
@@ -46,11 +47,11 @@ amount,5;
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 thread = CID
 signature , 65 }}
-sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
-sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
+## sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
+## sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
 
-# Transactions Nounce JSON, exported, this block only include 1 transaction
-# senderNounceJson = {
+
+# 2. senderNounceJson = {
 opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
 sender TAU address,20 bytes;
 nounce, 8, aks POT power;
@@ -62,7 +63,7 @@ txfee;
 ## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 
-## for Message transaction type 3 only
+## 3. for Message transaction type 3 only
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
 msgJSON,1024;
 msgAttachmentSize,8;
