@@ -37,9 +37,11 @@ mining based on curent root k and build&validate (n+1) state JSON; when connecti
 4. update the CBC safety state k, then go to step (1). 
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
 
-# State structure with entry point of "cid" + peersID, key-values are:
+## State structure with entry point of "cid" + peersID, key-values are:
 
-statJSONcontent={ 
+### 1. stateNumber, 8; stateNumber=1234567
+
+### 2. statJSON1234567content={ 
 
 version,8; 
 
@@ -59,7 +61,7 @@ sender/miner nounce, 8, mining is treated as a tx sending to self, nounce ++;
 
 senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 
 
-txJSON; {}
+txJSON; {original JSON from peers}
 
 previous hamt state root,
 
@@ -67,67 +69,80 @@ previous hamt state root,
 
 }
 
-# exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: mining, wiring, message.
-## 1 sender/minerNounceJSON ={
-opt_code, 8, 0: mining tx, 1:wiring transaction; 3:message tx
-sender TAU address,20 bytes;
-nounce, 8, aks POT power;
+## exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: 0-coinbase, 1-wiring, 2-message.
+### coinbase tx
+### 3a. sender/minerNounceJSON ={
+
 version,8, "0x1" as default;
+
+opt_code, 8, 0x0 is coinbase;
+
+nounce, 8;
+
 timestamp,4,tx expire in 12 hours;
+
 amount,5;
-senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-thread = CID
-signature , 65 }}
-### sender/miner nounce	|8 			|Ta..xNounce"	10;used as power
-### sender/miner TAU address blance |  5 		|Tsender..xBalance 	|1000; miner balance after the block execution to get tx fee
-## export to global 3 key-values: 
-field intro       | Size     | Sample Key   |  Value and Notes
-----------------------|----------|--------|--------
-sender nounce	|8 			|Ta..xNounce"	10;used as power
-sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
-receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
-## 2. senderNounceJson = {
-opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
-sender TAU address,20 bytes;
-nounce, 8, aks POT power;
-receiver TAU address,20, type 2;
-version,8, "0x1" as default;
-timestamp,4,tx expire in 12 hours;
-amount,5, type 1, 2;
-txfee;
-## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
-senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-field intro       | Size     | Sample Key   |  Value and Notes
-----------------------|----------|--------|--------
-sender nounce	|8 			|Ta..xNounce"	10;used as power
-sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
-receiver balance      | 5     		|Treceiver..xBalance" | 10000
+sender/minerProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 
-## 3. for Message transaction type 3 only senderNounceJson = {
-opt_code, 8, 0: mining tx, 1:normal transaction; 2:profile annoucement
-sender TAU address,20 bytes;
-nounce, 8, aks POT power;
+stateNumber, 8;
+
+}
+
+### 4a. sender/miner nounce	|8;
+### 5a. sender/miner balance        | 5;
+
+### Coins Wiring
+### 3b. senderNounceJSON = {
+
+opt_code, 8, 1;
+
+nounce, 8;
+
 receiver TAU address,20, type 2;
+
 version,8, "0x1" as default;
+
 timestamp,4,tx expire in 12 hours;
+
 amount,5, type 1, 2;
+
+stateNumber, 8;
+
 txfee;
-## sender profile update JSON: miner IPLD and relay MultiAddr and others, type 1,2,3
-senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+
+senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; 
+};
+
+
+### 4b. sender nounce	|8 			|Ta..xNounce"	10;used as power
+### 5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
+### 6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
+
+### Message transaction
+### 3c. senderNounceJSON = {
+
+opt_code, 8, 2;
+
+nounce, 8;
+
+version,8, "0x1" as default;
+
+timestamp,4,tx expire in 12 hours;
+stateNumber, 8;
+txfee;
+
+senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
-msgJSON,1024;
+msgJSON,1024;{}
 msgAttachmentSize,8;
 msgAattachmentCid,32;
-## signature , 65 }
-
-field intro       | Size     | Sample Key   |  Value and Notes
-----------------------|----------|--------|--------
-sender nounce	|8 			|Ta..xNounce"	10;used as power
-sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
-receiver balance      | 5     		|Treceiver..xBalance" | 10000
+}
 
 
+### 4c sender nounce	|8 	
+### 5c sender balance        | 5     
 
 
 ### 20200304
