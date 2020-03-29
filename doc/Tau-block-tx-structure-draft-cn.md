@@ -1,6 +1,6 @@
 # TAU - "community cloud for unlimited data publishing"
 
-## A. TAU is designed to enable mobile phone forming cloud. Two types of operation mode exist. They are miner and regular. 
+## A. TAU is designed to enable mobile phone forming community cloud. Two types of operation mode exist. They are miner and regular. 
 #### procedures for miner user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
 0. load android wake-lock and wifi-lock;
 1. random walk until connected to next relay, and keep a list of relays; random walk until connected to next miner, and keep a list of addresses with power and balance; note: combine relay and peer random walking in one step to reduce connection jam;
@@ -55,7 +55,7 @@ previous hamt state root,
 }
 
 ### Key-3 three type Transactions: 0-coinbase, 1-wiring, 2-message.
-### -coinbase tx
+### - a.coinbase tx
 ### Key-3a. sender/minerNounceJSON ={
 
 version,8, "0x1" as default;
@@ -68,7 +68,7 @@ timestamp,4,tx expire in 12 hours;
 
 amount,5;
 
-sender/minerProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+sender/minerProfileJSON,1024,Ta..xProfile; {TAU: Tsender..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 
 stateNumber, 8;
 
@@ -77,10 +77,10 @@ stateNumber, 8;
 ### Key-4a. sender/miner nounce	|8;
 ### Key-5a. sender/miner balance        | 5;
 
-### -Coins Wiring
+### - b.Coins Wiring
 ### Key-3b. senderNounceJSON = {
 
-opt_code, 8, 1;
+  opt_code, 8, 1;
 
 nounce, 8;
 
@@ -100,11 +100,11 @@ senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; I
 };
 
 
-### Key-4b. sender nounce	|8 			|Ta..xNounce"	10;used as power
+### Key-4b. sender nounce	|8 			|Tsender..xNounce"	10;used as power
 ### Key-5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
 ### Key-6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
-### -Message transaction
+### - c.Message transaction
 ### Key-3c. senderNounceJSON = {
 
 opt_code, 8, 2;
@@ -114,7 +114,9 @@ nounce, 8;
 version,8, "0x1" as default;
 
 timestamp,4,tx expire in 12 hours;
+
 stateNumber, 8;
+
 txfee;
 
 senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
