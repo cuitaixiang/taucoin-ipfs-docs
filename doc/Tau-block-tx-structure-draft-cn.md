@@ -1,6 +1,6 @@
 # TAU - community cloud for unlimited data publishing.
 
-## TAU is designed to enable mobile device. Two types of modes exists, which are miner and normal user. 
+## A. TAU is designed to enable mobile device. Two types of modes exists, which are miner and normal user. 
 ### procedures for miner, which requires wifi and power plugged, and missing wifi or plug will switch to normal user mode, 
 0. open android wake-lock and wifi-lock
 1. random walk until connect to a next relay, and keep a list of know relays; random walk until connect to a next miner, and keep a list of know addresses with power and balance and swarm connection history; note: combine relay and peer randomness to reduce connection jam;
@@ -22,11 +22,11 @@ mining based on curent root and build&validate (n+1) state JSON; when connection
 4. update the CBC safety state k, then go to step (1). 
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
 
-## State structure with entry point of "cid" + peersID, key-values are:
+## B. State structure with entry point of "cid" + peersID, key-values are:
 
-### 1. stateNumber, 8; stateNumber=1234567
+### Key-1. stateNumber, 8; stateNumber=1234567
 
-### 2. statJSON1234567content={ 
+### Key-2. statJSON1234567content={ 
 
 version,8; 
 
@@ -54,9 +54,9 @@ previous hamt state root,
 
 }
 
-## exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: 0-coinbase, 1-wiring, 2-message.
+### Key-3 exporting three type Transactions Nounce JSON and its vars, exported, three type of txs: 0-coinbase, 1-wiring, 2-message.
 ### -coinbase tx
-### 3a. sender/minerNounceJSON ={
+### Key-3a. sender/minerNounceJSON ={
 
 version,8, "0x1" as default;
 
@@ -74,11 +74,11 @@ stateNumber, 8;
 
 }
 
-### 4a. sender/miner nounce	|8;
-### 5a. sender/miner balance        | 5;
+### Key-4a. sender/miner nounce	|8;
+### Key-5a. sender/miner balance        | 5;
 
 ### -Coins Wiring
-### 3b. senderNounceJSON = {
+### Key-3b. senderNounceJSON = {
 
 opt_code, 8, 1;
 
@@ -100,12 +100,12 @@ senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; I
 };
 
 
-### 4b. sender nounce	|8 			|Ta..xNounce"	10;used as power
-### 5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
-### 6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
+### Key-4b. sender nounce	|8 			|Ta..xNounce"	10;used as power
+### Key-5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
+### Key-6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
 ### -Message transaction
-### 3c. senderNounceJSON = {
+### Key-3c. senderNounceJSON = {
 
 opt_code, 8, 2;
 
@@ -128,6 +128,6 @@ AttachmentSize,8; use HAMT store multimedia, the result blocks number
 }
 
 
-### 4c sender nounce, 8 	
-### 5c sender balance, 5    
-### 6c senderNounceAttachment1 .. senderNounceAttachmentSize) = {cbor}
+### Key-4c sender nounce, 8 	
+### Key-5c sender balance, 5    
+### Key-6c senderNounceAttachment1 .. senderNounceAttachmentSize) = {cbor}
