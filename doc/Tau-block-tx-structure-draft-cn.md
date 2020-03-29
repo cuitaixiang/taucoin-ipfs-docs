@@ -1,6 +1,6 @@
 # TAU - blockchain cloud for unlimited data publishing.
 
-## algo for state full miner on wifi, plug: 
+## steps for state full miner: require wifi and plug to download full history, mising wifi or plug will fall to normal user mode
 0. open wake-lock and wifi-lock
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
@@ -11,7 +11,7 @@
 7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1).
 * nodes receive unsolicit voting, only takes transactions
 
-## algo for  stateless miner on wifi, plug: 
+## steps for stateless miner: require wifi and plug to download partial history, missing wifi or plug will fall to normal user mode
 0. turn off wake-lock and wifi-lock
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
@@ -22,7 +22,8 @@
 7. when new recorded mining nodes increase 33% or disconnected or after 30 minutes, due to 1/3 BFT, go to step (1).
 * nodes receive unsolicit voting, only takes transactions
 
-## algo for normal user, statefull and stateless miners on battery or 4G: 
+## steps for normal users on battery or 4G 
+0. turn off wake-lock and wifi-lock
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
 3. start propose own block based on curent root cid, or on genesis cid, and request other miner peers for the future state cid according to CBC (correct by construction); 
