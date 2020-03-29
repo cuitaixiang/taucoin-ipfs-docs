@@ -12,7 +12,7 @@
 * nodes receive unsolicit voting, only takes transactions
 
 ## steps for stateless miner: require wifi and plug to download partial history, missing wifi or plug will fall to normal user mode
-0. turn off wake-lock and wifi-lock
+0. turn on wake-lock and wifi-lock
 1. random walk connecting one relay; 
 2. random walk connecting one miner from miner discovery list from statechain; 
 3. start mining based on curent root cid, or on genesis cid, and propose n+1 and request other miner peers for the future state cid according to CBC (correct by construction); 
