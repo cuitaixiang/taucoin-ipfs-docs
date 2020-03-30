@@ -25,6 +25,21 @@ mining based on curent safty K and build&validate (k+1) state JSON for requested
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync.
 
 ## B. State entry point is TsenderTAUAddr; Tsender(miner)TAUAddr + IPLD peersID, key-values are:
+### build a new block, tminerLogging
+### hamt_update(TminerNounce++)
+### hamt_add(TminerNounceLogStatenumber ,maximum(safety_k, longest chain)+1);  = state1234567Tsender..xNounceLoggingStatenumberJSON=
+temp = { 区块链内容 version,8; timestamp, 4; state number, 8; base target, 8; cumulative difficulty,8 ; generation signature,32;sender/miner TAU address, 20; sender/miner nounce, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers for wiring and message type 1&2  with sender signature}previous hamt state root,
+32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+### htmp_add(TminerLogStateNumberJSON, temp);
+hamt_add results: 
+### - a. add coinbase tx
+### Key-3a. hamt_add(senderNounceTXOutputJSON ={
+opt_code, 1 byte, 0; 0 - coinbase tx; amount,5;
+}
+### Key-4a. hamt_update(TminerBalance);
+###  add Key-5a. TminerNounceLogJSON.append(Timer, nounce); start the logging the peer connections include request and service
+
+# get a block
 Sender is other peer request your blocks, miner is you call yourself to generate blocks.
 when found new relay always add to local trie:   TminerRelay(TminerrelayTotal++)=Qm..x; 
 when found new peers always add to local trie: TminerPeerT(TminerPeersTotal ++)=Tsender..x; 
@@ -34,19 +49,19 @@ x=rand(TminerRelaysTotal), y =rand(TminerPeersTotal);
 TminerRelay(x);
 TminerPeerT(y);
 TiminerPeerI(y);
-
+## add job que and logging key value. 
 Procedure for start request (n+1):
 1. logging and run graphsync( TminerPeerI(y), DEFAUTL_CID - means the hamt cid, select( TsenderNounce)); senderNounce is the clock for sender, get the clock
-2. logging and run hamt_get(senderNounceTxOutputJson); get coinbasetxoutputjson. since sender always send a block, os it is coinbase tx
+2. logging and run hamt_get(TminerLogNounceStatenumber); get coinbasetxoutputjson. since sender always send a block, os it is coinbase tx
 ### - a.coinbase tx
-### logging Key-3a. senderNounceTXOutputJSON ={
+### get Key-3a. senderNounceTXOutputJSON ={
 opt_code, 1 byte, 0; 0 - coinbase tx
 state number; ref to blocks original content
 amount,5;
 senderProfileJSON,1024,Ta..xProfile; {TAU: Tsender..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 }
-### logging Key-4a. sender/miner nounce;
-### logging Key-5a. sender/miner balance;
+### get Key-4a. sender/miner nounce;
+### get Key-5a. sender/miner balance;
 ### logging and update Key-6a. TminerNounceLogJSON.append(Tsender, nounce); logging the peer connections include request and service
 
 
@@ -58,7 +73,7 @@ senderProfileJSON,1024,Ta..xProfile; {TAU: Tsender..x; relay:relay multiaddress:
 3. hamt_get(txoutputJson/statenumber); in tx output, it has the blocks state number, blocks only have previous state root, nmber is good for protocal naming. 
 4. hamt_get(get statenumberSenderBlockJson); get the block 345667Tsender889BlockJSON
 
-### Key-2. state1234567Tsender..xBlockJSON={ 区块链内容
+### Key-2. state1234567Tsender..xNounceLoggingStatenumberJSON={ 区块链内容
 
 version,8; 
 
