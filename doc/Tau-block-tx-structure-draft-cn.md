@@ -1,4 +1,4 @@
-# TAU - "community cloud for unlimited data publishing"
+# TAU - "undeletable and unlimited data publishing"
 
 ## A. TAU is designed to enable mobile phone forming community cloud. Two types of operation mode exist. They are miner and regular. 
 #### procedures for miner user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
@@ -76,6 +76,7 @@ stateNumber, 8;
 
 ### Key-4a. sender/miner nounce	|8;
 ### Key-5a. sender/miner balance        | 5;
+### Key-6a. sender/miner nounceSwarmJSON;
 
 ### - b.Coins Wiring
 ### Key-3b. senderNounceJSON = {
