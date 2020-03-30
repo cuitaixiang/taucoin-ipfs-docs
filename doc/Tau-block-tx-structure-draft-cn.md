@@ -27,7 +27,7 @@ mining based on curent safty K and build&validate (k+1) state JSON for requested
 
 ### Key-1. stateNumber, 8; stateNumber=1234567
 
-### Key-2. statJSON1234567content={ 
+### Key-2. stateJSON1234567content={ 区块链内容
 
 version,8; 
 
@@ -45,9 +45,10 @@ sender/miner TAU address, 20;
 
 sender/miner nounce, 8, mining is treated as a tx sending to self, nounce ++;
 
-senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 
+senderProfileJSON,1024,Ta..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log. 
+Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地
 
-txJSON; {original JSON from peers for wiring and message type 1&2}
+txOriginalJSON; {original JSON from peers for wiring and message type 1&2  with sender signature}
 
 previous hamt state root,
 
@@ -107,7 +108,7 @@ senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; I
 ### Key-6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
 
 ### - c.Message transaction
-### Key-3c. senderNounceJSON = {
+### Key-3c. senderNounceJSON = {  t1234 _ 1000  898 log. 
 
 opt_code, 8, 2;
 
@@ -127,7 +128,7 @@ thread = "other sender address + tx nounce"; if thread equal self sender nounce,
 
 msgJSON,1024;{}
 
-AttachmentHash and Size,8; use HAMT store multimedia, the result blocks number
+AttachmentHash and Size,32; use HAMT store multimedia, the result blocks number
 
 }
 
