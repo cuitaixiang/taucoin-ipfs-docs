@@ -74,9 +74,9 @@ stateNumber, 8;
 
 }
 
-### Key-4a. sender/miner nounce	|8;
-### Key-5a. sender/miner balance        | 5;
-### Key-6a. sender/miner nounceSwarmJSON;
+### Key-4a. sender/miner nounce;
+### Key-5a. sender/miner balance;
+### Key-6a. sender/miner nounceLogJSON; logging the peer connections include request and service
 
 ### - b.Coins Wiring
 ### Key-3b. senderNounceJSON = {
