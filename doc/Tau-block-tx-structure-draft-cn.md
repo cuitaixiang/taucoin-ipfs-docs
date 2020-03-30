@@ -1,4 +1,4 @@
-# TAU - "undeletable and unlimited data publishing"
+# TAU - "undeletable and unlimited data sharing autonomous community"
 
 ## A. TAU is designed to enable mobile phone forming community cloud. Two types of operation mode exist. They are miner and regular. 
 #### procedures for miner user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
@@ -13,6 +13,7 @@ mining based on curent safty K and build&validate (k+1) state JSON for requested
 7. start mining by following the longest chain, and verify n-ONEWEEK to n+1, build&validate (n+1) state JSON for requested when peers timeout, go to step (6)
 8. when new added mining nodes increase 33% or self-disconnected 12 hours, go to step (1).
 * miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync. mutable range is set for one week. 
+当用户访问视频时，先拿到transactionNounceLog,里面含有swarm peers，就是种子服务，然后开始下载，其实去多个ipld node下载。一个video可以被切成很多key-blocks. 
 
 #### procedures for regular users on battery or 4G 
 0. release android wake-lock and wifi-lock
