@@ -127,7 +127,7 @@ thread = "other sender address + tx nounce"; if thread equal self sender nounce,
 
 msgJSON,1024;{}
 
-AttachmentSize,8; use HAMT store multimedia, the result blocks number
+AttachmentHash and Size,8; use HAMT store multimedia, the result blocks number
 
 }
 
