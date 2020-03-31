@@ -1,11 +1,13 @@
-# TAU - Unlimited Data Sharing Community - provide relay as commercial service. 
+# TAU - share and preserve data
+```
 thread: chain and own account search; building blocks and response; attachement download relentless(tsendernounceattachlog in the future block. ); 
-
+User experienses: data upload as TGZ include all types, data download from swarm and export to specific types eg mp4; do not in app play media to avoid illegal content; 
+```
 # A Procedure for building new blocks for both miner and regular.  no graphsync
 ### uppon request by remote peer for upcoming block.
 ### from B_searchinig process, get CBC safety roothash -cid. hamt_get(safetyroothash, tn:=TminerNounce (ex. TAUdavidwu1098..qNounce=10)) if fail abort(means not found own account and back to search voting).
-key 1 = tn: TAUdavidwu1098..qNounce = 10
- { 区块链内容 prevousStateroot-cid; version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; miner nounce=tn++ e.g 11, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Tminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers nounce for wiring and message type 1&2 senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; opt_code, 8, 2;
+* key 1 = tn: TAUdavidwu1098..qNounce = 10
+ { **区块链内容** prevousStateroot-cid; version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; miner nounce=tn++ e.g 11, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Tminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers nounce for wiring and message type 1&2 senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; opt_code, 8, 2;
 current stateroot
 nounce, 8;
 version,8, "0x1" as default;
@@ -27,15 +29,15 @@ execute results ....
 
 ## key 2 = contract hash ={block content or contract}
 ### - a. add coinbase tx
-### Key-3a. hamt_add(Tminer..xNounceTXOutputJSON ={  TAUDavidwu88..q10TXoutputJSON = ...
+* Key-3a. hamt_add(Tminer..xNounceTXOutputJSON ={  TAUDavidwu88..q10TXoutputJSON = ...
 opt_code, 1 byte, 0; 0 - coinbase tx; amount,5;
 current contract hash (key),  you can only get state root from txoutput, the block does not know own stateroot. 
 }
-### Key-4a. hamt_update(Tminer..xBalance, + amount);  TAUdavdiwu..qBalance = 33455
-### Key-5a. TminerNounceAttachmentsLogJSON={ atachment1:VisitorTAUaddr,download %; attachement 2...}
+* Key-4a. hamt_update(Tminer..xBalance, + amount);  TAUdavdiwu..qBalance = 33455
+* Key-5a. TminerNounceAttachmentsLogJSON={ atachment1:VisitorTAUaddr,download %, charge coins from the request; attachement 2...}
  e.g:   TAUdavidwu..qAttachmentLOGjson = {}
 hamt_put() n-> cid is the receipt state root for return.
--->receipt state root for return. 
+-->receipt "future state root" for return. 
 
 ### - b.Coins Wiring
 ### Key-3b. senderNounceTXOutputJSON = {
@@ -54,9 +56,9 @@ current stateroot
 
 
 # background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
-0. load android wake-lock and wifi-lock;
+0. load android wake-lock and wifi-lock;  utorrent
 1. random walk until connected to next relay, and keep a list of relays; random walk until connected to next miner, and keep a list of addresses with power and balance; note: combine relay and peer random walking in one step to reduce connection jam;
-2. request the (n+1) state from the peer; 
+2. request the future state from the peer; 
 get coinbase tx, from coinbase tx, get previous root, 
 3. graphsync for TminerBalance, if success, hamt_get(TminerBalance and TminerNounce) traverse ONEWEEK history states from the miner, while keep accounting of the state root array; 
 mining based on curent safty K and build&validate (k+1) state JSON for requested; when connection timeout from the peer, go to step(1)
@@ -81,12 +83,13 @@ get coinbase tx, from coinbase tx, get previous root,
 # B procedure for getting a block for voting. 无目的的搜索。对于某个视频
 Sender is other peer request your blocks, miner is you call yourself to generate blocks.
 when found new relay always add to local trie:   TminerRelay(TminerrelayTotal++)=Qm..x; in local trie hamt
-when found new peers always add to local trie: TminerPeerTAU(TminerPeersTotal ++)=Tsender..x; TminerPeerIPLD(TminerPeerstotal)=Qm..x
+when found new peers always add TAUaddress to local trie: TminerPeerTAU(TminerPeersTotal ++)=Tsender..x; 
+when found new peers always add IPFS address to local trie: TminerPeerTAU"IPLD"(TminerPeerstotal)=; e.g TAUDavid123..xIPLD = Qmdavid...x
 
 x=rand(TminerRelaysTotal), y =rand(TminerPeersTotal); 
 TminerRelay(x);
-TminerPeerT(y);
-TiminerPeerI(y);
+TminerPeerTAU(y);TAUdavid..x
+TiminerPeerIPLD(y); Qmdavid..x  -> form multiaddress := relay+tminerpeerIPFSaddr
 Procedure for start request future blocks:
-1. graphsync( TminerPeerI(y), ? DEFAUTL_CID - 0 means the hamt cid, select( coinbase tx));  coinbase is entry with current stateroot in it.   return receipt root= execution results of contract hash.
+1. graphsync( TminerPeerIPLD(y), ? DEFAUTL_CID - 0 means the hamt cid, select( coinbase tx));  coinbase is entry with current stateroot in it.   return receipt root= execution results of contract hash.
 2. hamt_get(stateroot, "previous state root"); Until mutable range.
