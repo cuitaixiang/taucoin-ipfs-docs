@@ -9,6 +9,11 @@ Business model:= {
 community members can receive branch coin payment for hosting data; 
 TAU coins community will provide relay routers charging TAU coins.
 }
+Launch steps:={
+Free community creation for exchange data, such as TAUT as initial.
+TAU mainchain for relay service
+TAU branchchain for searching service
+}
 ```
 ## Three processes exists: 
 * A. Response with future ContractReceiptStateRoot; 
