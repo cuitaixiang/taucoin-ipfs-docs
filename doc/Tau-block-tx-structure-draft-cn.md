@@ -1,4 +1,4 @@
-# TAU - Unlimited Video Sharing Community
+# TAU - Unlimited Content Sharing Community - provide relay as commercial service. 
 thread: chain and own account search; building blocks and response; attachement download relentless(tsendernounceattachlog in the future block. ); 
 
 # B. Procedure for building new blocks for both miner and regular.
