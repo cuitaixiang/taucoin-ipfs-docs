@@ -14,6 +14,7 @@ Concept: Miner is what nodes call themself, in TAU all nodes are miners predicti
 ### A. When a miner receives Graphysync request for producing future state, it will process following steps: 
 * get CBC(consensus by construction) current safetyStateRoot, This is the result of voting by process B. If there is no safety found, such as out of mutable range, then exit with no response, continue to allow Collecting votes happenning. 
 * hamt_get(safetyStateRoot,TAUminerImorpheus..xNounce); // miner's nounce is the base for coinbase transaction and new contract. If fail to get nounce, it means the node is too young and exist with no respones, continue to allow Collecting votes happenning.
+input: none; backgroun context: safetyStateRoot; output: future contractReceiptStateRoot.
 ```
 TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 ```
@@ -121,6 +122,9 @@ when connection timeout or hit any error, go to step(1)
 
 
 #### B2. background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
+```
+input: votes of future; output: safetystateRoot
+```
 
 ##### node will maitain three sets of hamt keys
 ```
