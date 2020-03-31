@@ -1,4 +1,4 @@
-# TAU - share and preserve data
+# TAU - share and preserve big data
 ```
 thread: building blocks and response; chain and own account search; attachement download relentless(tsendernounceattachlog in the future block. ); 
 User experienses: data upload as TGZ include all types, data download from swarm and export to specific types eg mp4; do not in app play media to avoid illegal content; 
