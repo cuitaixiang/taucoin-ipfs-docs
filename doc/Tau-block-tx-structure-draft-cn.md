@@ -1,8 +1,14 @@
 # TAU - share and preserve big data
 ```
-thread: building blocks and response; chain and own account search; attachement download relentless(tsendernounceattachlog in the future block. ); 
-User experienses: data upload as TGZ format include all types - directory, pictures and videos, data download from swarm and export to specific types eg mp4; do not in app play media to avoid illegal content; 
-Profit ideas: community members can receive coin payment for hosting data or willing to do it free; TAU coins community will provide relay routers charging TAU coins and keep free TAU mining software development.
+User experienses:= {
+data upload as TGZ format include all types - directory, pictures and videos, 
+data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
+community can genesis branch coins, or independant coins.
+}
+Profit ideas:= {
+community members can receive branch coin payment for hosting data; 
+TAU coins community will provide relay routers charging TAU coins.
+}
 ```
 ## Three processes exists: 
 * A. Response with future ContractReceiptStateRoot; 
