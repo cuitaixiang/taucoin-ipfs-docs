@@ -117,7 +117,7 @@ when connection timeout or hit any error, go to step(1)
 
 #### B2. background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
 
-* node will maitain three sets of hamt keys
+##### node will maitain three sets of hamt keys
 ```
 . TminerRelayTotal is a count of how many relays encountred. When found new relay information, hamt_update(TminerRelayTotal, TminerRelayTotal++);
 . hamt_add(TminerRelayTminerrelayTotal, QmRelay..x); 
@@ -125,6 +125,7 @@ when connection timeout or hit any error, go to step(1)
 . hamt_add(TminerPeerTAUTminerPeersTotal, Tsender..x); hamt_add(TminerPeerIPFSTminerPeersTotal, QmSender..x); 
 ```
 0. turn ON android wake-lock and wifi-lock
+
 1. random walk until connect to a next relay; random walk until connect to a next peer; 
 ```
 x=random(TminerRelaysTotal), y =random(TminerPeersTotal); 
@@ -144,8 +145,13 @@ hamt_get(stateroot, "previous state root");
 goto step (2); this time, we have the CID, that is the (future - 1) 
 ```
 when connection timeout or hit any error, go to step(1)
-4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1)until half of the know mining peers are traversed. 
+
+4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1)until half of the know mining peers are traversed.
+
 5. if SAFETYStateRoot is out of mutable range, that is ONEWEEK, then go to step (1). 
+
 6. random walk until connect to a next relay; random walk until connect to a next miner
+
 7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions ONEWEEK to the received future ContractReceiptStateRoot, go to step (6)
+
 8. if self-disconnected from internet 48 hours, go to step (1).
