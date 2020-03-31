@@ -8,6 +8,9 @@ Profit ideas: community members can receive coin payment for hosting data or wil
 * A. Response with future ContractReceiptStateRoot; 
 * B. Collect votings from peers; 
 * C. Attachment Downloader.
+## Backgound Context
+* Safety SafetyReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is verified after voting process, the new SafetyReceiptStateRoot is equal to predicted ContractReceiptStateRoot. 
+* ContractReceiptStateRoot; // this is the new block/state hamt node.cid
 ```
 Concept: Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
 ```
@@ -85,7 +88,7 @@ opt_code, 2; // this is an attachment or message
 * generate Key 4c hamt_update(TAUsender..xBalance,amount); // update balance
 
 
-### Put the final ContractReceiptStateRoot = hamt_put(cbor); // this the for returning to requestor for future state prediction, "this state is my prediction"
+### Put the result ContractReceiptStateRoot = hamt_put(cbor); // this the for returning to requestor for future state prediction, "this state is my prediction"
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
 #### B1. non mining users, which are on battery power or telecome data service. 
