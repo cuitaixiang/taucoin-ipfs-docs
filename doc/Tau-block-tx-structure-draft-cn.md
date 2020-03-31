@@ -5,7 +5,7 @@ data upload as TGZ format include all types - directory, pictures and videos,
 data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
 community can genesis branch coins, or independant coins.
 }
-Profit ideas:= {
+Business model:= {
 community members can receive branch coin payment for hosting data; 
 TAU coins community will provide relay routers charging TAU coins.
 }
@@ -36,19 +36,26 @@ previousContractReceiptStateroot 32; // link to past state
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; TAUminerImorpheus..xNounce, 8; // mining is treated as a tx sending to self
 minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-
 TXpoolJSON, flexible bytes; 
-// e.g.{ original JSON from peers nounce for wiring and message; 
-// nounce, 8;
-// version,8, "0x1" as default;
-// timestamp,4,tx expire in 12 hours;
-// txfee;
-// contractblock number = previoushash(contract number)+1;
-// senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-// thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
-// msgJSON,1024;//{ "hello world", this is a message.}
-// Attachmentroot = newNode.hamp_put(1-10000, sections of data); 
-// Attachment Size,32; tx sender signature;
+= { original JSON from peers for wiring and message; 
+nounce, 8;
+version,8, "0x1" as default;
+timestamp,4,tx expire in 12 hours;
+txfee;
+contractblock number = previoushash(contract number)+1;
+senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
+msgJSON,1024;//{ "hello world", this is a message.}
+attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
+Attachment Size,32; 
+tx sender signature;
+
+// for attachment processing
+// 1. TGZ the file; use ipfs block standard size e.g. 250k to chop the data to m pieceis
+// 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
+// 3. attachmentRoot=hamp_flush_put()
+// 4. return attachmentRoot and m to transaction Json. 
+
 }
 
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte,}
@@ -67,7 +74,7 @@ amount,5; // sum of transaction fees from the mining
 }
 ```
 * generate Key 4a. hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
-* generate Key 5a. hamt_add(TAUminerNounceAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** with cid in contractJSON
+* generate Key 5a. hamt_add(TAUminerNounceAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON
 ```
  hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
 ```
