@@ -21,8 +21,14 @@ TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 * generate key 2 for the future state, hamp_add(contractJSON, X);
 
 ```
-X = { **区块链内容** previousContractReceiptStateroot; 
-version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; miner nounce=tn++ e.g 11, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Tminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers nounce for wiring and message type 1&2 senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; opt_code, 8, 2;
+X = {
+previousContractReceiptStateroot 32; // link to past state 
+version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
+miner TAU address, 20; TAUminerImorpheus..xNounce, 8; // mining is treated as a tx sending to self
+minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+
+TXpoolJSON, flexible bytes; 
+// e.g.{ original JSON from peers nounce for wiring and message; 
 nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
@@ -30,13 +36,12 @@ txfee;
 contractblock number = previoushash(contract number)+1;
 senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
-msgJSON,1024;{}
+msgJSON,1024;//{ "hello world", this is a message.}
+Attachmentroot = newNode.hamp_put(1-10000, sections of data); 
+Attachment Size,32; tx sender signature;
+}
 
-Attachmentroot = hamp_put(1-10000, section of video) Hash and 
-attachment Size,32; use HAMT store multimedia
- 
- with sender signature}previous hamt state root,
-32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte,}
 ```
 ### contract execute results
 #### output coinbase tx
