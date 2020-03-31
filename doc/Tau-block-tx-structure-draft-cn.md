@@ -2,12 +2,26 @@
 ```
 thread: chain and own account search; building blocks and response; attachement download relentless(tsendernounceattachlog in the future block. ); 
 User experienses: data upload as TGZ include all types, data download from swarm and export to specific types eg mp4; do not in app play media to avoid illegal content; 
+Profit ideas: community members can receive coin payment for hosting data or willing to do it free; TAU coins community will provide relay routers charging TAU coins and keep free TAU mining software development.
 ```
-# A Procedure for building new blocks for both miner and regular.  no graphsync
-### uppon request by remote peer for upcoming block.
-### from B_searchinig process, get CBC safety roothash -cid. hamt_get(safetyroothash, tn:=TminerNounce (ex. TAUdavidwu1098..qNounce=10)) if fail abort(means not found own account and back to search voting).
-* key 1 = tn: TAUdavidwu1098..qNounce = 10
- { **区块链内容** prevousStateroot-cid; version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; miner nounce=tn++ e.g 11, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Tminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers nounce for wiring and message type 1&2 senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; opt_code, 8, 2;
+## Three processes exists: 
+* A. Response with new futureContractReceiptStateRoot; 
+* B. Collect votings from peers; 
+* C. Attachment Downloader.
+```
+Concept: Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
+```
+### A. When a miner receives Graphysync request for producing future state, it will process following steps: 
+* get CBC(consensus by construction) current safety contract receipt state root, cid. This is the result of voting on safety. If there is no safety found, such as out of mutable range, then exit with no response, continue to allow Collecting votes happenning. 
+* hamt_get(cid,TAUminerImorpheus..xNounce); // miner's nounce is the base for coinbase transaction and new contract. If fail to get nounce, it means the node is too young and exist with no respones, continue to allow Collecting votes happenning.
+```
+TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
+```
+* generate key 1 for the future state, hamt_update(TAUminerImorpheus..xNounce, TAUminerImorpheus..xNounce +1); 
+* generate key 2 for the future state, hamp_add(contractJSON, X);
+
+```
+X = { **区块链内容** prevousStateroot-cid; version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32;miner TAU address, 20; miner nounce=tn++ e.g 11, 8, mining is treated as a tx sending to self, nounce ++;senderProfileJSON,1024,Tminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; }; 形成 relay log.Ta..xNounce1004RelayLog = {   } 遍历  ta..xnounce 1 .. 1004, hamt(cid, block 1234567); stateless =local 本地txOriginalJSON; {original JSON from peers nounce for wiring and message type 1&2 senderProfileJSON,1024,Ta..xProfile; {TAU:Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; opt_code, 8, 2;
 current stateroot
 nounce, 8;
 version,8, "0x1" as default;
@@ -23,36 +37,49 @@ attachment Size,32; use HAMT store multimedia
  
  with sender signature}previous hamt state root,
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte, when at same difficulty, high signature number wins.}
+```
+### contract execute results
+#### output coinbase tx
+
 hamt_add(statejson, new block), this is new contract hash for execution  "hash98798234..sd"
-execute results ....
 
-
-## key 2 = contract hash ={block content or contract}
-### - a. add coinbase tx
-* Key-3a. hamt_add(Tminer..xNounceTXOutputJSON ={  TAUDavidwu88..q10TXoutputJSON = ...
-opt_code, 1 byte, 0; 0 - coinbase tx; amount,5;
-current contract hash (key),  you can only get state root from txoutput, the block does not know own stateroot. 
+* generate key 3a, coinbase transaction 
+``` 
+hamt_add(TAUminerImorpheus..xNounceTXOutputJSON =
+{
+opt_code, 0;// 0 - coinbase tx, 1 - means coin wiring, 2 - means data upload and message 
+amount,5; // sum of transaction fees from the mining
 }
-* Key-4a. hamt_update(Tminer..xBalance, + amount);  TAUdavdiwu..qBalance = 33455
-* Key-5a. TminerNounceAttachmentsLogJSON={ atachment1:VisitorTAUaddr,download %, charge coins from the request; attachement 2...}
- e.g:   TAUdavidwu..qAttachmentLOGjson = {}
-hamt_put() n-> cid is the receipt state root for return.
--->receipt "future state root" for return. 
+```
+* generate Key 4a. hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
+* generate Key 5a. hamt_add(TAUminerNounceAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. 
+```
+ hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
+```
 
-### - b.Coins Wiring
-### Key-3b. senderNounceTXOutputJSON = {
-opt_code, 8, 1;
-current state root
-};   //sendernounc = current statroot/STATEjson/txjson/sendertauaddress/nounce
-### Key-5b. sender balance        | 5       	|Tsender..xBalance" | 10000 ; through senderNounce to get TXJSON, ProfielJSON
-### Key-6b receiver balance      | 5     		|Treceiver..xBalance" | 10000
+#### output Coins Wiring tx
+* generate Key-3b. TAUsenderNounceTXOutputJSON = {}
+``` 
+hamt_add(TAUsender..xNounceTXOutputJSON =
+{
+opt_code, 1; // this is a wiring, very simple
+}
+```
+* generate Key-4b. hamt_update(TAUsender..xBalance,amount); // update balance
+* generate Key-5b hamt_update(TAUtxreceiver..xBalance,amount);
 
 ### - c.Message transaction
-### Key-3c. senderNounceTXoutputJSON = { 
-opt_code, 8, 2;
-current stateroot
+* generate Key 3c. TAUsenderNounceTXOutputJSON
+``` 
+hamt_add(TAUsender..xNounceTXOutputJSON =
+{
+opt_code, 2; // this is an attachment or message
 }
-### Key-5c sender balance, 5  
+```
+* generate Key 4c hamt_update(TAUsender..xBalance,amount); // update balance
+
+
+### produce the final futureContractReceiptStateRoot = hamt_put(cbor); // this the for returning to requestor
 
 
 # background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
@@ -91,5 +118,5 @@ TminerRelay(x);
 TminerPeerTAU(y);TAUdavid..x
 TiminerPeerIPLD(y); Qmdavid..x  -> form multiaddress := relay+tminerpeerIPFSaddr
 Procedure for start request future blocks:
-1. graphsync( TminerPeerIPLD(y), ? DEFAUTL_CID - 0 means the hamt cid, select( coinbase tx));  coinbase is entry with current stateroot in it.   return receipt root= execution results of contract hash.
+1. graphsync( TminerPeerIPLD(y), ? DEFAUTL_CID - 0 means the hamt cid, select(hamtkey contractJSON));  coinbase is entry with current stateroot in it.   return receipt root= execution results of contract hash. **problem** we do not know this cid at the moment, but we do now the contractJSON as key from protocol
 2. hamt_get(stateroot, "previous state root"); Until mutable range.
