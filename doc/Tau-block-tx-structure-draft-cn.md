@@ -81,21 +81,6 @@ opt_code, 2; // this is an attachment or message
 
 ### Put the final ContractReceiptStateRoot = hamt_put(cbor); // this the for returning to requestor for future state prediction, "this state is my prediction"
 
-
-# background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to normal user mode. TAU POT consensus is a type of CBC enhanced POT.
-0. load android wake-lock and wifi-lock;  utorrent
-1. random walk until connected to next relay, and keep a list of relays; random walk until connected to next miner, and keep a list of addresses with power and balance; note: combine relay and peer random walking in one step to reduce connection jam;
-2. request the future state from the peer; 
-get coinbase tx, from coinbase tx, get previous root, 
-3. graphsync for TminerBalance, if success, hamt_get(TminerBalance and TminerNounce) traverse ONEWEEK history states from the miner, while keep accounting of the state root array; 
-mining based on curent safty K and build&validate (k+1) state JSON for requested; when connection timeout from the peer, go to step(1)
-4. go to step (1), until half of the know mining peers are traversed. 
-5. calculate the CBC safety state k, if k it out of mutable range, that is n-ONEWEEK, then go to step (1). 
-6. random walk until connect to a next relay; random walk until connect to a next miner
-7. start mining by following the longest chain, and verify n-ONEWEEK to n+1, build&validate (n+1) state JSON for requested when peers timeout, go to step (6)
-8. when new added mining nodes increase 33% or self-disconnected 12 hours, go to step (1).
-* miner always response to request of n+1 state, never initating push blocks to others. It is simple and staying in graphsync. mutable range is set for one week. 
-当用户访问视频时，先拿到transactionNounceLog,里面含有swarm peers，就是种子服务，然后开始下载，其实去多个ipld node下载。一个video可以被切成很多key-blocks. 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
 #### B1. non mining users, which are on battery power or telecome data service. 
 * node will maitain three sets of hamt keys
@@ -126,3 +111,41 @@ goto step (2); this time, we have the CID, that is the (future - 1)
 ```
 when connection timeout or hit any error, go to step(1)
 4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1).// think about put some keys into memory context.
+
+
+
+
+#### B2. background procedures for mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
+
+* node will maitain three sets of hamt keys
+```
+. TminerRelayTotal is a count of how many relays encountred. When found new relay information, hamt_update(TminerRelayTotal, TminerRelayTotal++);
+. hamt_add(TminerRelayTminerrelayTotal, QmRelay..x); 
+. TminerPeersTotal is a count of how many peers encountred. When found new peer information with (TAU and IPFS addr), hamt_update(TminerPeersTotal, TminerPeersTotal++);
+. hamt_add(TminerPeerTAUTminerPeersTotal, Tsender..x); hamt_add(TminerPeerIPFSTminerPeersTotal, QmSender..x); 
+```
+0. turn ON android wake-lock and wifi-lock
+1. random walk until connect to a next relay; random walk until connect to a next peer; 
+```
+x=random(TminerRelaysTotal), y =random(TminerPeersTotal); 
+multiaddress:= TminerRelay"x"/p2pcircuitRelay/TminerPeerIPFSTminer"y";
+```
+2. request the miner peer for the future receipt state root according to CBC (correct by construction); 
+get contractJSON, get previous root, 
+```
+graphsync( multiaddress, CID, selector(field:=contractJSON)); 
+// when CID is NULL,  - 0 means the first graphsync retrieve the future state cid
+```
+**problem** we do not know remote future cid at the moment, but we know the contractJSON as key from protocol definition.
+
+3. traverse ONEWEEK history states from the miner and keep accounting of the root array; mining based on curent safty k to propose k+1 state with own tx uppon request; 
+```
+hamt_get(stateroot, "previous state root");
+goto step (2); this time, we have the CID, that is the (future - 1) 
+```
+when connection timeout or hit any error, go to step(1)
+4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1)until half of the know mining peers are traversed. 
+5. if SAFETYStateRoot is out of mutable range, that is ONEWEEK, then go to step (1). 
+6. random walk until connect to a next relay; random walk until connect to a next miner
+7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions ONEWEEK to the received future ContractReceiptStateRoot, go to step (6)
+8. if self-disconnected from internet 48 hours, go to step (1).
