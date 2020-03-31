@@ -57,11 +57,11 @@ tx sender signature;
 // 4. return attachmentRoot and m to transaction Json. 
 
 }
-
-32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte,}
+32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
+}
 ```
-### contract execute results
-#### output coinbase tx
+#### contract execute results
+##### output coinbase tx
 
 hamt_add(statejson, new block), this is new contract hash for execution  "hash98798234..sd"
 
@@ -79,7 +79,7 @@ amount,5; // sum of transaction fees from the mining
  hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
 ```
 
-#### output Coins Wiring tx
+##### output Coins Wiring tx
 * generate Key-3b. TAUsenderNounceTXOutputJSON = {}
 ``` 
 hamt_add(TAUsender..xNounceTXOutputJSON =
@@ -90,7 +90,7 @@ opt_code, 1; // this is a wiring, very simple
 * generate Key-4b. hamt_update(TAUsender..xBalance,amount); // update balance
 * generate Key-5b hamt_update(TAUtxreceiver..xBalance,amount);
 
-### - c.Message transaction
+##### Message transaction
 * generate Key 3c. TAUsenderNounceTXOutputJSON
 ``` 
 hamt_add(TAUsender..xNounceTXOutputJSON =
@@ -184,3 +184,6 @@ when connection timeout or hit any error, go to step(1)
 9. if self-disconnected from internet 48 hours, go to step (1).
 
 10. goto step (1)
+
+### C. Attachment Downloader
+The downloader will use attachmentlog content to retrieve data from many peers. It will random walk on relays, but will focus on peers. Once connected, it will graphsync the data sections. The download coins payment structure is charge per attachment graphsync block. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
