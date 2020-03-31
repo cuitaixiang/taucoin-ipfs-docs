@@ -115,7 +115,7 @@ hamt_get(stateroot, "previous state root");
 goto step (2); this time, we have the CID, that is the (future - 1) 
 ```
 when connection timeout or hit any error, go to step(1)
-4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1).// think about put some keys into memory context.
+4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot), then go to step (1).// think about put some keys into memory context.
 
 
 
@@ -151,12 +151,16 @@ goto step (2); this time, we have the CID, that is the (future - 1)
 ```
 when connection timeout or hit any error, go to step(1)
 
-4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYroot, then go to step (1)until half of the know mining peers are traversed.
+4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYStateroot), then go to step (1)until half of the know mining peers are traversed.
 
 5. if SAFETYStateRoot is out of mutable range, that is ONEWEEK, then go to step (1). 
 
 6. random walk until connect to a next relay; random walk until connect to a next miner
 
-7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions ONEWEEK to the received future ContractReceiptStateRoot, go to step (6)
+7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions ONEWEEK to the received future ContractReceiptStateRoot
 
-8. if self-disconnected from internet 48 hours, go to step (1).
+8. If veification succesful, hamt(SAFETYStateroot, ContractReceiptStateRoot), go to step (6)
+
+9. if self-disconnected from internet 48 hours, go to step (1).
+
+10. goto step (1)
