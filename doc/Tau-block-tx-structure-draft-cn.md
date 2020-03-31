@@ -29,16 +29,16 @@ minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiad
 
 TXpoolJSON, flexible bytes; 
 // e.g.{ original JSON from peers nounce for wiring and message; 
-nounce, 8;
-version,8, "0x1" as default;
-timestamp,4,tx expire in 12 hours;
-txfee;
-contractblock number = previoushash(contract number)+1;
-senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
-msgJSON,1024;//{ "hello world", this is a message.}
-Attachmentroot = newNode.hamp_put(1-10000, sections of data); 
-Attachment Size,32; tx sender signature;
+//nounce, 8;
+//version,8, "0x1" as default;
+//timestamp,4,tx expire in 12 hours;
+//txfee;
+//contractblock number = previoushash(contract number)+1;
+//senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+//thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
+//msgJSON,1024;//{ "hello world", this is a message.}
+//Attachmentroot = newNode.hamp_put(1-10000, sections of data); 
+//Attachment Size,32; tx sender signature;
 }
 
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte,}
