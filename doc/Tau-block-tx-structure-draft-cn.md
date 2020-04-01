@@ -28,12 +28,14 @@ Miner is what nodes call themself, in TAU all nodes are miners predicting future
 Safety is the CBC concept of the safe and consensed history milestone.
 Mutable range is one week
 SafetyReceiptStateRoot is the local clock for miner; there is no definited global block clock, only global timestamp
+Paraless chain: new hamt node with first tx by genesisaddress
+Paraless chains peer address: genesis address+own address; 
 ```
 ### A. When a miner receives Graphysync request for producing future state
 
 ```
-input: chain ID; 
-return: the future contractReceiptStateRoot, which is generated in B hamt_put
+input: genesis address; 
+return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
