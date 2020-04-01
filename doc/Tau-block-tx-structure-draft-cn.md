@@ -1,4 +1,4 @@
-# TAU - share and preserve big data
+# TAU - share and preserve community data
 ```
 User experienses:= {
 data upload as TGZ format include all types - directory, pictures and videos, 
