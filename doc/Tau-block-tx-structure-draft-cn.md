@@ -30,10 +30,15 @@ SafetyReceiptStateRoot is the local clock for miner; there is no definited globa
 Paraless chain: new hamt node with first tx by genesisaddress
 Paraless chains peer address: genesis address+own address; 
 TAU address: T.....
-Community chain address: "C"+ chain genesis member's TAU address + ownTAUaddress
+
 After file published, thread response could be seeding, which means hosting this file. 
 HamtGraphyRelaySync(relay ipfs addr, remotePeerIPFS addr, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. 
 when cbor.cid=null, it will get remote peer's ContractReceiptStateRoot.
+
+address system: 
+TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
+Community chain address: "C"+ chain genesis member's TAU address + ownTAUaddress; if a community want to be searched on mainchain, it need to make an gensis annoucment with genesis address on tau chain using genesis private key to sign, also with several bootstrap miners ipfs address, 
+
 ```
 ### A.1 When a miner receives Graphysync request for producing future state
 
