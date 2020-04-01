@@ -22,14 +22,19 @@ TAU branchchain for searching service
 ## Backgound Context
 * Safety SafetyReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is verified after voting process, the new SafetyReceiptStateRoot is equal to predicted ContractReceiptStateRoot. 
 * ContractReceiptStateRoot; // this is the new block/state hamt node.cid
+## Concept
 ```
-Concept: Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
+Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
 Safety is the CBC concept of the safe and consensed history milestone.
-Mutable range: one week
+Mutable range is one week
+SafetyReceiptStateRoot is the local clock for miner; there is no definited global block clock, only global timestamp
 ```
-### A. When a miner receives Graphysync request for producing future state, it will build a new state and do following steps: 
-input: chain ID; output: the future contractReceiptStateRoot, which is generated in B hamt_put
+### A. When a miner receives Graphysync request for producing future state
 
+```
+input: chain ID; 
+return: the future contractReceiptStateRoot, which is generated in B hamt_put
+```
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
 #### B1. non mining users, which are on battery power or telecome data service. 
