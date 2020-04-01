@@ -3,7 +3,7 @@
 User experienses:= {
 data upload format include all types - directory, pictures and videos, 
 data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
-community genesis independant coins for file sharing
+community genesis independant coins for file sharing; community members can decide use tau relay annoucned on tau main chain or own relay setup. 
 TAU mainnet does not hold files.
 }
 Business model:= {
