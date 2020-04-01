@@ -32,14 +32,19 @@ Paraless chains peer address: genesis address+own address;
 TAU address: T.....
 Community chain address: "C"+ chain genesis member's TAU address + ownTAUaddress
 After file published, thread response could be seeding, which means hosting this file. 
+HamtGraphyRelaySync(relay ipfs addr, remotePeerIPFS addr, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. 
+when cbor.cid=null, it will get remote peer's ContractReceiptStateRoot.
 ```
-### A. When a miner receives Graphysync request for producing future state
+### A.1 When a miner receives Graphysync request for producing future state
 
 ```
 input: genesis address; 
 return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
-For TAU nodes/miner, it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
+### A.2 For file relay, graphRelaySync（ relay, peer, cid, selector). 
+File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
+If successful, File relay will log this in
+it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
 
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
@@ -128,7 +133,10 @@ version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
 txfee;
 contract number = SafetyReceiptStateRoot(contract number)+1;
-senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+senderProfileJSON,1024,Ta..xProfile; {
+TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; 
+IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
+};
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
 msgJSON,1024;//{ "hello world", this is a message.}
 attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
