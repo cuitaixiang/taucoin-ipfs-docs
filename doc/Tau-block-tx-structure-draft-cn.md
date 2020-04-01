@@ -11,7 +11,7 @@ Community address will keep balance with TAU nodes, each tau nodes will have own
 }
 Launch steps:={
 Free community creation for exchange data, such as TAUT as initial.
-TAU mainchain for public relay service, before that it is free nodes. nodes economical policy is independant decision. tau nodes keeps logs.  state relay is free.  file relay is charged and maintain a local list of accounts not in hamt trie. 
+TAU mainchain tau nodes keeps logs.   file relay is charged and maintain a local list of accounts in levelDB. TAU mainchain does not support file attachment.  
 }
 ```
 ## Three processes exists: 
@@ -38,8 +38,8 @@ when cbor.cid=null, it will get remote peer's ContractReceiptStateRoot.
 ### A.1 When a miner receives Graphysync request for producing future state
 
 ```
-input: genesis address; 
-return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
+1. Receive the (genesis address); // this is the chain ID, TAU is 0x0;
+2. If active on this chain, return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
 ### A.2 For file relay, graphRelaySync（ relay, peer, cid, selector). 
 File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
@@ -52,20 +52,20 @@ it will as well response with log root, log is the proof of graph sync history, 
 ```
 . TminerRelayTotal is a count of how many relays encountred. When found new relay information, TminerRelayTotal++;
 . relaylist_add(QmRelay..x); 
-. TminerPeersTotal is a count of how many peers encountred. When found new peer information, TminerPeersTotal++;
-. peerlist_add(Tsender..x, QmSender..x); 
+. For each chain, TminerPeersTotal(chain ID) is a count of how many peers encountred. When found new peer information, TminerPeersTotal(chain ID)++;
+. peerlist(chain ID)_add(Tsender..x, QmSender..x); 
 These vars are not in hamt
 ```
 0. release android wake-lock and wifi-lock
-1. random walk until connect to a next relay; random walk until connect to a next peer; 
+1. random walk to a chain id; random walk until connect to a next relay; random walk until connect to a next peer; 
 ```
 x=random(TminerRelaysTotal), y =random(TminerPeersTotal); 
-multiaddress:= TminerRelay"x"/p2pcircuitRelay/TminerPeerIPFSTminer"y";
+multiaddress:= TminerRelay"x"/graphRelaySync/TminerPeer(chain id)IPFSTminer"y";
 ```
 2. request the miner peer for the future receipt state root according to CBC (correct by construction); 
 get contractJSON, get previous root, 
 ```
-graphsync( multiaddress, CID, selector(field:=contractJSON)); 
+graphRelaysync( Relay, peerID, chainID, CID, selector(field:=contractJSON)); 
 // when CID is NULL,  - 0 means the first graphsync retrieve the future state cid
 ```
 **problem** we do not know remote future cid at the moment, but we know the contractJSON as key from protocol definition.
@@ -159,13 +159,17 @@ Put the all new generated states into  cbor block, generate future ContractRecei
 
 ##### output coinbase tx
 * generate key 2a, coinbase transaction hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
+* generate key 3a, hamt_add(TAUminerImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);// from tauaddress linking to contractJSON via stateroot.
 
 ##### output Coins Wiring tx
 * generate Key 2b. hamt_update(TAUsender..xBalance,amount); // update balance
-* generate Key 3b  hamt_update(TAUtxreceiver..xBalance,amount);
+* generate key 3b, hamt_add(TAUsenderImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);// from tauaddress linking to contractJSON via stateroot.
+* generate Key 4b  hamt_update(TAUtxreceiver..xBalance,amount);
+
 
 ##### Message transaction
 * generate Key 2c. hamt_update(TAUsender..xBalance,amount); // update balance
+* generate key 3c, hamt_add(TAUminerImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);// from tauaddress linking to contractJSON via stateroot.
 
 6. random walk until connect to a next relay; random walk until connect to a next miner
 
