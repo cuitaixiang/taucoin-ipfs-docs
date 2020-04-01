@@ -134,19 +134,17 @@ tx sender signature;
 Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 ##### output coinbase tx
 * generate key 2a, coinbase transaction hamt_update(TminerImorpheus..xBalance,TminerImorpheus..xBalance + amount); // update balance 
-* generate key 3a, hamt_add(TminerImorpheus..xNounce, nounce);// use for generate key TAUminerImorpheus..xNounceContractReceiptStateRoot
-* generate key 4a, hamt_add(TminerImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);// linking to contractJSON via root, for fast link to other transactions by the same sender without go through the full chain.
-
 ##### output Coins Wiring tx
 * generate Key 2b. hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance - amount-txfee); 
-* generate key 3b, hamt_add(TsenderImorpheus..xNounce, nounce);
-* generate key 4b, hamt_add(TsenderImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);
 * generate Key 5b, hamt_update(Ttxreceiver..xBalance,Ttxreceiver..xBalance + amount);
 
 ##### Message transaction
-* generate Key 2c. hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
-* generate key 3c, hamt_add(TsenderImorpheus..xNounce, nounce);
-* generate key 4c, hamt_add(TsenderImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);
+* generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
+* generate key 3c,  hamt_update(attachementRootNounce ++) // new attachment nonce=1; commenting on attachment nounce ++
+* generate key 4c, hamt_add(AttachmentRootTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
+
+
+
 6. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
 ```
@@ -158,13 +156,14 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 
 ### C. Attachment Downloader
 ```
-input (message transaction address, nounce); // this is for single thread download
+input (attachment root); // this is for single thread download
 ```
-1. Tsender..xNounceContractReceiptStateRoot, find contractJSON/IPFS address,attachmentroot, size;
-2. random walk on all relays
+1. from attachmentroot, find nouce, loop the nounce, find contractJSON/msgTx/IPFS peers id;
+{ random walk on all relays
 ```
 graphRelaySync(relay, chainID, chainPeerIPFSID, attachmentroot, selector(field:=section 1..m))
 ```
 until finish all relays or find the chainPeer
-3. scan the whole chain from safety to Tsender..xNounceContractReceiptStateRoot to find seeding chain peers; go to step (2)
+}
+
 * The download payment structure is charge TAUcoin per graphRelaysync block from TAUnodes. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
