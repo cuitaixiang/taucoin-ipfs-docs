@@ -3,16 +3,15 @@
 User experienses:= {
 data upload as TGZ format include all types - directory, pictures and videos, 
 data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
-community can genesis branch coins, or independant coins.
+community can genesis independant coins.
 }
 Business model:= {
-community members can receive branch coin payment for hosting data; 
 TAU coins community will provide relay routers charging TAU coins.
+Community address will keep balance with TAU nodes, each tau nodes will have own policy for charging by annoucement
 }
 Launch steps:={
 Free community creation for exchange data, such as TAUT as initial.
-TAU mainchain for relay service
-TAU branchchain for searching service
+TAU mainchain for public relay service, before that it is free nodes. nodes economical policy is independant decision. tau nodes keeps logs.  state relay is free.  file relay is charged and maintain a local list of accounts not in hamt trie. 
 }
 ```
 ## Three processes exists: 
@@ -30,6 +29,9 @@ Mutable range is one week
 SafetyReceiptStateRoot is the local clock for miner; there is no definited global block clock, only global timestamp
 Paraless chain: new hamt node with first tx by genesisaddress
 Paraless chains peer address: genesis address+own address; 
+TAU address: T.....
+Community chain address: "C"+ chain genesis member's TAU address + ownTAUaddress
+After file published, thread response could be seeding, which means hosting this file. 
 ```
 ### A. When a miner receives Graphysync request for producing future state
 
@@ -37,15 +39,17 @@ Paraless chains peer address: genesis address+own address;
 input: genesis address; 
 return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
+For TAU nodes/miner, it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
+
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
 #### B1. non mining users, which are on battery power or telecome data service. 
-* node will maitain three sets of hamt keys
 ```
-. TminerRelayTotal is a count of how many relays encountred. When found new relay information, hamt_update(TminerRelayTotal, TminerRelayTotal++);
-. hamt_add(TminerRelayTminerrelayTotal, QmRelay..x); 
-. TminerPeersTotal is a count of how many peers encountred. When found new peer information with (TAU and IPFS addr), hamt_update(TminerPeersTotal, TminerPeersTotal++);
-. hamt_add(TminerPeerTAUTminerPeersTotal, Tsender..x); hamt_add(TminerPeerIPFSTminerPeersTotal, QmSender..x); 
+. TminerRelayTotal is a count of how many relays encountred. When found new relay information, TminerRelayTotal++;
+. relaylist_add(QmRelay..x); 
+. TminerPeersTotal is a count of how many peers encountred. When found new peer information, TminerPeersTotal++;
+. peerlist_add(Tsender..x, QmSender..x); 
+These vars are not in hamt
 ```
 0. release android wake-lock and wifi-lock
 1. random walk until connect to a next relay; random walk until connect to a next peer; 
@@ -79,10 +83,11 @@ input: votes of future; output: safetystateRoot
 
 ##### node will maitain three sets of hamt keys
 ```
-. TminerRelayTotal is a count of how many relays encountred. When found new relay information, hamt_update(TminerRelayTotal, TminerRelayTotal++);
-. hamt_add(TminerRelayTminerrelayTotal, QmRelay..x); 
-. TminerPeersTotal is a count of how many peers encountred. When found new peer information with (TAU and IPFS addr), hamt_update(TminerPeersTotal, TminerPeersTotal++);
-. hamt_add(TminerPeerTAUTminerPeersTotal, Tsender..x); hamt_add(TminerPeerIPFSTminerPeersTotal, QmSender..x); 
+. TminerRelayTotal is a count of how many relays encountred. When found new relay information, TminerRelayTotal++;
+. relaylist_add(QmRelay..x); 
+. TminerPeersTotal is a count of how many peers encountred. When found new peer information, TminerPeersTotal++;
+. peerlist_add(Tsender..x, QmSender..x); 
+These vars are not in hamt
 ```
 0. turn ON android wake-lock and wifi-lock
 
@@ -94,11 +99,10 @@ multiaddress:= TminerRelay"x"/p2pcircuitRelay/TminerPeerIPFSTminer"y";
 2. request the miner peer for the future receipt state root according to CBC (correct by construction); 
 get contractJSON, get previous root, 
 ```
-graphsync( multiaddress, CID, selector(field:=contractJSON)); 
-// when CID is NULL,  - 0 means the first graphsync retrieve the future state cid
-```
-**problem** we do not know remote future cid at the moment, but we know the contractJSON as key from protocol definition.
+request will get future receipt state root cid from, ipfs connection tcp message.
+graphsync( multiaddress, ContractReceiptStateRoot, selector(field:=contractJSON)); 
 
+```
 3. traverse ONEWEEK history states from the miner and keep accounting of the root array; mining based on curent safty k to propose k+1 state with own tx uppon request; 
 ```
 hamt_get(stateroot, "previous state root");
@@ -123,7 +127,7 @@ nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
 txfee;
-contractblock number = previoushash(contract number)+1;
+contract number = SafetyReceiptStateRoot(contract number)+1;
 senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
 thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
 msgJSON,1024;//{ "hello world", this is a message.}
@@ -145,42 +149,15 @@ tx sender signature;
 
 Put the all new generated states into  cbor block, generate future ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
-
 ##### output coinbase tx
-* generate key 2a, coinbase transaction 
-``` 
-hamt_add(TAUminerImorpheus..xContractReceiptStateRootTXOutputJSON =
-{
-opt_code, 0;// 0 - coinbase tx, 1 - means coin wiring, 2 - means data upload and message 
-amount,5; // sum of transaction fees from the mining
-}
-```
-* generate Key 3a. hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
-* generate Key 4a. hamt_add(TAUminerContractReceiptStateRootAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON
-```
- hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
-```
+* generate key 2a, coinbase transaction hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
 
 ##### output Coins Wiring tx
-* generate Key 2b. TAUsenderContractReceiptStateRootTXOutputJSON = {}
-``` 
-hamt_add(TAUsender..xContractReceiptStateRootTXOutputJSON =
-{
-opt_code, 1; // this is a wiring, very simple
-}
-```
-* generate Key 3b. hamt_update(TAUsender..xBalance,amount); // update balance
-* generate Key 4b hamt_update(TAUtxreceiver..xBalance,amount);
+* generate Key 2b. hamt_update(TAUsender..xBalance,amount); // update balance
+* generate Key 3b  hamt_update(TAUtxreceiver..xBalance,amount);
 
 ##### Message transaction
-* generate Key 2c. TAUsenderContractReceiptStateRootTXOutputJSON
-``` 
-hamt_add(TAUsender..xContractReceiptStateRootTXOutputJSON =
-{
-opt_code, 2; // this is an attachment or message
-}
-```
-* generate Key 3c hamt_update(TAUsender..xBalance,amount); // update balance
+* generate Key 2c. hamt_update(TAUsender..xBalance,amount); // update balance
 
 6. random walk until connect to a next relay; random walk until connect to a next miner
 
@@ -192,3 +169,4 @@ opt_code, 2; // this is an attachment or message
 
 ### C. Attachment Downloader
 The downloader will use attachmentlog content to retrieve data from many peers. It will random walk on relays, but will focus on peers. Once connected, it will graphsync the data sections. The download coins payment structure is charge per attachment graphsync block. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
+find file relay; find peers. each node maintain one relay connection to state, and another relay to file. file relay will response with the content it holds, not blocks. 
