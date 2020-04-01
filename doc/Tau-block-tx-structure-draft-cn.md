@@ -24,89 +24,12 @@ TAU branchchain for searching service
 * ContractReceiptStateRoot; // this is the new block/state hamt node.cid
 ```
 Concept: Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
+Safety is the CBC concept of the safe and consensed history milestone.
+Mutable range: one week
 ```
-### A. When a miner receives Graphysync request for producing future state, it will process following steps: 
-* get CBC(consensus by construction) current safetyStateRoot, This is the result of voting by process B. If there is no safety found, such as out of mutable range, then exit with no response, continue to allow Collecting votes happenning. 
-* hamt_get(safetyStateRoot,TAUminerImorpheus..xNounce); // miner's nounce is the base for coinbase transaction and new contract. If fail to get nounce, it means the node is too young and exist with no respones, continue to allow Collecting votes happenning.
-input: none; backgroun context: safetyStateRoot; output: future contractReceiptStateRoot.
-```
-TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
-```
-* generate key 1 for the future state, hamt_update(TAUminerImorpheus..xNounce, TAUminerImorpheus..xNounce +1); 
-* generate key 2 for the future state, hamp_add(contractJSON, X);
+### A. When a miner receives Graphysync request for producing future state, it will build a new state and do following steps: 
+input: chain ID; output: the future contractReceiptStateRoot, which is generated in B hamt_put
 
-```
-X = {
-previousContractReceiptStateroot 32; // link to past state 
-version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
-miner TAU address, 20; TAUminerImorpheus..xNounce, 8; // mining is treated as a tx sending to self
-minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-TXpoolJSON, flexible bytes; 
-= { original JSON from peers for wiring and message; 
-nounce, 8;
-version,8, "0x1" as default;
-timestamp,4,tx expire in 12 hours;
-txfee;
-contractblock number = previoushash(contract number)+1;
-senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
-msgJSON,1024;//{ "hello world", this is a message.}
-attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
-Attachment Size,32; 
-tx sender signature;
-
-// for attachment processing
-// 1. TGZ the file; use ipfs block standard size e.g. 250k to chop the data to m pieceis
-// 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
-// 3. attachmentRoot=hamp_flush_put()
-// 4. return attachmentRoot and m to transaction Json. 
-
-}
-32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
-}
-```
-#### contract execute results
-##### output coinbase tx
-
-hamt_add(statejson, new block), this is new contract hash for execution  "hash98798234..sd"
-
-* generate key 3a, coinbase transaction 
-``` 
-hamt_add(TAUminerImorpheus..xNounceTXOutputJSON =
-{
-opt_code, 0;// 0 - coinbase tx, 1 - means coin wiring, 2 - means data upload and message 
-amount,5; // sum of transaction fees from the mining
-}
-```
-* generate Key 4a. hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
-* generate Key 5a. hamt_add(TAUminerNounceAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON
-```
- hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
-```
-
-##### output Coins Wiring tx
-* generate Key-3b. TAUsenderNounceTXOutputJSON = {}
-``` 
-hamt_add(TAUsender..xNounceTXOutputJSON =
-{
-opt_code, 1; // this is a wiring, very simple
-}
-```
-* generate Key-4b. hamt_update(TAUsender..xBalance,amount); // update balance
-* generate Key-5b hamt_update(TAUtxreceiver..xBalance,amount);
-
-##### Message transaction
-* generate Key 3c. TAUsenderNounceTXOutputJSON
-``` 
-hamt_add(TAUsender..xNounceTXOutputJSON =
-{
-opt_code, 2; // this is an attachment or message
-}
-```
-* generate Key 4c hamt_update(TAUsender..xBalance,amount); // update balance
-
-
-### Put the result ContractReceiptStateRoot = hamt_put(cbor); // this the for returning to requestor for future state prediction, "this state is my prediction"
 
 ### B. Collect votings from peers has two modes: miner and non-miner: 
 #### B1. non mining users, which are on battery power or telecome data service. 
@@ -176,19 +99,89 @@ goto step (2); this time, we have the CID, that is the (future - 1)
 ```
 when connection timeout or hit any error, go to step(1)
 
-4. accounting the new voting cid set, update the CBC safety root: SAFETYStateroot, hamt(SAFETYStateroot), then go to step (1)until half of the know mining peers are traversed.
+4. accounting the new voting cid set, update the CBC safety root: hamt_update(SAFETYStateroot), then go to step (1)until half of the know mining peers are traversed. If agreed SafetyReceiptStateRoot is out of mutable range, then go to step (1). 
+// initial voting done with a new safety
+5. predict new future contract. 
+* generate key 1 for the future ContractReceiptStateRoot, hamp_add(contractJSON, X);
+```
+//TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
+X = {
+SafetyReceiptStateRoot 32; // link to past the current state node.cid, and move to generate future
+version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
+miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
+minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+TXpoolJSON, flexible bytes; 
+= { original JSON from peers for wiring and message; 
+nounce, 8;
+version,8, "0x1" as default;
+timestamp,4,tx expire in 12 hours;
+txfee;
+contractblock number = previoushash(contract number)+1;
+senderProfileJSON,1024,Ta..xProfile; {TAU: Ta..x; relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
+msgJSON,1024;//{ "hello world", this is a message.}
+attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
+Attachment Size,32; 
+tx sender signature;
 
-5. if SAFETYStateRoot is out of mutable range, that is ONEWEEK, then go to step (1). 
+// for attachment processing
+// 1. TGZ the file; use ipfs block standard size e.g. 250k to chop the data to m pieceis
+// 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
+// 3. attachmentRoot=hamp_flush_put()
+// 4. return attachmentRoot and m to transaction Json. 
+
+}
+32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
+}
+```
+#### contract execute results
+
+Put the all new generated states into  cbor block, generate future ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+
+
+##### output coinbase tx
+* generate key 2a, coinbase transaction 
+``` 
+hamt_add(TAUminerImorpheus..xContractReceiptStateRootTXOutputJSON =
+{
+opt_code, 0;// 0 - coinbase tx, 1 - means coin wiring, 2 - means data upload and message 
+amount,5; // sum of transaction fees from the mining
+}
+```
+* generate Key 3a. hamt_update(TAUminerImorpheus..xBalance,TAUminerImorpheus..xBalance + amount); // update balance
+* generate Key 4a. hamt_add(TAUminerContractReceiptStateRootAttachmentsLogJSON={ atachment1:graphsync request from VisitorTAUaddr; attachement 2...} // attachment host will charge coins for each graphsync on attachment as compensation, log is the proof, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON
+```
+ hamt_add(TAUminerImorpheus..x11AttachmentsLogJSON={ "starwar:graphsync request from VisitorTAUaddr; attachement 2...} 
+```
+
+##### output Coins Wiring tx
+* generate Key 2b. TAUsenderContractReceiptStateRootTXOutputJSON = {}
+``` 
+hamt_add(TAUsender..xContractReceiptStateRootTXOutputJSON =
+{
+opt_code, 1; // this is a wiring, very simple
+}
+```
+* generate Key 3b. hamt_update(TAUsender..xBalance,amount); // update balance
+* generate Key 4b hamt_update(TAUtxreceiver..xBalance,amount);
+
+##### Message transaction
+* generate Key 2c. TAUsenderContractReceiptStateRootTXOutputJSON
+``` 
+hamt_add(TAUsender..xContractReceiptStateRootTXOutputJSON =
+{
+opt_code, 2; // this is an attachment or message
+}
+```
+* generate Key 3c hamt_update(TAUsender..xBalance,amount); // update balance
 
 6. random walk until connect to a next relay; random walk until connect to a next miner
 
-7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions ONEWEEK to the received future ContractReceiptStateRoot
+7. start mining by following the most difficult chain: if received ContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
 
-8. If veification succesful, hamt(SAFETYStateroot, ContractReceiptStateRoot), go to step (6)
+8. If verification succesful, hamt_update(SAFETYStateroot, ContractReceiptStateRoot), go to step (5); Else go to step (6)
 
-9. if self-disconnected from internet 48 hours, go to step (1).
-
-10. goto step (1)
+9. if network-disconnected from internet 48 hours, go to step (1).
 
 ### C. Attachment Downloader
 The downloader will use attachmentlog content to retrieve data from many peers. It will random walk on relays, but will focus on peers. Once connected, it will graphsync the data sections. The download coins payment structure is charge per attachment graphsync block. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
