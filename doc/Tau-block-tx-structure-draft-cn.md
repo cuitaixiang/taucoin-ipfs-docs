@@ -62,7 +62,7 @@ it will as well response with log root, log is the proof of graph sync history, 
 #### B1. non-mining users, which are on battery power or telecome data service. 
 0. release android wake-lock and wifi-lock
 1. random walk to next chain id; random walk until connect to a next relay; 
-2. through relay, randomly request a peer for the future receipt state root candidate according to CBC (correct by construction); 
+2. through relay, randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate according to CBC (correct by construction); 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 // when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
@@ -85,7 +85,7 @@ when connection timeout or hit any error, go to step(1)
 
 0. turn on android wake-lock and wifi-lock
 1. random walk to next chain id; random walk until connect to a next relay; 
-2. through relay, randomly request a peer for the future receipt state root candidate according to CBC (correct by construction); 
+2. through relay, randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate according to CBC (correct by construction); 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 // when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
@@ -153,7 +153,7 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * generate key 3c, hamt_add(TsenderImorpheus..xNounce, nounce);
 * generate key 4c, hamt_add(TsenderImorpheus..xNounceContractReceiptStateRoot, ContractReceiptStateRoot);
 6. random walk until connect to a next relay
-through graphrelaySync randomly request a peer for the future receipt state root candidate 
+through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 ```
@@ -162,5 +162,14 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 9. if network-disconnected from internet 48 hours, go to step (1).
 
 ### C. Attachment Downloader
-The downloader will use attachmentlog content to retrieve data from many peers. It will random walk on relays, but will focus on peers. Once connected, it will graphsync the data sections. The download coins payment structure is charge per attachment graphsync block. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
-find file relay; find peers. each node maintain one relay connection to state, and another relay to file. file relay will response with the content it holds, not blocks. 
+```
+input (message transaction address, nounce); // this is for single thread download
+```
+1. Tsender..xNounceContractReceiptStateRoot, find contractJSON/IPFS address,attachmentroot, size;
+2. random walk on all relays
+```
+graphRelaySync(relay, chainID, chainPeerIPFSID, attachmentroot, selector(field:=section 1..m))
+```
+until finish all relays or find the chainPeer
+3. scan the whole chain from safety to Tsender..xNounceContractReceiptStateRoot to find seeding chain peers; go to step (2)
+* The download payment structure is charge TAUcoin per graphRelaysync block from TAUnodes. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
