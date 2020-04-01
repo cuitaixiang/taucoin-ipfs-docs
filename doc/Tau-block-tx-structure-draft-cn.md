@@ -137,7 +137,7 @@ senderProfileJSON,1024,Ta..xProfile; {
 TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; 
 IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
 };
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread.
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread. otherwise, it is a seeding mark with comments, seeding with comments. // in app, we provide options for not seeding or delete seeding 
 msgJSON,1024;//{ "hello world", this is a message.}
 attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
 Attachment Size,32; 
