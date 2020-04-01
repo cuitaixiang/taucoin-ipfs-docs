@@ -1,17 +1,18 @@
 # TAU - share and preserve community data
 ```
 User experienses:= {
-data upload as TGZ format include all types - directory, pictures and videos, 
+data upload format include all types - directory, pictures and videos, 
 data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
-community can genesis independant coins.
+community genesis independant coins for file sharing
+TAU mainnet does not hold files.
 }
 Business model:= {
-TAU coins community will provide relay routers charging TAU coins.
-Community address will keep balance with TAU nodes, each tau nodes will have own policy for charging by annoucement
+TAU community decentral nodes will provide relay services charging TAU coins.
+Tau nodes will have own policy for charging by annoucement; all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
 }
 Launch steps:={
-Free community creation for exchange data, such as TAUT as initial.
-TAU mainchain tau nodes keeps logs.   file relay is charged and maintain a local list of accounts in levelDB. TAU mainchain does not support file attachment.  
+Free community creation for exchange data, such as TAUTest as initial test.
+Tau nodes keeps graphyRelaySync logs in levelDB.
 }
 ```
 ## Three processes exists: 
@@ -19,26 +20,20 @@ TAU mainchain tau nodes keeps logs.   file relay is charged and maintain a local
 * B. Collect votings from peers; 
 * C. Attachment Downloader.
 ## Backgound Context
-* Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is verified after voting process, the new SafetyContractReceiptStateRoot is equal to predicted ContractReceiptStateRoot. 
-* ContractReceiptStateRoot; // this is the new block/state hamt node.cid
+* Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is found or verified after voting process.
+* ContractReceiptStateRoot; // after found safety, this is the new contract state hamt node.cid
 ## Concept
 ```
-Miner is what nodes call themself, in TAU all nodes are miners predicting future; Sender is what nodes call other peers.
-Safety is the CBC concept of the safe and consensed history milestone.
-Mutable range is one week
-SafetyContractReceiptStateRoot is the local clock for miner; there is no definited global block clock, only global timestamp
-Paraless chain: new hamt node with first tx by genesisaddress
-Paraless chains peer address: genesis address+own address; 
-TAU address: T.....
-
-After file published, thread response could be seeding, which means hosting this file. 
-HamtGraphyRelaySync(relay ipfs addr, remotePeerIPFS addr, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. 
-when cbor.cid=null, it will get remote peer's ContractReceiptStateRoot.
-
-address system: 
-TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
-Community chain address: "C"+ chain genesis member's TAU address + ownTAUaddress; if a community want to be searched on mainchain, it need to make an gensis annoucment with genesis address on tau chain using genesis private key to sign, also with several bootstrap miners ipfs address, 
-
+. Miner is what nodes call themself, in CBC POT all miners predicting future; Sender is what nodes call other peers.
+Safety is the CBC concept of the safe and agreed history milestone.
+. Mutable range is one week.
+. Community chain ID: Tgenesisaddress+Tgenesisaddress; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain, also with several bootstrap miners ipfs address, 
+. Community chains peer address format : Tgenesisaddress address+own address; 
+. TAU address: T.....
+. After file published, other peers commenting is the seeding indication, which means hosting this file. 
+. HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. when cbor.cid is null, then asking for the prediction cid, the peer's ContractReceiptStateRoot.
+. Address system: 
+. TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
 ```
 ### A.1 When a miner receives Graphysync request for producing future state
 
