@@ -34,6 +34,7 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. when cbor.cid is null, then asking for the prediction cid, the peer's ContractReceiptStateRoot.
 . Address system: 
 . TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
+. AttachmentRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 ```
 ### A.1 When a miner receives Graphysync request for producing future state
 
@@ -102,22 +103,24 @@ when connection timeout or hit any error, go to step(1)
 //TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 X = {
 SafetyContractReceiptStateRoot 32; // link to past the current state node.cid, and move to generate future
+contract number = SafetyContractReceiptStateRoot/contract number)+1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
 minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
+
 TXpoolJSON, flexible bytes; 
 = { original JSON from peers for wiring and message; 
 nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
 txfee;
-contract number = SafetyContractReceiptStateRoot(contract number)+1;
 senderProfileJSON,1024,Ta..xProfile; {
 TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; 
 IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
 };
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread. otherwise, it is a seeding mark with comments, seeding with comments. // in app, we provide options for not seeding or delete seeding 
-msgJSON,1024;//{ "hello world", this is a message.}
+
+thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread must with attachment file. otherwise, it is a seeding mark with comments, seeding with comments. // in app, we provide options for not seeding or delete seeding 
+msgJSON,1024;//{ "message has to have attachement"}
 attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
 Attachment Size,32; 
 tx sender signature;
@@ -134,12 +137,21 @@ tx sender signature;
 Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 ##### output coinbase tx
 * generate key 2a, coinbase transaction hamt_update(TminerImorpheus..xBalance,TminerImorpheus..xBalance + amount); // update balance 
+* generate TminerImopheus..xNounce++; for the sender side
+* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
+* generate TminerImopheus..xNounce++; for the receiving side
+* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
 ##### output Coins Wiring tx
 * generate Key 2b. hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance - amount-txfee); 
 * generate Key 5b, hamt_update(Ttxreceiver..xBalance,Ttxreceiver..xBalance + amount);
-
+* generate TsenderImopheus..xNounce++
+* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
+* generate Treceiver..xNounce++
+* genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
 ##### Message transaction
 * generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
+* generate TsenderImopheus..xNounce++
+* genreate TsenderImppheus..xNounceRoot := ContractReceiptStateRoot
 * generate key 3c,  hamt_update(attachementRootNounce ++) // new attachment nonce=1; commenting on attachment nounce ++
 * generate key 4c, hamt_add(AttachmentRootTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
 
@@ -158,7 +170,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 ```
 input (attachment root); // this is for single thread download
 ```
-1. from attachmentroot, find nouce, loop the nounce, find contractJSON/msgTx/IPFS peers id;
+1. from attachmentroot, find nouce, loop the attachment nounce, find contractJSON/msgTx/IPFS peers id;
 { random walk on all relays
 ```
 graphRelaySync(relay, chainID, chainPeerIPFSID, attachmentroot, selector(field:=section 1..m))
