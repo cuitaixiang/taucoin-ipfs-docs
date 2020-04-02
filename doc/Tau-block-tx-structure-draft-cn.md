@@ -52,7 +52,7 @@ TsenderNounce, power
 TsenderNounceRoot, the entry for the transaction
 TsenderBalance
 FileRootNounce
-FileRootNounceRoot
+FileRootNounceContractReceiptStateRoot
 ChainRelayNounce
 ChainRelayNounceRoot
 ChainIDNouce (only tau main)
