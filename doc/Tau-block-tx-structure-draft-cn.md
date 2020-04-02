@@ -8,7 +8,9 @@ TAU mainnet does not hold files.
 }
 Business model:= {
 TAU community decentral nodes will provide relay services charging TAU coins.
-Tau nodes will have own policy for charging by annoucement; all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
+Tau foundation will develop TAU App and provide public relays for free, in return to get ads views. 
+Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in tau chain. 
+all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
 }
 Launch steps:={
 Free community creation for exchange data, such as TAUTest as initial test.
@@ -43,6 +45,13 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . FileRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 . TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
 ```
+# I. community chain
+genesis block: block size in number of txs, frequency, chain name, coins total, relay bootstrap. 
+hamt_new node().
+hamt_add(contractJson, {});
+hamt_put  -> ContractReceitpStateRoot
+add(genesisState,ContractReceitpStateRoot)
+
 ## A One miner receives GraphSync request from a relay. 
 Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.
 ### A.1 for future ContractReceiptStateRoot
@@ -185,3 +194,6 @@ until finish all relays or find the chainPeer
 }
 
 * The download payment structure is charge TAUcoin per graphRelaysync block from TAUnodes. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
+
+# II. TAU Chain
+no file attament, functions are chain registration, relay registration, relay payment.
