@@ -18,9 +18,9 @@ Tau relay nodes keeps graphyRelaySync logs in levelDB.
 }
 ```
 ## Three processes exists: 
-* A. Response with future ContractReceiptStateRoot; 
-* B. Collect votings from peers; 
-* C. File Downloader.
+* A. Response with future ContractReceiptStateRoot; in the relay loop, no recursively switch relay, rely on top random working.
+* B. Collect votings from peers; in the peer loop, no recursively switch peers, rely on top random working.
+* C. File Downloader; recursive to find attachments using history 
 ## Global Context: store in levelDB
 ```
 * Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is found or verified after voting process.
@@ -45,6 +45,17 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . FileRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 . TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
 ```
+## warm hole
+In each stateroot, contractReceiptStateRoot, we will setup warm hole for future var request. Warm hole prevents screen the whole blockchain. The warm holes are:
+TsenderNounce, power
+TsenderNounceRoot, the entry for the transaction
+TsenderBalance
+FileRootNounce
+FileRootNounceRoot
+ChainRelayNounce
+ChainRelayNounceRoot
+ChainIDNouce (only tau main)
+ChainIDNouceRoot(only tau main)
 # I. community chain
 genesis block: block size in number of txs, frequency, chain name, coins total, relay bootstrap. 
 hamt_new node().
@@ -155,22 +166,19 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
 * generate TminerImopheus..xNounce++; for the receiving side
 * genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
-* generate TminerImopheue..xNounceWitnessJSON := {list of Tsenders in the block}
 ##### output Coins Wiring tx
 * generate Key 2b. hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance - amount-txfee); 
 * generate Key 5b, hamt_update(Ttxreceiver..xBalance,Ttxreceiver..xBalance + amount);
-* generate TsenderImopheus..xNounce++
-* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
+* generate Tsender..xNounce++
+* genreate Tsender..xNounceRoot := ContractReceiptStateRoot
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
-* generate Tsender..xNounceWitnessJSON := {list of Tsenders in the block}
 ##### File transaction
 * generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
-* generate TsenderImopheus..xNounce++
-* genreate TsenderImppheus..xNounceRoot := ContractReceiptStateRoot
-* generate key 3c,  hamt_update(FileNounce ++) // new File tx nonce=1; commenting on File nounce ++
-* generate key 4c, hamt_add(FileNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
-* generate Tserver..xNounceWitnessJSON := {list of Tsenders in the block}
+* generate Tsender..xNounce++
+* genreate Tsender..xNounceRoot := ContractReceiptStateRoot
+* generate key 3c,  hamt_update(FileRootNounce ++) // new File tx nonce=1; commenting on File nounce ++
+* generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
 ##### community relay annoucement
 relay nounce/ relaynounce = ...
 
@@ -199,7 +207,5 @@ until finish all relays or find the chainPeer
 
 # II. TAU Chain
 no file attament, functions are chain public registration and public relay announcement. community private relay can annouce in own chain. 
-
 relay nounce/ relaynounce = ...
 chain nounce/ chain = ...
-jsonwitness.
