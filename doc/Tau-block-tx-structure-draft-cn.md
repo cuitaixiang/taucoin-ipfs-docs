@@ -1,4 +1,4 @@
-# TAU - decentralized cloud
+# TAU - free decentralized file sharing
 ```
 User experienses:= {
 data upload format include all types - directory, pictures and videos, 
