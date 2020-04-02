@@ -171,6 +171,7 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * generate key 3c,  hamt_update(FileNounce ++) // new File tx nonce=1; commenting on File nounce ++
 * generate key 4c, hamt_add(FileNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
 * generate Tserver..xNounceWitnessJSON := {list of Tsenders in the block}
+##### community relay annoucement
 
 6. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
