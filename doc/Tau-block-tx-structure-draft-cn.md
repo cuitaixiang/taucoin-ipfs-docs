@@ -1,4 +1,4 @@
-# TAU - share and preserve community data
+# TAU - decentralized file sharing
 ```
 User experienses:= {
 data upload format include all types - directory, pictures and videos, 
@@ -18,7 +18,7 @@ Tau nodes keeps graphyRelaySync logs in levelDB.
 ## Three processes exists: 
 * A. Response with future ContractReceiptStateRoot; 
 * B. Collect votings from peers; 
-* C. Attachment Downloader.
+* C. File Downloader.
 ## Global Context: store in levelDB
 ```
 * Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is found or verified after voting process.
@@ -40,7 +40,7 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. when cbor.cid is null, then asking for the prediction cid, the peer's ContractReceiptStateRoot.
 . Address system: 
 . TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
-. AttachmentRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
+. FileRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 . TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
 ```
 ## A One miner receives GraphSync request from a relay. 
@@ -53,7 +53,7 @@ Miner does not know which peer contacting, because of the relay covers the peers
 ### A.2 For file relay, from a graphSync of a graphRelaySync（ relay, peer, chainID, cid, selector). 
 File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
 If successful, File relay will log this in
-it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
+it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. File content trie is ***another trie*** called FileRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
 
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
@@ -122,16 +122,16 @@ TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...;
 IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
 };
 
-thread; if thread equal null, it is a new attachment file. otherwise, it is a seeding mark with comments link to ContractReceiptStateRoot. // in app, we provide options for not seeding or delete seeding 
-attachmentDescJSON,1024;//{ "message has to have attachement"}
-attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
-Attachment Size,32; 
+thread; if thread equal null, it is a new File. otherwise, it is a seeding mark with comments link to ContractReceiptStateRoot. // in app, we provide options for not seeding or delete seeding 
+FileDescJSON,1024;//{ "message has to have File"}
+FileRoot = newNode.hamp_put(1-10000, sections of data); 
+File Size,32; 
 tx sender signature;
-// regarding the attachment processing
+// regarding the File processing
 // 1. use ipfs block standard size e.g. 250k to chop the data to m pieceis, TGZ each piece
 // 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
-// 3. attachmentRoot=hamp_flush_put()
-// 4. return attachmentRoot and m to transaction Json. 
+// 3. FileRoot=hamp_flush_put()
+// 4. return FileRoot and m to transaction Json. 
 }
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
@@ -155,12 +155,12 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
 * generate Tsender..xNounceWitnessJSON := {list of Tsenders in the block}
-##### attachment transaction
+##### File transaction
 * generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
 * generate TsenderImopheus..xNounce++
 * genreate TsenderImppheus..xNounceRoot := ContractReceiptStateRoot
-* generate key 3c,  hamt_update(attachementRootNounce ++) // new attachment nonce=1; commenting on attachment nounce ++
-* generate key 4c, hamt_add(AttachmentRootTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
+* generate key 3c,  hamt_update(FileNounce ++) // new File tx nonce=1; commenting on File nounce ++
+* generate key 4c, hamt_add(FileNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding, the nonce ++ and easy to find seeding hosts. 
 * generate Tserver..xNounceWitnessJSON := {list of Tsenders in the block}
 
 6. random walk until connect to a next relay
@@ -172,14 +172,14 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 8. If verification succesful, levelDB_update(SafetyContractReceiptStateRoot, futureContractReceiptStateRoot), go to step (5) to get a new state prediction; Else go to step (6)
 9. if network-disconnected from internet 48 hours, go to step (1).
 
-### C. Attachment Downloader
+### C. File Downloader
 ```
-input (attachment root); // this is for single thread download
+input (File root); // this is for single thread download
 ```
-1. from attachmentroot, find nouce, loop the attachment nounce, find contractJSON/msgTx/IPFS peers id;
+1. from Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS peers id;
 { random walk on all relays
 ```
-graphRelaySync(relay, chainID, chainPeerIPFSID, attachmentroot, selector(field:=section 1..m))
+graphRelaySync(relay, chainID, chainPeerIPFSID, File, selector(field:=section 1..m))
 ```
 until finish all relays or find the chainPeer
 }
