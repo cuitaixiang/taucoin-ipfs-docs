@@ -1,52 +1,48 @@
-# TAU -  decentralized free file sharing
+# TAU - Decentralized File Sharing
 ```
 User experienses:= {
-data upload format include all types - directory, pictures and videos, 
-data download from swarm and export to specific types eg mp4 with play media in app to avoid legal issue; 
-community genesis independant coins for file sharing; community members can decide use tau relay annoucned on tau main chain or own relay setup. 
-TAU mainnet does not hold files.
+- File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added hamt node. Downloaded file, which is a hamt node, export to specific types, eg mp4, without native media play to avoid legal issue. 
+- Community creates independant chains with new coins for file sharing.
+- TAU mainnet does not hold files, only provide relay and chain annoucment service. 
+- All chain addresses are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature by ipfs RSA private key)
 }
 Business model:= {
-
-. Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. 
-. Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in own community chain. community  nodes generate data flow, it can be paid in taucoin. 
-. all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of . . TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
+- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU. 
+- On TAU or community chain, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Community nodes and relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
 }
 Launch steps:={
-Free community creation for exchange data, such as TAUTest as initial test.
-Tau relay nodes keeps graphyRelaySync logs in levelDB.
+- Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS
+- Tau main net turn on for community relay nodes joinning profit sharing.
 }
 ```
-## Three processes exists: 
-* A. Response with future ContractReceiptStateRoot; in the relay loop, no recursively switch relay, rely on top random working.
-* B. Collect votings from peers; in the peer loop, no recursively switch peers, rely on top random working.
-* C. File Downloader; recursive to find attachments using history 
+## Three processes exists 
+* A. Response with future ContractReceiptStateRoot, which is a cbor.cid and an anchor for hamt state retrieve. 
+* B. Collect votings from peers to find the safety state root for the chain. 
+* C. File Downloader.
 ## Global Context: store in levelDB
+It helps to make process internal data exchange efficient. 
 ```
-* Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is found or verified after voting process.
-* ContractReceiptStateRoot; // after found safety, this is the new contract state hamt node.cid
-* RelayList is a list of known relays through Kademlia and TAU chain info; 
-* ChainList is a list of Chains to follow selected by user
-* PeerList[chain ID] is list of known peers for the chain
-
+* SafetyContractReceiptStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
+* ContractReceiptStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
+* RelayList is a list of known relays from Kademlia scope and TAU chain info; 
+* ChainList is a list of Chains to follow by users.
+* PeerList[chain ID] is list of known peers for the chain by users.
 ```
 ## Concept
 ```
-. Miner is what nodes call themself, in CBC POT all miners predicting future; Sender is what nodes call other peers.
-Safety is the CBC concept of the safe and agreed history milestone.
-. Mutable range is one week.
-. Community chain ID: Tgenesisaddress+ random number+Tgenesisaddress; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain, also with several bootstrap miners ipfs address, 
-. Community chains peer address format : chain ID+own address; 
-. TAU address: T.....
-. After file published, other peers commenting is the seeding indication, which means hosting this file. 
-. HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. when cbor.cid is null, then asking for the prediction cid, the peer's ContractReceiptStateRoot.
-. Address system: 
-. TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
-. FileRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
-. TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
-. Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another process to a new relay+peer to get supporting evidence. if some vars are missing just abort process to go next randomness. depth priority.  However for the file search, it is the width priority to do paralell download. 
+- Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
+- Safety is the CBC concept of the safe and agreed history milestone.
+- Mutable range is one week for now.
+- After file published, other peers commenting is considerred as seeding indication. 
+- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking for the prediction cid, the target's future ContractReceiptStateRoot.
+- Address system: 
+- TAU public key: the base for all address generation;
+- Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain with several bootstrap miners ipfs address, 
+- Community chains peer address format : chain ID + own address; 
+- FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state.
+- Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
-## warm hole
+## Warm hole
 In each stateroot, contractReceiptStateRoot, we will setup warm hole for future var request. Warm hole prevents screen the whole blockchain. The warm holes are:
 TsenderNounce, power
 TsenderNounceRoot, the entry for the transaction
@@ -65,7 +61,7 @@ hamt_put  -> ContractReceitpStateRoot
 add(genesisState,ContractReceitpStateRoot)
 
 ## A One miner receives GraphSync request from a relay. 
-Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.
+Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
 ### A.1 for future ContractReceiptStateRoot
 ```
 1. Receive the (genesis address); // this is the chain ID, TAU is 0x0;
@@ -78,7 +74,7 @@ it will as well response with log root, log is the proof of graph sync history, 
 
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
-
+In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working.
 #### B1. non-mining users, which are on battery power or telecome data service. 
 0. release android wake-lock and wifi-lock
 1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; 
