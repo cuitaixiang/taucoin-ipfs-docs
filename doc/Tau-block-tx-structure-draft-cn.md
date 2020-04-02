@@ -43,13 +43,14 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . AttachmentRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 . TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
 ```
-### A.1 When a miner receives Graphysync request for producing future state
-
+## A One miner receives GraphSync request from a relay. 
+Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.
+### A.1 for future ContractReceiptStateRoot
 ```
 1. Receive the (genesis address); // this is the chain ID, TAU is 0x0;
 2. If active on this chain, return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
-### A.2 For file relay, graphRelaySync（ relay, peer, cid, selector). 
+### A.2 For file relay, from a graphSync of a graphRelaySync（ relay, peer, chainID, cid, selector). 
 File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
 If successful, File relay will log this in
 it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. Attachment content trie is ***another trie*** called attachmentRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
