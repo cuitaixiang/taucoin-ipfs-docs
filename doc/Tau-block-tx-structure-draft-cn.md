@@ -25,7 +25,7 @@ It helps to make process internal data exchange efficient.
 * SafetyContractReceiptStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
 * ContractReceiptStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
 * RelayList is a list of known relays from Kademlia scope and TAU chain info; 
-* ChainList is a list of Chains to follow by users.
+* ChainList is a list of Chains to follow/mine by users.
 * PeerList[chain ID] is list of known peers for the chain by users.
 ```
 ## Concept
@@ -54,9 +54,6 @@ FileRootNounceContractReceiptStateRoot
 
 ChainRelayNounce
 ChainRelayNounceRoot
-
-ChainIDNouce (only tau main)
-ChainIDNouceRoot(only tau main)
 ```
 # I. community chain - supports file sharing
 genesis parameters: block size in number of txs, frequency, chain nick name, coins total default is 1 million, relay bootstrap list, initial peers ipfs address. 
@@ -199,7 +196,8 @@ until finish all relays or find the chainPeer
 ```
 
 # II. TAU Chain
-no file attament, functions are chain public registration and public relay announcement. community private relay can annouce in own chain. 
-wormhole
+no file attament, functions are relay announcement. community private relay can annouce in own chain. 
+- wormhole
 relay nounce/ relaynounce = ...
-chain nounce/ chain = ...
+* hamt_update(relayNounce, relayNounce +1)
+* hamt_add(RelayNounceAddr, new relay info)
