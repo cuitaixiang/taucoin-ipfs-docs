@@ -199,16 +199,15 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 ### C. File Downloader
 ```
 input (File root); // this is for single thread download
-```
-1. from Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS peers id;
+
+From Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS peers id;
 { random walk on all relays
-```
+
 graphRelaySync(relay, chainID, chainPeerIPFSID, File, selector(field:=section 1..m))
-```
+
 until finish all relays or find the chainPeer
 }
-
-* The download payment structure is charge TAUcoin per graphRelaysync block from TAUnodes. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
+```
 
 # II. TAU Chain
 no file attament, functions are chain public registration and public relay announcement. community private relay can annouce in own chain. 
