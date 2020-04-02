@@ -23,13 +23,11 @@ Tau nodes keeps graphyRelaySync logs in levelDB.
 ```
 * Safety SafetyContractReceiptStateRoot; // this is constantly updated by voting collecting process B. When most difficulty chain is found or verified after voting process.
 * ContractReceiptStateRoot; // after found safety, this is the new contract state hamt node.cid
-
-* RelayList is a list of known relays
-* ChainList is a list of Chains to follow
-* PeerList[chain ID] is list of known peers 
+* RelayList is a list of known relays through Kademlia and TAU chain info; 
+* ChainList is a list of Chains to follow selected by user
+* PeerList[chain ID] is list of known peers for the chain
 
 ```
-
 ## Concept
 ```
 . Miner is what nodes call themself, in CBC POT all miners predicting future; Sender is what nodes call other peers.
@@ -61,7 +59,7 @@ it will as well response with log root, log is the proof of graph sync history, 
 
 #### B1. non-mining users, which are on battery power or telecome data service. 
 0. release android wake-lock and wifi-lock
-1. random walk to next chain id; random walk until connect to a next relay; 
+1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; 
 2. through relay, randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate according to CBC (correct by construction); 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
