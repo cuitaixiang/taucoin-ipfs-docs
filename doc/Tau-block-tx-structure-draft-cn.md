@@ -33,8 +33,8 @@ Tau nodes keeps graphyRelaySync logs in levelDB.
 . Miner is what nodes call themself, in CBC POT all miners predicting future; Sender is what nodes call other peers.
 Safety is the CBC concept of the safe and agreed history milestone.
 . Mutable range is one week.
-. Community chain ID: Tgenesisaddress+Tgenesisaddress; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain, also with several bootstrap miners ipfs address, 
-. Community chains peer address format : Tgenesisaddress address+own address; 
+. Community chain ID: Tgenesisaddress+ random number+Tgenesisaddress; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain, also with several bootstrap miners ipfs address, 
+. Community chains peer address format : chain ID+own address; 
 . TAU address: T.....
 . After file published, other peers commenting is the seeding indication, which means hosting this file. 
 . HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will setup connection to peers. when cbor.cid is null, then asking for the prediction cid, the peer's ContractReceiptStateRoot.
