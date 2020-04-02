@@ -3,12 +3,12 @@
 User experienses:= {
 - File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added hamt node. Downloaded file, which is a hamt node, export to specific types, eg mp4, without native media play to avoid legal issue. 
 - Community creates independant chains with new coins for file sharing.
-- TAU mainnet does not hold files, only provide relay and chain annoucment service. 
+- TAU mainnet does not hold files, only provide relay meta data service. 
 - All chain addresses are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature by ipfs RSA private key)
 }
 Business model:= {
 - Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU. 
-- On TAU or community chain, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Community nodes and relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
+- On TAU, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Nodes and relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
 }
 Launch steps:={
 - Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS
@@ -37,7 +37,7 @@ It helps to make process internal data exchange efficient.
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking for the prediction cid, the target's future ContractReceiptStateRoot.
 - Address system: 
 - TAU public key: the base for all address generation;
-- Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state; if a community chain want to be searched through mainchain, it need to make an gensis annoucment with genesis address on tau chain with several bootstrap miners ipfs address, 
+- Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state
 - Community chains peer address format : chain ID + own address; 
 - FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state.
 - Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
@@ -56,7 +56,7 @@ ChainRelayNounce
 ChainRelayNounceRoot
 ```
 # I. community chain - supports file sharing
-genesis parameters: block size in number of txs, frequency, chain nick name, coins total default is 1 million, relay bootstrap list, initial peers ipfs address. 
+genesis parameters: block size in number of txs, frequency, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is on tau chain via Kademlia, before that it is written in software. 
 ```
 hamt_new node().
 hamt_add(contractJson, {genesis});
@@ -168,10 +168,6 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * genreate Tsender..xNounceRoot := ContractReceiptStateRoot
 * generate key 3c,  hamt_update(FileRootNounce ++) // new File tx nonce=1; commenting on File nounce ++
 * generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
-##### community relay annoucement
-relay nounce/ relaynounce = ...
-* hamt_update(relayNounce, relayNounce +1)
-* hamt_add(RelayNounceAddr, new relay info)
 
 6. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
@@ -181,7 +177,6 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 7. mining by following the most difficult chain: if received futureContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
 8. If verification succesful, levelDB_update(SafetyContractReceiptStateRoot, futureContractReceiptStateRoot), go to step (5) to get a new state prediction; Else go to step (6)
 9. if network-disconnected from internet 48 hours, go to step (1).
-
 ### C. File Downloader
 ```
 input (File root); // this is for single thread download
@@ -196,7 +191,7 @@ until finish all relays or find the chainPeer
 ```
 
 # II. TAU Chain
-no file attament, functions are relay announcement. community private relay can annouce in own chain. 
+TAU has only function that is relay configuration and related data payment settlement.
 - wormhole
 relay nounce/ relaynounce = ...
 * hamt_update(relayNounce, relayNounce +1)
