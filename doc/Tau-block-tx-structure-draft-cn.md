@@ -82,11 +82,14 @@ it will as well response with log root, log is the proof of graph sync history, 
 
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
-In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working.
-#### B1. non-mining users, which are on battery power or telecome data service. 
+In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
+#### B1. non-mining users, which are on battery power or telecom data service. 
+
 0. release android wake-lock and wifi-lock
-1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; 
-2. through relay, randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate according to CBC (correct by construction); 
+```
+code section H:
+1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; chain id has relationship with Kademlia distance.  
+2. through relay, randomly request a chainPeer for the future receipt state root candidate according to CBC (correct by construction); 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 // when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
@@ -96,36 +99,24 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 stateroot = futureContractReceiptStateRoot
 (*) 
 hamt_get(stateroot, "contractJSON");
-stateroot= contractJSON/SafetyContractReceiptStateRoot
+stateroot= contractJSON/SafetyContractReceiptStateRoot // recursive getting previous stateRoot to move into history
 goto (*) until the mutable range; // 
 goto step (2); 
 ```
 when connection timeout or hit any error, go to step(1)
+
 4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractReceiptStateRoot, voted SAFETY), 
-5. build a future contractReceiptState; check B2(miner)- step 5.
+``` 
+5. build a future contractReceiptState; use B2 - step 5.
 6. then go to step (1).
 
 
 #### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
 
 0. turn on android wake-lock and wifi-lock
-1. random walk to next chain id; random walk until connect to a next relay; 
-2. through relay, randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate according to CBC (correct by construction); 
 ```
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
-// when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
+copy code section H from B1.
 ```
-3. traverse mutable range history states from the peer and keep accounting of the ContractReceiptStateRoot
-```
-(*) 
-hamt_get(stateroot, "contractJSON");
-stateroot= contractJSON/SafetyContractReceiptStateRoot
-goto (*) until the mutable range; // 
-goto step (2); 
-```
-when connection timeout or hit any error, go to step(1)
-4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractReceiptStateRoot, voted SAFETY), 
-// initial voting done with a new safety
 5. predict new future contract. 
 ```
 //TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
@@ -134,26 +125,22 @@ SafetyContractReceiptStateRoot 32; // link to past the current state node.cid, a
 contract number = SafetyContractReceiptStateRoot/contract number +1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
-minerProfileJSON,1024; // e.g. TAUminerImorpheus..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; };
-
-TXpoolJSON, flexible bytes; 
+minerProfileJSON,1024; // e.g. TAUminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
+TXsJSON, flexible bytes; 
 = { original JSON from peers for wiring and message; 
 nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
 txfee;
-senderProfileJSON,1024,Ta..xProfile; {
-TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; 
-IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
-};
+senderProfileJSON,1024,Ta..xProfile; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
 
-thread; if thread equal null, it is a new File. otherwise, it is a seeding mark with comments link to ContractReceiptStateRoot. // in app, we provide options for not seeding or delete seeding 
-FileDescJSON,1024;//{ "message has to have File"}
+thread; if thread equal null, it is a new File. otherwise, it is a seeding mark with comments link to FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file
+FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
 FileRoot = newNode.hamp_put(1-10000, sections of data); 
 File Size,32; 
 tx sender signature;
 // regarding the File processing
-// 1. use ipfs block standard size e.g. 250k to chop the data to m pieceis, TGZ each piece
+// 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
 // 3. FileRoot=hamp_flush_put()
 // 4. return FileRoot and m to transaction Json. 
@@ -166,20 +153,20 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 
 #### contract execute results
 ##### output coinbase tx
-* generate key 2a, coinbase transaction hamt_update(TminerImorpheus..xBalance,TminerImorpheus..xBalance + amount); // update balance 
+* generate key 2a, coinbase transaction hamt_update(Tminer..xBalance,Tminer..xBalance + amount); // update balance 
 * generate TminerImopheus..xNounce++; for the sender side
 * genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
 * generate TminerImopheus..xNounce++; for the receiving side
 * genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
-##### output Coins Wiring tx
-* generate Key 2b. hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance - amount-txfee); 
+##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
+* generate Key 2b. hamt_update(Tsender..xBalance,Tsender..xBalance - amount-txfee); 
 * generate Key 5b, hamt_update(Ttxreceiver..xBalance,Ttxreceiver..xBalance + amount);
 * generate Tsender..xNounce++
 * genreate Tsender..xNounceRoot := ContractReceiptStateRoot
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
 ##### File transaction
-* generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
+* generate Key 2c, hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
 * generate Tsender..xNounce++
 * genreate Tsender..xNounceRoot := ContractReceiptStateRoot
 * generate key 3c,  hamt_update(FileRootNounce ++) // new File tx nonce=1; commenting on File nounce ++
