@@ -7,8 +7,9 @@ User experienses:= {
 - All chain addresses are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature by ipfs RSA private key)
 }
 Business model:= {
-- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU. 
-- On TAU, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Nodes and relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
+- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU to share profit. 
+- On TAU, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
+- Individual nodes will see ads to keep the data for free, the more data upload, the less ads to see. In app, show a balance of uploaded data and ads time. 
 }
 Launch steps:={
 - Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS
