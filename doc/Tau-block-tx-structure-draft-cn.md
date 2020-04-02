@@ -1,4 +1,4 @@
-# TAU - Decentralized File Sharing
+# TAU - Decentralized File Sharing Community
 ```
 User experienses:= {
 - File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added hamt node. Downloaded file, which is a hamt node, export to specific types, eg mp4, without native media play to avoid legal issue. 
