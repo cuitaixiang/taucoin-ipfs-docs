@@ -44,6 +44,7 @@ Safety is the CBC concept of the safe and agreed history milestone.
 . TAU private key: the base for all address; TAU public Key hash to TAU address for main chain;
 . FileRoot and nounce, the community is designed for handle file sharing, rather than list all tx, it list files and seeders in global key-value pair
 . TAU is the boot strap for community chain. community chain claim initial genesis and miner info on TAU. Kademlia DHT is used to get initial relay for communtiy genesis addresses. before tau launch, we provide fixed relay for community chain. 
+. Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another process to a new relay+peer to get supporting evidence. if some vars are missing just abort process to go next randomness. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
 ## warm hole
 In each stateroot, contractReceiptStateRoot, we will setup warm hole for future var request. Warm hole prevents screen the whole blockchain. The warm holes are:
