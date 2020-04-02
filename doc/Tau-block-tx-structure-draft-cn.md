@@ -7,14 +7,14 @@ community genesis independant coins for file sharing; community members can deci
 TAU mainnet does not hold files.
 }
 Business model:= {
-TAU community decentral nodes will provide relay services charging TAU coins.
-Tau foundation will develop TAU App and provide public relays for free, in return to get ads views. 
-Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in tau chain. community when they generate data flow, it can be paid in taucoin. 
-all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
+
+. Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. 
+. Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in own community chain. community  nodes generate data flow, it can be paid in taucoin. 
+. all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of . . TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
 }
 Launch steps:={
 Free community creation for exchange data, such as TAUTest as initial test.
-Tau nodes keeps graphyRelaySync logs in levelDB.
+Tau relay nodes keeps graphyRelaySync logs in levelDB.
 }
 ```
 ## Three processes exists: 
@@ -196,4 +196,4 @@ until finish all relays or find the chainPeer
 * The download payment structure is charge TAUcoin per graphRelaysync block from TAUnodes. Therefore, the more peers paralell connections, the fast it is, the more expensive. 
 
 # II. TAU Chain
-no file attament, functions are chain registration, relay registration, relay payment.
+no file attament, functions are chain public registration and public relay announcement. community private relay can annouce in own chain. 
