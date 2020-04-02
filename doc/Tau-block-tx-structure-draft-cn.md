@@ -9,7 +9,7 @@ TAU mainnet does not hold files.
 Business model:= {
 TAU community decentral nodes will provide relay services charging TAU coins.
 Tau foundation will develop TAU App and provide public relays for free, in return to get ads views. 
-Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in tau chain. 
+Community can install own relay restricted to serve certain chain ID, configuerable for charging policy and service restrictions then annouce that in tau chain. community when they generate data flow, it can be paid in taucoin. 
 all chain address are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature on TAUaddr by ipfs private key
 }
 Launch steps:={
