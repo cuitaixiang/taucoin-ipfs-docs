@@ -42,24 +42,32 @@ It helps to make process internal data exchange efficient.
 - FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state.
 - Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
-## Warm hole
-In each stateroot, contractReceiptStateRoot, we will setup warm hole for future var request. Warm hole prevents screen the whole blockchain. The warm holes are:
+## Wormhole
+In each stateroot, which contractReceiptStateRoot, we will setup wormhole for some future var request. Wormhole prevents the future user screening the whole blockchain. The wormholes are:
+```
 TsenderNounce, power
 TsenderNounceRoot, the entry for the transaction
 TsenderBalance
+
 FileRootNounce
 FileRootNounceContractReceiptStateRoot
+
 ChainRelayNounce
 ChainRelayNounceRoot
+
 ChainIDNouce (only tau main)
 ChainIDNouceRoot(only tau main)
-# I. community chain
-genesis block: block size in number of txs, frequency, chain name, coins total, relay bootstrap. 
+```
+# I. community chain - supports file sharing
+genesis parameters: block size in number of txs, frequency, chain nick name, coins total default is 1 million, relay bootstrap list, initial peers ipfs address. 
+```
 hamt_new node().
-hamt_add(contractJson, {});
+hamt_add(contractJson, {genesis});
 hamt_put  -> ContractReceitpStateRoot
-add(genesisState,ContractReceitpStateRoot)
-
+add(genesisStateRoot,ContractReceitpStateRoot)
+add(genesisAddress, Tminer..x)
+nounce, balance, ... TBD
+```
 ## A One miner receives GraphSync request from a relay. 
 Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
 ### A.1 for future ContractReceiptStateRoot
