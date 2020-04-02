@@ -119,8 +119,8 @@ TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...;
 IPFS private key sign TAU to proof, it is association. // verifier can decode siganture to get public key then hash to ipfs address -QM...; // tau address is the core
 };
 
-thread = "other sender address + tx nounce"; if thread equal self sender nounce, it is a new thread must with attachment file. otherwise, it is a seeding mark with comments, seeding with comments. // in app, we provide options for not seeding or delete seeding 
-msgJSON,1024;//{ "message has to have attachement"}
+thread; if thread equal null, it is a new attachment file. otherwise, it is a seeding mark with comments link to ContractReceiptStateRoot. // in app, we provide options for not seeding or delete seeding 
+attachmentDescJSON,1024;//{ "message has to have attachement"}
 attachmentRoot = newNode.hamp_put(1-10000, sections of data); 
 Attachment Size,32; 
 tx sender signature;
@@ -148,7 +148,7 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
-##### Message transaction
+##### attachment transaction
 * generate Key 2c, hamt_update(TsenderImorpheus..xBalance,TsenderImorpheus..xBalance-txfee); 
 * generate TsenderImopheus..xNounce++
 * genreate TsenderImppheus..xNounceRoot := ContractReceiptStateRoot
