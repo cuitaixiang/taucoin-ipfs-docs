@@ -173,6 +173,8 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
 ##### community relay annoucement
 relay nounce/ relaynounce = ...
+* hamt_update(relayNounce, relayNounce +1)
+* hamt_add(RelayNounceAddr, new relay info)
 
 6. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
@@ -198,5 +200,6 @@ until finish all relays or find the chainPeer
 
 # II. TAU Chain
 no file attament, functions are chain public registration and public relay announcement. community private relay can annouce in own chain. 
+wormhole
 relay nounce/ relaynounce = ...
 chain nounce/ chain = ...
