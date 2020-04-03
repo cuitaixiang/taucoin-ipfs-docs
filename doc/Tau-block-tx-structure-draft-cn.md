@@ -33,14 +33,13 @@ It helps to make process internal data exchange efficient.
 ```
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
 - Safety is the CBC concept of the safe and agreed history milestone.
-- Mutable range is one week for now.
-- After file published, other peers commenting is considerred as seeding indication. 
+- Mutable range is one week for now. 
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking for the prediction cid, the target's future ContractReceiptStateRoot.
 - Address system: 
 - TAU public key: the base for all address generation;
 - Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state
 - Community chains peer address format : chain ID + own address; 
-- FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state.
+- File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state. After file published, other peers will use basic contract command to operate file, the first one is "seeding -i info".
 - Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
 ## Wormhole
@@ -132,9 +131,8 @@ timestamp,4,tx expire in 12 hours;
 txfee;
 senderProfileJSON,1024,Ta..xProfile; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
 
-thread; if thread equal null, it is a new File. otherwise, it is a seeding mark with comments link to FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file
-FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
-FileRoot = newNode.hamp_put(1-10000, sections of data); 
+file command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
+FileRoot = newNode.hamp_put(1-10000, sections of data);   file nouce yes / no
 File Size,32; 
 tx sender signature;
 // regarding the File processing
@@ -163,7 +161,15 @@ Put the all new generated states into  cbor block, generate ContractReceiptState
 * genreate Tsender..xNounceRoot := ContractReceiptStateRoot
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
-##### File transaction
+##### File operation transaction
+```
+File operation command in contractJSON
+rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
+- cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
+e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
+rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
+- rootSeeding fileRoot -seeding on/off
+```
 * generate Key 2c, hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
 * generate Tsender..xNounce++
 * genreate Tsender..xNounceRoot := ContractReceiptStateRoot
