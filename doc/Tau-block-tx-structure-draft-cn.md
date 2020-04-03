@@ -46,15 +46,15 @@ It helps to make process internal data exchange efficient.
 In each stateroot, which contractReceiptStateRoot, we will setup wormhole for some future var request. Wormhole prevents the future user screening the whole blockchain. The wormholes are:
 ```
 TsenderNounce, power
-TsenderNounceRoot, the entry for the transaction
+TsenderNounceStateRoot, the entry for the transaction
 TsenderBalance
 
-FileRootCommandNounce
-FileRootCommandNounceContractReceiptStateRoot
-
+FileAMTRootCommandNounce
+FileAMTRootCommandNounceContractReceiptStateRoot
 
 * generate contractAMTRoot = AMT_add(X); 
 * generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
+* generate contractAMTRootWitness, hamp_add( contractAMTrootWitness, {all the ipfs address in the contract} ); // for seeking ipfs peers for find contract. 
 
 ChainRelayNounce  - amt trie ???
 ChainRelayNounceRoot
@@ -139,14 +139,14 @@ txfee;
 senderProfileJSON,1024,Ta..xProfile; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
 
 file command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
-FileRoot = newNode.hamp_put(1-10000, sections of data);   file nouce yes / no
-File Size,32; 
+FileAMTRoot;
+FileAMTCount,32; 
 tx sender signature;
 // regarding the File processing
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
-// 2. newNode.hamt(1,piece(1)); loop to newNode.hamt(m,piece(m));
-// 3. FileRoot=hamp_flush_put()
-// 4. return FileRoot and m to transaction Json. 
+// 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
+// 3. FileAMTroot=AMT_flush_put()
+// 4. return FileAMTroot and Count to transaction Json. 
 }
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
