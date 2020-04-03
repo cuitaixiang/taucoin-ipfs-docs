@@ -1,25 +1,26 @@
 # TAU - Decentralized File Sharing Community
 ```
 User experienses:= {
-- File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added hamt node. Downloaded file, which is a hamt node, export to specific types, eg mp4, without native media play to avoid legal issue. 
-- Community creates independant chains with new coins for file sharing.
-- TAU mainnet does not hold files, only provide relay meta data service. 
-- All chain addresses are derivative from TAU private key and use IPFS peers ID for internet connection (the association of TAUaddr and IPFSaddr is by signature by ipfs RSA private key)
+- File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added into AMT with a filtAMTroot as return. TAU app does not provide native media player to avoid legal issue.
+- Community creates community chains with own coins for file sharing. Each community chain ID is the creator TAUaddress+random(1,000,000,000)
+- TAU mainnet does not hold files, only provide relay management service and settle payment on relay income. 
+- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for internet connection (the association of TAUaddr and IPFS address is by signature using ipfs RSA private key)
 }
 Business model:= {
-- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU to share profit. 
-- On TAU, members can install and announce own relay restricted to serve certain chain ID, configuerable for fee & service policy. Relay generates data flow, and it will be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
-- Individual nodes will see ads to keep the data for free, the more data upload, the less ads to see. In app, show a balance of uploaded data and ads time. 
+- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU chain to share profit of the mobile ads. 
+- On TAU, members can install and announce own relay to serve certain chain ID, configuerable for fee & service policy. Relay generates data flow to be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
+- Individual nodes will see ads to keep the data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
 }
 Launch steps:={
-- Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS
+- Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS. 
 - Tau main net turn on for community relay nodes joinning profit sharing.
 }
 ```
 ## Three processes exists 
-* A. Response with future ContractReceiptStateRoot, which is a cbor.cid and an anchor for hamt state retrieve. 
+* A. Response with predicted ContractReceiptStateRoot, which is a hamt cbor.cid. 
 * B. Collect votings from peers to find the safety state root for the chain. 
 * C. File Downloader.
+
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
 ```
@@ -34,40 +35,48 @@ It helps to make process internal data exchange efficient.
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
 - Safety is the CBC concept of the safe and agreed history milestone.
 - Mutable range is one week for now. 
-- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking for the prediction cid, the target's future ContractReceiptStateRoot.
+- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking peer for the prediction chain CID, the target's future ContractReceiptStateRoot.
+- AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
 - Address system: 
 - TAU public key: the base for all address generation;
 - Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state
 - Community chains peer address format : chain ID + own address; 
-- File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state. After file published, other peers will use basic contract command to operate file, the first one is "seeding -i info".
-- Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
+- File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in wormhole. After file published, other peers will use basic contract command to operate file, the first command is "seeding -i info".
+- Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - the bridge between HAMT state and AMT data set.
-In each stateroot, which contractReceiptStateRoot, we will setup wormhole for some future var request. Wormhole prevents the future user screening the whole blockchain. The wormholes are:
+In each Chain stateroot, which is the contractReceiptStateRoot, we will setup wormhole for some future request. 
+The wormholes are:
 ```
 TsenderNounce, power
 TsenderNounceContractAMTRoot, the entry for the transaction
 TsenderBalance
 
-FileAMTRootCommandNounce
+FileAMTRootCommandNounce // for each file, this is the history of the commands. 
 FileAMTRootCommandNounceContractAMTRoot
 
-* generate contractAMTRoot = AMT_add(X); 
-* generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
-* generate contractAMTRootWitness, hamp_add( contractAMTrootWitness, {all the ipfs address in the contract} ); // for seeking ipfs peers for find contract. 
+ChainIDcontractAMTRoot 
+ChainIDcontractNumber
+ChinaIDcontractAMTRootWitness
 
-ChainRelayNounce  - amt trie ???
-ChainRelayNounceRoot
+On TAU main chain, relay command
+RelayNounce  - amt trie ???
+RelayNounceRoot
 ```
-# I. community chain - supports file sharing
-genesis parameters: block size in number of txs, frequency, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is on tau chain via Kademlia, before that it is written in software. 
+# I. community chain - supports file sharing commands
+genesis state gen, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
 ```
-hamt_new node().
-hamt_add(contractJson, {genesis});
-hamt_put  -> ContractReceitpStateRoot
-add(genesisStateRoot,ContractReceitpStateRoot)
-add(genesisAddress, Tminer..x)
-nounce, balance, ... TBD
+* ChainIDcontractAMTroot = amt_new node().
+* generate ChainIDcontractAMTRoot.add({geneis}); 
+* hamt_new node;
+Genesis coinbase tx to get all coins
+* generate hamt_update(Tminer..xBalance, 1,000,000); 
+* generate Tminer..xNounce=1
+* genreate Tminer..xNounceRoot := ChainIDcontractAMTRoot
+* ChainIDContractReceitpStateRoot= hamt_put() 
+* hamt_add(genesisStateRoot,ChainIDContractReceitpStateRoot)
+* hamt_add(genesisAddress, Tminer..x)
+* ChainIDContractReceitpStateRoot= hamt_put() 
 ```
 ## A One miner receives GraphSync request from a relay. 
 Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
@@ -79,7 +88,7 @@ Miner does not know which peer contacting, because of the relay covers the peers
 ### A.2 For file relay, from a graphSync of a graphRelaySync（ relay, peer, chainID, cid, selector). 
 File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
 If successful, File relay will log this in
-it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. File content trie is ***another trie*** called FileRoot in contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
+it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. File content trie is ***another trie*** called FileRoot in AMT/contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
 
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
