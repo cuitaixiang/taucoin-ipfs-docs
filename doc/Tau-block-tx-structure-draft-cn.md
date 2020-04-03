@@ -17,20 +17,20 @@ Launch steps:={
 }
 ```
 ## Three processes exists 
-* A. Response with predicted ContractReceiptStateRoot, which is a hamt cbor.cid. 
+* A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. 
 * B. Collect votings from peers to find the safety state root for the chain. 
 * C. File Downloader.
 
 ## Tries
 * ChainIDContractAMTroot is the AMT trie for store chain contracts vector
-* ChainIDContractReceiptStateRoot is the HAMT tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
+* ChainIDContractResultStateRoot is the HAMT tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
 * FileAMTroot is the AMT trie for chopping and store file.
 
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
 ```
-* SafetyContractReceiptStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
-* ContractReceiptStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
+* SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
+* ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
 * RelayList is a list of known relays from Kademlia scope and TAU chain info; 
 * ChainList is a list of Chains to follow/mine by users.
 * PeerList[chain ID] is list of known peers for the chain by users.
@@ -40,7 +40,7 @@ It helps to make process internal data exchange efficient.
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
 - Safety is the CBC concept of the safe and agreed history milestone.
 - Mutable range is one week for now. 
-- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking peer for the prediction chain CID, the target's future ContractReceiptStateRoot.
+- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking peer for the prediction chain CID, the target's future ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
 - Address system: 
 - TAU public key: the base for all address generation;
@@ -50,7 +50,7 @@ It helps to make process internal data exchange efficient.
 - Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - the bridge between HAMT state and AMT data set.
-In each Chain stateroot, which is the contractReceiptStateRoot, we will setup wormhole for some future request. 
+In each Chain stateroot, which is the contractResultStateRoot, we will setup wormhole for some future request. 
 The wormholes are:
 ```
 TsenderNounce, power
@@ -90,11 +90,11 @@ Genesis coinbase tx to get all coins
 * ChainIDContractReceitpStateRoot= hamt_put() 
 ```
 ## A One miner receives GraphSync request from a relay. 
-Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: chainIDContractReceiptStateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
-### A.1 for future ContractReceiptStateRoot
+Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: chainIDContractResultStateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
+### A.1 for future ContractResultStateRoot
 ```
 1. Receive the ChainID from a graphRelaySync call
-2. If active on this chain, return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
+2. If active on this chain, return: the future contractResultStateRoot for this chain, which is generated in B hamt_put
 ```
 ### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, cid, selector). 
 File content trie is ***another trie*** called FileRoot in AMT/contractJSON, that is cross chain existing.
@@ -110,25 +110,25 @@ code section H:
 2. through relay, randomly request a chainPeer for the future receipt state root candidate according to CBC (correct by construction); 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractAMTRoot)); 
-// when CID is NULL,  - 0 means the relay will request ChainIDContractReceiptStateRoot from the peer via tcp
+// when CID is NULL,  - 0 means the relay will request ChainIDContractResultStateRoot from the peer via tcp
 
 3. traverse history contract and states until mutable range.
 
-stateroot = ChainContractReceiptStateRoot
+stateroot = ChainContractResultStateRoot
 (*) 
 graphsyncAMT(contractAMTroot) 
 contractJson = amt_get(contractAMTroot )
-stateroot= contractJSON/SafetyContractReceiptStateRoot // recursive getting previous stateRoot to move into history
-graphsyncHAMT(SafetyContractReceiptStateRoot) 
+stateroot= contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
+graphsyncHAMT(SafetyContractResultStateRoot) 
 contractAMTroot = hamt_get(stateroot, contractAMTRoot)
 goto (*) until the mutable range; // 
 goto step (2); 
 
 when connection timeout or hit any error, go to step(1)
 
-4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractReceiptStateRoot, voted SAFETY), 
+4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractResultStateRoot, voted SAFETY), 
 ``` 
-5. build a future contractReceiptState; use B2 - step 5.
+5. build a future contractResultState; use B2 - step 5.
 6. then go to step (1).
 
 
@@ -142,8 +142,8 @@ copy code section H from B1.
 ```
 //TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 X = {
-SafetyContractReceiptStateRoot 32; // link to current safety state node.cid, and move to generate future
-contractNumber = AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1;
+SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
+contractNumber = AMT_get_count(SafetyContractResultStateRoot/contractAMTRoot number) +1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
 minerProfileJSON,1024; // e.g. TAUminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
@@ -169,7 +169,7 @@ tx sender signature;
 }
 ```
 * generate contractAMTRoot = AMT_add(X); 
-* generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
+* generate contractNumber= AMT_get_count(SafetyContractResultStateRoot/contractAMTRoot number) +1
 * generate contractAMTRootWitness, hamp_add( contractAMTrootWitness, {all the ipfs address in the contract} ); // for seeking ipfs peers for find contract. 
 
 #### contract execute results
@@ -204,14 +204,14 @@ rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or o
 * generate key 3c, hamt_update(ChainIDFileNouceCommandNounce ++) // new File tx nonce=1; commenting on File nounce ++
 * generate key 4c, hamt_add(ChainIDFileNonceCommandNouceTXContractRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
 
-6. Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+6. Put the all new generated states into  cbor block, generate ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 ```
-8. mining by following the most difficult chain: if received futureContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
-9. If verification succesful, levelDB_update(SafetyContractReceiptStateRoot, futureContractReceiptStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
+8. mining by following the most difficult chain: if received futureContractResultStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
+9. If verification succesful, levelDB_update(SafetyContractResultStateRoot, futureContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
 ### C. File Downloader
 ```
