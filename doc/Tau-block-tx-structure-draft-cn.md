@@ -42,17 +42,21 @@ It helps to make process internal data exchange efficient.
 - File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state. After file published, other peers will use basic contract command to operate file, the first one is "seeding -i info".
 - Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
-## Wormhole
+## Wormhole - amt trie
 In each stateroot, which contractReceiptStateRoot, we will setup wormhole for some future var request. Wormhole prevents the future user screening the whole blockchain. The wormholes are:
 ```
 TsenderNounce, power
 TsenderNounceRoot, the entry for the transaction
 TsenderBalance
 
-FileRootNounce
-FileRootNounceContractReceiptStateRoot
+FileRootCommandNounce
+FileRootCommandNounceContractReceiptStateRoot
 
-ChainRelayNounce
+
+* generate contractAMTRoot = AMT_add(X); 
+* generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
+
+ChainRelayNounce  - amt trie ???
 ChainRelayNounceRoot
 ```
 # I. community chain - supports file sharing
@@ -95,8 +99,11 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 
 stateroot = futureContractReceiptStateRoot
 (*) 
-hamt_get(stateroot, "contractJSON");
+graphsyncAMT(contractAMTroot) using contract witness
+contractJson = amt_get(contractAMTroot )
 stateroot= contractJSON/SafetyContractReceiptStateRoot // recursive getting previous stateRoot to move into history
+graphsyncHAMT(SafetyContractReceiptStateRoot) using  contract witness
+contractAMTroot = hamt_get(stateroot, contractAMTRoot)
 goto (*) until the mutable range; // 
 goto step (2); 
 
@@ -118,8 +125,8 @@ copy code section H from B1.
 ```
 //TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 X = {
-SafetyContractReceiptStateRoot 32; // link to past the current state node.cid, and move to generate future
-contract number = SafetyContractReceiptStateRoot/contract number +1;
+SafetyContractReceiptStateRoot 32; // link to current safety state node.cid, and move to generate future
+contractNumber = AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
 minerProfileJSON,1024; // e.g. TAUminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
@@ -144,23 +151,24 @@ tx sender signature;
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
 ```
-* generate key 1 for hamp_add(contractJSON, X);
-Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+* generate contractAMTRoot = AMT_add(X); 
+* generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
+* generate contractAMTRootWitness, hamp_add( contractAMTrootWitness, {all the ipfs address in the contract} ); // for seeking ipfs peers for find contract. 
 
 #### contract execute results
 ##### output coinbase tx
 * generate key 2a, coinbase transaction hamt_update(Tminer..xBalance,Tminer..xBalance + amount); // update balance 
 * generate TminerImopheus..xNounce++; for the sender side
-* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
+* genreate TminerImppheus..xNounceRoot := contractAMTRoot
 * generate TminerImopheus..xNounce++; for the receiving side
-* genreate TminerImppheus..xNounceRoot := ContractReceiptStateRoot
+* genreate TminerImppheus..xNounceRoot := contractAMTRoot
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 * generate Key 2b. hamt_update(Tsender..xBalance,Tsender..xBalance - amount-txfee); 
 * generate Key 5b, hamt_update(Ttxreceiver..xBalance,Ttxreceiver..xBalance + amount);
 * generate Tsender..xNounce++
-* genreate Tsender..xNounceRoot := ContractReceiptStateRoot
+* genreate Tsender..xNounceRoot := contractAMTRoot
 * generate Treceiver..xNounce++
-* genreate Treceiver..xNounceRoot := ContractReceiptStateRoot
+* genreate Treceiver..xNounceRoot := ContractReceiptcontractAMTRootStateRoot
 ##### File operation transaction
 ```
 File operation command in contractJSON
@@ -172,18 +180,19 @@ rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or o
 ```
 * generate Key 2c, hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
 * generate Tsender..xNounce++
-* genreate Tsender..xNounceRoot := ContractReceiptStateRoot
+* genreate Tsender..xNounceRoot := contractAMTRoot
 * generate key 3c,  hamt_update(FileRootNounce ++) // new File tx nonce=1; commenting on File nounce ++
-* generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, ContractReceiptStateRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
+* generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
 
-6. random walk until connect to a next relay
+6. Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+7. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 ```
-7. mining by following the most difficult chain: if received futureContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
-8. If verification succesful, levelDB_update(SafetyContractReceiptStateRoot, futureContractReceiptStateRoot), go to step (5) to get a new state prediction; Else go to step (6)
-9. if network-disconnected from internet 48 hours, go to step (1).
+8. mining by following the most difficult chain: if received futureContractReceiptStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
+9. If verification succesful, levelDB_update(SafetyContractReceiptStateRoot, futureContractReceiptStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
+10. if network-disconnected from internet 48 hours, go to step (1).
 ### C. File Downloader
 ```
 input (File root); // this is for single thread download
