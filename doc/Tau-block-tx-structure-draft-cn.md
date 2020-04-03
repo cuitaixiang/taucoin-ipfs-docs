@@ -42,15 +42,15 @@ It helps to make process internal data exchange efficient.
 - File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in global key-value state. After file published, other peers will use basic contract command to operate file, the first one is "seeding -i info".
 - Principle of traverse, the relay random walk is based on Kademlia, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search, it is the width priority to do paralell download. 
 ```
-## Wormhole - amt trie
+## Wormhole - the bridge between HAMT state and AMT data set.
 In each stateroot, which contractReceiptStateRoot, we will setup wormhole for some future var request. Wormhole prevents the future user screening the whole blockchain. The wormholes are:
 ```
 TsenderNounce, power
-TsenderNounceStateRoot, the entry for the transaction
+TsenderNounceContractAMTRoot, the entry for the transaction
 TsenderBalance
 
 FileAMTRootCommandNounce
-FileAMTRootCommandNounceContractReceiptStateRoot
+FileAMTRootCommandNounceContractAMTRoot
 
 * generate contractAMTRoot = AMT_add(X); 
 * generate contractNumber= AMT_get_count(SafetyContractReceiptStateRoot/contractAMTRoot number) +1
