@@ -87,19 +87,19 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 code section H:
 1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; chain id has relationship with Kademlia distance.  
 2. through relay, randomly request a chainPeer for the future receipt state root candidate according to CBC (correct by construction); 
-```
+
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
 // when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
-```
+
 3. traverse mutable range history states
-```
+
 stateroot = futureContractReceiptStateRoot
 (*) 
 hamt_get(stateroot, "contractJSON");
 stateroot= contractJSON/SafetyContractReceiptStateRoot // recursive getting previous stateRoot to move into history
 goto (*) until the mutable range; // 
 goto step (2); 
-```
+
 when connection timeout or hit any error, go to step(1)
 
 4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractReceiptStateRoot, voted SAFETY), 
