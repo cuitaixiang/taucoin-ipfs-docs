@@ -21,6 +21,11 @@ Launch steps:={
 * B. Collect votings from peers to find the safety state root for the chain. 
 * C. File Downloader.
 
+## Tries
+* ChainIDContractAMTroot is the AMT trie for store chain contracts vector
+* ChainIDContractReceiptStateRoot is the HAMT tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
+* FileAMTroot is the AMT trie for chopping and store file.
+
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
 ```
@@ -55,6 +60,12 @@ TsenderBalance
 FileAMTRootCommandNounce // for each file, this is the history of the commands. 
 FileAMTRootCommandNounceContractAMTRoot
 
+ChainIDFileNouce
+ChainIDFileNouceRoot= fileAMTroot); // on one chain, file is a series. fileAMTroot is independant, even chain not existing, fileAMTroot can be referred by other chain. 
+ChainIDFileNouceCommandNounce ++) // new File tx nonce=1; commenting on File nounce ++
+ChainIDFileNonceCommandNouceTXContractRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
+
+
 ChainIDcontractAMTRoot 
 ChainIDcontractNumber
 ChinaIDcontractAMTRootWitness
@@ -79,17 +90,14 @@ Genesis coinbase tx to get all coins
 * ChainIDContractReceitpStateRoot= hamt_put() 
 ```
 ## A One miner receives GraphSync request from a relay. 
-Miner does not know which peer contacting, because of the relay covers the peers. Two types of requests: stateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
+Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: chainIDContractReceiptStateRoot and file.  In the random walk on relay, no recursively switching on relay, it relies on top random working, which is based on Kademlia distance. 
 ### A.1 for future ContractReceiptStateRoot
 ```
-1. Receive the (genesis address); // this is the chain ID, TAU is 0x0;
+1. Receive the ChainID from a graphRelaySync call
 2. If active on this chain, return: the future contractReceiptStateRoot for this chain, which is generated in B hamt_put
 ```
-### A.2 For file relay, from a graphSync of a graphRelaySync（ relay, peer, chainID, cid, selector). 
-File relay receive request for graphsync on content. graphsyncRelay(peerID, fileroot, selelctor_range). no need to setup connection to peer through relay, since know the peerID and root. file relay will setup connection will peers do a secondary graphysync
-If successful, File relay will log this in
-it will as well response with log root, log is the proof of graph sync history, each new TAU address can get a mininum service from hosts such as 1G, it is configurable in the sendersProfile json. File content trie is ***another trie*** called FileRoot in AMT/contractJSON. each member need to pay tau to relay nodes from time to time, or provide seeding service as compenstion. several IPFS relay nodes can belong to one TAU address. Tau will use ipfs node private key to proof that relation in txJSON profile. For now, the relay service is free. 
-
+### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, cid, selector). 
+File content trie is ***another trie*** called FileRoot in AMT/contractJSON, that is cross chain existing.
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
@@ -98,20 +106,20 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 0. release android wake-lock and wifi-lock
 ```
 code section H:
-1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia and TAU chain info; chain id has relationship with Kademlia distance.  
+1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia selection on TAU chain info.  
 2. through relay, randomly request a chainPeer for the future receipt state root candidate according to CBC (correct by construction); 
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
-// when CID is NULL,  - 0 means the relay will request futureContractReceiptStateRoot from the peer via tcp
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractAMTRoot)); 
+// when CID is NULL,  - 0 means the relay will request ChainIDContractReceiptStateRoot from the peer via tcp
 
-3. traverse mutable range history states
+3. traverse history contract and states until mutable range.
 
-stateroot = futureContractReceiptStateRoot
+stateroot = ChainContractReceiptStateRoot
 (*) 
-graphsyncAMT(contractAMTroot) using contract witness
+graphsyncAMT(contractAMTroot) 
 contractJson = amt_get(contractAMTroot )
 stateroot= contractJSON/SafetyContractReceiptStateRoot // recursive getting previous stateRoot to move into history
-graphsyncHAMT(SafetyContractReceiptStateRoot) using  contract witness
+graphsyncHAMT(SafetyContractReceiptStateRoot) 
 contractAMTroot = hamt_get(stateroot, contractAMTRoot)
 goto (*) until the mutable range; // 
 goto step (2); 
@@ -155,7 +163,7 @@ tx sender signature;
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
 // 3. FileAMTroot=AMT_flush_put()
-// 4. return FileAMTroot and Count to transaction Json. 
+// 4. return FileAMTroot and Count to contract Json. 
 }
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
@@ -177,7 +185,7 @@ tx sender signature;
 * generate Tsender..xNounce++
 * genreate Tsender..xNounceRoot := contractAMTRoot
 * generate Treceiver..xNounce++
-* genreate Treceiver..xNounceRoot := ContractReceiptcontractAMTRootStateRoot
+* genreate Treceiver..xNounceRoot := contractAMTRoot
 ##### File operation transaction
 ```
 File operation command in contractJSON
@@ -190,8 +198,11 @@ rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or o
 * generate Key 2c, hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
 * generate Tsender..xNounce++
 * genreate Tsender..xNounceRoot := contractAMTRoot
-* generate key 3c,  hamt_update(FileRootNounce ++) // new File tx nonce=1; commenting on File nounce ++
-* generate key 4c, hamt_add(FileRootNouceTXStateJSONReceiptRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
+
+* hamt_add(ChainIDFileNouce, fileNouce++);
+* hamt_add(ChainIDFileNouceRoot, fileAMTroot); // on one chain, file is a series. fileAMTroot is independant, even chain not existing, fileAMTroot can be referred by other chain. 
+* generate key 3c, hamt_update(ChainIDFileNouceCommandNounce ++) // new File tx nonce=1; commenting on File nounce ++
+* generate key 4c, hamt_add(ChainIDFileNonceCommandNouceTXContractRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
 
 6. Put the all new generated states into  cbor block, generate ContractReceiptStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
@@ -206,7 +217,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON));
 ```
 input (File root); // this is for single thread download
 
-From Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS peers id;
+From Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS witness;
 { random walk on all relays
 
 graphRelaySync(relay, chainID, chainPeerIPFSID, File, selector(field:=section 1..m))
