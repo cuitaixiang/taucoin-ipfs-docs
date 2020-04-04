@@ -38,7 +38,7 @@ Trie elements linking
 It helps to make process internal data exchange efficient. 
 * `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
-* User`ChainID`List; // a list of Chains to follow/mine by users.
+* UserChainList; // a list of Chains to follow/mine by users.
 * UserFileAMTlist; // a list for storing user interested files 
 * `ChainID`PeerList; // list of known peers for the chain by users.
 * RelayList; // a list of known relays from Kademlia scope and TAU chain info; initially will be hard-coded.
@@ -79,6 +79,7 @@ Chain specific:
 ```
 * `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
+ChainID = `Tminer`+ random(1,000,000,000)
 X = `ChainID`contractAMTRoot.add({
 blocksize;
 blocktime;
@@ -88,22 +89,29 @@ total coins
 initial IPFS peers json;
 }); 
 * new `ChainID`SafetyContractResultStateRoot = new hamtnode()
+* hamt_add(ChainID,`ChainID`);
 * hamt_add(`ChainID`contractAMTroot, X); 
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add( `Tminer`Nounce=1
 * hamt_add(genesisAddress, `Tminer`) // add genesis address wormhole
 * hamt_add(other KVs)
 * `ChainID`ContractReceitpStateRoot= hamt_put() 
+* levelDB vars update
 * levelDB.`ChainID`SafetyContractResultStateRoot = `ChainID`ContractReceitpStateRoot
+* levelDB.`ChainID`ContractResultStateRoot=`ChainID`SafetyContractResultStateRoot; 
+* levelDB.UserChainList.add(`ChainID`)
+* levelDB.`ChainID`PeerList.add(`Tminer);
+* levelDB.RelayList.add({aws relays by taucoin dev});
+
 ```
-## A One miner receives GraphSync request from a relay. 
+## A. One miner receives GraphSync request from a relay. 
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 ### A.1 for future `ChainID`ContractResultStateRoot
 ```
 1. Receive the `ChainID` from a graphRelaySync call
-2. If active on this chain, return leveldb-`ChainID`contractResultStateRoot, which was generated in B process hamt_put
+2. If active on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process hamt_put
 ```
-### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, cid, selector). 
+### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector). 
 If the `fileAMTroot` exists, then return the blocks. 
 
 ### B. Collect votings from peers: this process has two modes: miner and non-miner: 
