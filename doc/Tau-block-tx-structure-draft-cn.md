@@ -41,7 +41,7 @@ It helps to make process internal data exchange efficient.
 * UserChainList; // a list of Chains to follow/mine by users.
 * UserFileAMTlist; // a list for storing user interested files 
 * `ChainID`PeerList; // list of known peers for the chain by users.
-* RelayList; // a list of known relays from Kademlia scope and TAU chain info; initially will be hard-coded.
+* RelayList; // a list of known relays from TAU chain; initially will be hard-coded.
 
 ## Concept explain
 ```
@@ -61,7 +61,7 @@ File operation command:
 //  e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
 //  rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
 //  - rootSeeding fileRoot -seeding on/off
-- Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
+- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the fileAMT search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
@@ -172,13 +172,12 @@ senderProfileJSON,1024; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/
 
 seeding command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
 FileAMTRoot;
-FileAMTCount,32; 
 tx sender signature;
 // regarding the File processing
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
 // 3. FileAMTroot=AMT_flush_put()
-// 4. return FileAMTroot and Count to contract Json. 
+// 4. return FileAMTroot to contract Json. 
 }
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
@@ -225,10 +224,12 @@ graphRelaySync(relay, chainID, chainPeerIPFSID, File, selector(field:=section 1.
 until finish all relays or find the chainPeer
 }
 ```
-
-# II. TAU Chain
+# To do
+## II. TAU Chain
 TAU has only function that is relay configuration and related data payment settlement.
 - wormhole
 relay nounce/ relaynounce = ...
 * hamt_update(relayNounce, relayNounce +1)
 * hamt_add(RelayNounceAddr, new relay info)
+## Kademlia on relay and peers selection
+## community relay data flow tracking for profit sharing. 
