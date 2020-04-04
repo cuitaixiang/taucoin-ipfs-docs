@@ -83,6 +83,7 @@ chain nickname; // hello world chain
 total coins; // default 1,000,000
 initial IPFS peers json({IPFS address});
 initial relaylist json({multi address});
+telegramGroup; // https://t.me/taucoin for organizing the community.
 }); // X.
 
 * new `ChainID`ContractResultStateRoot = new hamt.node();
@@ -156,19 +157,17 @@ X = {
 SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
 contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
-miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
-minerProfileJSON,1024; // e.g. {  
-telegram:/t/...; IPFS signature on `ChainIDTAUaddress` to proof association. // verifier can decode siganture to get public key then hash to ipfs address QM..; 
-};
+ChainIDminerAddress, 20; Nounce, 8; // mining is treated as a tx sending to self
+ `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+ChainIDminerOtherInfo, 128 bytes;
 TXsJSON, flexible bytes; 
-= { original tx from voting collection: wiring and file operation.
+= { //original tx from voting collection: wiring and file operation.
 nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
 txfee;
-senderProfileJSON,1024; { 
-telegram:/t/...; IPFS signature on `ChainIDTAUaddress` to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; 
-};
+ `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+ChainIDsenderOtherInfo, 128 bytes;
 
 FileAMTRoot;
 tx sender signature;
