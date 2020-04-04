@@ -1,41 +1,43 @@
 # TAU - Decentralized File Sharing Community
 ```
 User experienses:= {
-- File upload format is TGZ, which zips all types - directory, pictures and videos. TGZ will be choped and added into AMT with a filtAMTroot as return. TAU app does not provide native media player to avoid legal issue.
-- Community creates community chains with own coins for file sharing. Each community chain ID is the creator TAUaddress+random(1,000,000,000)
-- TAU mainnet does not hold files, only provide relay management service and settle payment on relay income. 
-- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for internet connection (the association of TAUaddr and IPFS address is by signature using ipfs RSA private key)
+- File uploaded will be compressed to TGZ, which includes directory, pictures and videos. TGZ will be choped and added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. TAU app does not provide native media player to avoid legal issue.
+- Community creates community chains with own coins for file sharing. Community chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay for own use on community chain as well. 
+- TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions. Assume millions of community established file sharing. Relay config is a busy service. 
+- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for internet connection (the association of TAUaddr and IPFS address is by signature using ipfs RSA private key).
 }
+
 Business model:= {
-- Tau foundation will develop TAU App and provide public relays for free, in return for admob/mopub income to cover AWS cost. Any one can add relay permission-lessly on TAU chain to share profit of the mobile ads. 
-- On TAU, members can install and announce own relay to serve certain chain ID, configuerable for fee & service policy. Relay generates data flow to be paid in taucoin. Eventually, all relay nodes are provided by community and get paid by advertisement income. 
+- Tau foundation will develop TAU App and provide relays for free, in return for admob/mopub ads income to cover AWS data cost. Any one can add relay permission-lessly on TAU chain. 
+- Members can install and announce own relays to serve certain chains on TAU or community chains.
 - Individual nodes will see ads to keep the data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
+- Taucoin price will rise when relay configuration in high demand. 
 }
 Launch steps:={
 - Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS. 
-- Tau main net turn on for community relay nodes joinning profit sharing.
+- Tau main net turn on for community relays.
 }
 ```
-## Three processes exist 
+## Three main processes exist in architecture
 * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
-* B. Collect votings from peers to find the chain id safety state root. 
+* B. Collect votings from chain peers to find the chainid's safety state root. 
 * C. File Downloader.
 
 ## Tries
 On community chain:
-* chain contract: `ChainID`ContractAMTroot is the root for AMT trie for store chain contracts vector
-* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** tree for the chain state; contract and receipt are interconnected in each state transition on that chain. 
-* file amt: e.g Falksd898..x is the root for AMT trie for chopping and store the file.
+* chain contract: `ChainID`ContractAMTroot is the root for **AMT** trie to store history contracts, which is blockchain in old concept.
+* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** trie for the chain state; contract and receipt are interconnected in each state transition. 
+* file AMT: the root for AMT trie for chopping and store the file.
 
 On TAU chain: 
-* relay: RelayAMTroot is the root for AMT trie for relay, relay is not chain specific
+* relay: RelayAMTroot is the root for AMT trie for relays, while relay is not chain specific.
 
 Trie elements linking
-* future state/`ChainID`ContractAMTroot -> Contract AMT
-* contract amt/`count`/state -> safety HAMT root
+* future state/`ChainID`ContractAMTroot -> `ChainID`ContractAMTroot
+* `ChainID`ContractAMTroot/`count`/state -> `ChainID`SafetyContractResultStateRoot
 
-## Global Context: store in levelDB
-It helps to make process internal data exchange efficient. 
+## Global Context: stored in levelDB
+It helps to make process internal data access efficient. 
 * `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
 * UserChainList; // a list of Chains to follow/mine by users.
@@ -232,4 +234,4 @@ relay nounce/ relaynounce = ...
 * hamt_update(relayNounce, relayNounce +1)
 * hamt_add(RelayNounceAddr, new relay info)
 ## Kademlia on relay and peers selection
-## community relay data flow tracking for profit sharing. 
+## community relay annoucement on community chain. 
