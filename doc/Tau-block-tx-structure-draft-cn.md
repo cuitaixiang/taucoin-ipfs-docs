@@ -152,32 +152,34 @@ copy code section H from B1.
 ```
 5. predict new future contract. 
 ```
-//TAUminerImorpheus..x is an exmple of TAU miner address belong to imorpheus
 X = {
 SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
-contractNumber = AMT_get_count(SafetyContractResultStateRoot/contractAMTRoot number) +1;
+contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
 version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
 miner TAU address, 20; Nounce, 8; // mining is treated as a tx sending to self
-minerProfileJSON,1024; // e.g. TAUminer..xProfile; {relay:relay multiaddress: {}; IPLD:Qm..x; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
+minerProfileJSON,1024; // e.g. {  
+telegram:/t/...; IPFS signature on `ChainIDTAUaddress` to proof association. // verifier can decode siganture to get public key then hash to ipfs address QM..; 
+};
 TXsJSON, flexible bytes; 
-= { original JSON from peers for wiring and message; 
+= { original tx from voting collection: wiring and file operation.
 nounce, 8;
 version,8, "0x1" as default;
-timestamp,4,tx expire in 12 hours;
+timestamp,4,tx expire in 24 hours;
 txfee;
-senderProfileJSON,1024; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
+senderProfileJSON,1024; { 
+telegram:/t/...; IPFS signature on `ChainIDTAUaddress` to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; 
+};
 
-seeding command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
 FileAMTRoot;
 tx sender signature;
-// regarding the File processing
+// the File processing
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
 // 3. FileAMTroot=AMT_flush_put()
 // 4. return FileAMTroot to contract Json. 
 }
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
-}
+}  // finish X.
 ```
 * hamt_update(`ChainID`contractAMTroot, chainIDcontractAMTroot.add(X)); 
 
