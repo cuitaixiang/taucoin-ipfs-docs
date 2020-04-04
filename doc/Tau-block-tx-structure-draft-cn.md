@@ -16,33 +16,32 @@ Launch steps:={
 - Tau main net turn on for community relay nodes joinning profit sharing.
 }
 ```
-## Three processes exists 
-* A. Response with predicted ChainIDContractResultStateRoot, which is a hamt cbor.cid. 
+## Three processes exist 
+* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
 * B. Collect votings from peers to find the chain id safety state root. 
 * C. File Downloader.
 
 ## Tries
 On community chain:
-* chain contract: ChainIDContractAMTroot is the root for AMT trie for store chain contracts vector
-* chain contract result: ChainIDContractResultStateRoot is the root for **HAMT** tree for the chain state; contract and receipt are interconnected in each state transition on that chain. 
+* chain contract: `ChainID`ContractAMTroot is the root for AMT trie for store chain contracts vector
+* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** tree for the chain state; contract and receipt are interconnected in each state transition on that chain. 
 * file amt: e.g Falksd898..x is the root for AMT trie for chopping and store the file.
 
 On TAU chain: 
 * relay: RelayAMTroot is the root for AMT trie for relay, relay is not chain specific
 
-## Trie elements linking
-* future state -> Contract AMT root
-* contract amt root/state -> safety HAMT root
+Trie elements linking
+* future state/`ChainID`ContractAMTroot -> Contract AMT
+* contract amt/`count`/state -> safety HAMT root
 
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
-
-* ChainIDSafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
-* ChainIDContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
-* ChainIDFileAMTlist; // stores chain wide file amt root in a list
-* ChainList is a list of Chains to follow/mine by users.
-* ChainIDPeerList is list of known peers for the chain by users.
-* RelayList is a list of known relays from Kademlia scope and TAU chain info; 
+* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
+* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
+* User`ChainID`List; // a list of Chains to follow/mine by users.
+* UserFileAMTlist; // a list for storing user interested files 
+* `ChainID`PeerList; // list of known peers for the chain by users.
+* RelayList; // a list of known relays from Kademlia scope and TAU chain info; initially will be hard-coded.
 
 ## Concept explain
 ```
@@ -67,34 +66,42 @@ File operation command:
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
 Chain specific:
-ChainIDcontractAMTRoot  // for indexing the contract AMT trie entrie, ChainIDContractResultStateRoot/ChainIDcontractAMTRoot
+`ChainID`contractAMTRoot  // for indexing the contract AMT trie entrie, `ChainID`ContractResultStateRoot/`ChainID`contractAMTRoot
 
-ChainIDTsender/receiverNounce // indexing balance and pot power for each address
-ChainIDTsender/receiverBalance
+`ChainID``Tsender/receiver`Nounce // indexing balance and pot power for each address
+`ChainID``Tsender/receiver`Balance
 
-`FileAMTroot`ChainIDSeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
-`FileAMTroot`ChainIDSeeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
+`FileAMTroot``ChainID``SeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
+`FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
 ```
 # I. community chain - supports file sharing commands
-genesis state gen, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
+**Genesis** state generate, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
 ```
-* ChainIDcontractAMTroot = amt_new node(). // root for contact AMT
-* generate ChainIDcontractAMTRoot.add({geneis}); 
-* hamt_new node;
-Genesis coinbase tx to get all coins
-* generate hamt_update(`Tminer`Balance, 1,000,000); 
-* generate `Tminer`Nounce=1
-* ChainIDContractReceitpStateRoot= hamt_put() 
-* hamt_add(genesisStateRoot,ChainIDContractReceitpStateRoot)
-* hamt_add(genesisAddress, `Tminer`)
-* ChainIDContractReceitpStateRoot= hamt_put() 
+* `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
+* generate genesis contract, 
+X = `ChainID`contractAMTRoot.add({
+blocksize;
+blocktime;
+initial difficulty;
+chain nickname;
+total coins
+initial IPFS peers json;
+}); 
+* new `ChainID`SafetyContractResultStateRoot = new hamtnode()
+* hamt_add(`ChainID`contractAMTroot, X); 
+* hamt_add(`Tminer`Balance, 1,000,000); 
+* hamt_add( `Tminer`Nounce=1
+* hamt_add(genesisAddress, `Tminer`) // add genesis address wormhole
+* hamt_add(other KVs)
+* `ChainID`ContractReceitpStateRoot= hamt_put() 
+* levelDB.`ChainID`SafetyContractResultStateRoot = `ChainID`ContractReceitpStateRoot
 ```
 ## A One miner receives GraphSync request from a relay. 
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
-### A.1 for future ChainIDContractResultStateRoot
+### A.1 for future `ChainID`ContractResultStateRoot
 ```
-1. Receive the ChainID from a graphRelaySync call
-2. If active on this chain, return leveldb-ChainIDcontractResultStateRoot, which was generated in B process hamt_put
+1. Receive the `ChainID` from a graphRelaySync call
+2. If active on this chain, return leveldb-`ChainID`contractResultStateRoot, which was generated in B process hamt_put
 ```
 ### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, cid, selector). 
 If the `fileAMTroot` exists, then return the blocks. 
@@ -109,14 +116,14 @@ code section H:
 1. random walk to next followed chain id; random walk connect to a next relayAMT in the chainlist using Kademlia selection.  
 2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=ChainIDcontractAMTRoot)); 
-// when CID is NULL,  - 0 means the relay will request ChainIDContractResultStateRoot from the peer via tcp
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); 
+// when CID is NULL,  - 0 means the relay will request `ChainID`ContractResultStateRoot from the peer via tcp
 
 3. traverse history contract and states until mutable range.
 
-stateroot = ChainIDContractResultStateRoot
+stateroot = `ChainID`ContractResultStateRoot
 (*) 
-graphsyncAMT(ChainIDcontractAMTroot) 
+graphsyncAMT(`ChainID`contractAMTroot) 
 contractJson = amt_get(contractAMTroot )
 stateroot= contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 graphsyncHAMT(SafetyContractResultStateRoot) 
@@ -153,9 +160,9 @@ nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 12 hours;
 txfee;
-senderProfileJSON,1024,Ta..xProfile; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
+senderProfileJSON,1024; { TAU: Ta..x; relay:relay multiaddress: {}; telegram:/t/...; IPFS signature on TAU to proof its association. // verifier can decode siganture to get public key then hash to ipfs address-QM...; };
 
-file command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
+seeding command; if command is "create", it is a new File. otherwise, it is command, it is a seeding -l FileRoot/Nounce. // in app, we provide options for pause seeding or delete seeding file - i FileDescJSON,1024;//{ "file tx has to have File upload"}, no support for indepandent nick name tx, these info is sent along other tx. 
 FileAMTRoot;
 FileAMTCount,32; 
 tx sender signature;
@@ -168,7 +175,7 @@ tx sender signature;
 32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }
 ```
-* hamt_update(ChainIDcontractAMTRoot, chainIDcontractAMT.add(X)); 
+* hamt_update(`ChainID`contractAMTroot, chainIDcontractAMTroot.add(X)); 
 
 #### contract execute results
 ##### output coinbase tx
@@ -186,10 +193,10 @@ Account operation
 * hamt_update(`Tsender`Nounce++)
 File operation
 * fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
-* `fileAMTroot`ChainIDSeedingNounce++  
-* `FileAMTroot`ChainIDSeedingNounceIPFSpeer = seeding peer id
+* `fileAMTroot``ChainID`SeedingNounce++  
+* `FileAMTroot``ChainID`SeedingNounceIPFSpeer = seeding peer id
 
-6. Put new generated states into  cbor block, levelDB.add ChainIDContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
 through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
 ```
