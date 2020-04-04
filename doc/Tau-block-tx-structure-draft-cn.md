@@ -1,7 +1,7 @@
 # TAU - P2P File Sharing Community
 ```
 User experienses:= {
-- File uploaded will be compressed to TGZ, which includes directory, pictures and videos. TGZ will be choped and added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. TAU app does not provide native media player to avoid legal issue.
+- File uploaded will be compressed to TGZ, which includes directory, pictures and videos. TGZ will be choped and added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. TAU app does not provide native media player to avoid legal issue. Filed downloaded will be decompressed to original format. Users will not feel the TGZ process.
 - Community creates community chains with own coins for file sharing. Community chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay for own use on community chain as well. 
 - TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions. Assume millions of community established file sharing. Relay config is a busy service. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for internet connection (the association of TAUaddr and IPFS address is by signature using ipfs RSA private key).
@@ -40,36 +40,27 @@ Trie elements linking
 It helps to make process internal data access efficient. 
 * `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
-* UserChainList; // a list of Chains to follow/mine by users.
-* UserFileAMTlist; // a list for storing user interested files 
-* `ChainID`PeerList; // list of known peers for the chain by users.
-* RelayList; // a list of known relays from TAU chain; initially will be hard-coded.
+* UserChainList[]; // a list of Chains to follow/mine by users.
+* UserFileAMTlist[]; // a list for storing user kept files 
+* `ChainID`PeerList[]; // list of known peers for the chain by users.
+* RelayList[]; // a list of known relays from TAU chain; initially will be hard-coded to use AWS EC2 relay.
 
 ## Concept explain
 ```
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
 - Safety is the CBC concept of the safe and agreed history milestone. The future contract result is a CBD prediction. 
 - Mutable range is one week for now. 
-- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking peer for the prediction chain CID, the target's future ContractResultStateRoot.
+- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
 - Address system: 
 - TAU public key: the base for all address generation;
-- Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state
-- Community chains peer address format : chain ID + own address; 
-- File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in wormhole. After file published, other peers will use basic contract command to operate file, the first command is "seeding -i info".
-File operation command:
-//  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
-//  - cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
-//  e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
-//  rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
-//  - rootSeeding fileRoot -seeding on/off
+- Community chain ID: Tgenesisaddress + random(1,000,000,000);
+- Community chains peer address format : `chainID` + TAU address; 
+- File operation transaction, FileAMTRoot creation and seeding, related seeders accessible through wormhole.
 - Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the fileAMT search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
-Chain specific:
-`ChainID`contractAMTRoot  // for indexing the contract AMT trie entrie, `ChainID`ContractResultStateRoot/`ChainID`contractAMTRoot
-
 `ChainID``Tsender/receiver`Nounce // indexing balance and pot power for each address
 `ChainID``Tsender/receiver`Balance
 
@@ -189,13 +180,13 @@ tx sender signature;
 #### contract execute results
 ##### output coinbase tx
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
-* hamt_update(`Tminer`Nounce,`Tminer`Nounce++); // for the coinbase tx nounce increase
+* hamt_update(`Tminer`Nounce,`Tminer`Nounce + 1); // for the coinbase tx nounce increase
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
-* hamt_update(`Tsender`Balance,`Tsender`Balance - amount-txfee); 
+* hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
 * hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* hamt_update(`Tsender`Nounce,`Tsender`Nounce++);
-* hamt_update(Treceiver..xNounce,Treceiver..xNounce++);
+* hamt_update(`Tsender`Nounce,`Tsender`Nounce + 1);
+* hamt_update(`Treceiver`Nounce,`Treceiver`Nounce++);
 ##### File creation and seeding transaction
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee); 
@@ -203,25 +194,25 @@ Account operation
 File operation
 * fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
 * `fileAMTroot``ChainID`SeedingNounce++  
-* `FileAMTroot``ChainID`SeedingNounceIPFSpeer = seeding peer id
+* `FileAMTroot``ChainID`SeedingNounceIPFSpeer // seeding peer ipfs id, the first seeder is the creator of the file.
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
-through graphrelaySync randomly request a chainPeer (get chainPeerIPFSaddr) for the future receipt state root candidate 
+through graphrelaySync randomly request a chainPeer (get chainPeerListIPFSaddr) for the future receipt state root candidate 
 ```
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); 
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
 ```
-8. mining by following the most difficult chain: if received futureContractResultStateRoot/ContractJSON shows a more difficult chain, then verify this chain's transactions for ONEWEEK
-9. If verification succesful, levelDB_update(SafetyContractResultStateRoot, futureContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
+8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain, then verify this chain's transactions for ONEWEEK range.
+9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
 ### C. File Downloader
 ```
-input (File root); // this is for single thread download
+input (`fileAMTroot`); // this is for single thread download
 
-From Fileroot, find nouce, loop the File nounce, find contractJSON/msgTx/IPFS witness;
+From `fileAMTroot`, loop the seeder nouce, loop the nounce;
 { random walk on all relays
 
-graphRelaySync(relay, chainID, chainPeerIPFSID, File, selector(field:=section 1..m))
+graphRelaySync(relay, chainID, chainPeerIPFSID, `fileAMTroot`, selector(field:=section 1..m))
 
 until finish all relays or find the chainPeer
 }
@@ -235,3 +226,12 @@ relay nounce/ relaynounce = ...
 * hamt_add(RelayNounceAddr, new relay info)
 ## Kademlia on relay and peers selection
 ## community relay annoucement on community chain. 
+## file operation commands
+```
+File operation command:
+//  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
+//  - cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
+//  e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
+//  rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
+//  - rootSeeding fileRoot -seeding on/off
+```
