@@ -68,7 +68,7 @@ It helps to make process internal data access efficient.
 `FileAMTroot``ChainID``SeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
 `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
 ```
-# I. community chain - supports file sharing commands
+## community chain - supports file sharing commands
 **Genesis** generating with parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
 ```
 * levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
@@ -111,9 +111,9 @@ Miner does not know which peer requesting them, because the relay shields the pe
 ### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector). 
 If the `fileAMTroot` exists, then return the blocks. 
 
-### B. Collect votings from peers: this process has two modes: miner and non-miner: 
+## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
-#### B1. non-mining users, which are on battery power or telecom data service. 
+### B1. non-mining users, which are on battery power or telecom data service. 
 
 0. release android wake-lock and wifi-lock
 ```
@@ -144,7 +144,7 @@ when connection timeout or hit any error, go to step(1)
 6. then go to step (1).
 
 
-#### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
+### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
 
 0. turn on android wake-lock and wifi-lock
 ```
@@ -211,7 +211,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractA
 8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain, then verify this chain's transactions for ONEWEEK range.
 9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
-### C. File Downloader
+## C. File Downloader
 ```
 input (`fileAMTroot`); // this is for single thread download
 
@@ -224,7 +224,7 @@ until finish all relays or find the chainPeer
 }
 ```
 # To do
-## II. TAU Chain
+## TAU Chain
 TAU has only function that is relay configuration and related data payment settlement.
 - wormhole
 relay nounce/ relaynounce = ...
