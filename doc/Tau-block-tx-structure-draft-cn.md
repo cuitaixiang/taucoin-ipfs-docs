@@ -22,10 +22,13 @@ Launch steps:={
 * C. File Downloader.
 
 ## Tries
-* ChainIDContractAMTroot is the root for AMT trie for store chain contracts vector
-* FileNounceAMTroot is the root for AMT trie for chopping and store the file.
-* RelayAMTroot is the root for AMT trie for relay, relay is not chain specific
-* ChainIDContractResultStateRoot is the root for **HAMT** tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
+On community chain:
+* chain contract: ChainIDContractAMTroot is the root for AMT trie for store chain contracts vector
+* chain contract result: ChainIDContractResultStateRoot is the root for **HAMT** tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
+* file: FileNounceAMTroot is the root for AMT trie for chopping and store the file.
+
+On TAU chain: 
+* relay: RelayAMTroot is the root for AMT trie for relay, relay is not chain specific
 
 ## Trie elements linking
 * state -> Contract AMT root
@@ -65,27 +68,15 @@ File operation command:
 - Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
-In each Chain stateroot, which is the contractResultStateRoot, we will setup wormhole for some future request. 
-The wormholes are:
 ```
 Chain specific:
-ChainIDTsenderNounce // indexing balance and pot power for each address
-ChainIDTsenderBalance
-ChainIDTsenderNounceContractAMTRoot, the entry for the transaction
-
 ChainIDcontractAMTRoot  // indexing the contract AMT trie entrie
-ChainIDcontractNumber
-ChinaIDcontractAMTRootWitness
----
-Glboal: 
-FileNounce  // index the entire files uploaded globally
-FileNounceAMTroot // the AMT storage trie for the file
 
-FileNounceSeedingNounce // for each file, this is the history of the seeding. 
-FileNounceSeedingNounceIPFSPeer // the seeding peer id for the file
+ChainIDTsender/receiverNounce // indexing balance and pot power for each address
+ChainIDTsender/receiverBalance
 
-RelayNounce // for index entire relay list
-
+FileAMTSeedingNounce // for each file, this is the history of the seeding. File is not chain specific. 
+FileAMTSeedingNounceIPFSPeer // the seeding peer id for the file
 ```
 # I. community chain - supports file sharing commands
 genesis state gen, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
@@ -182,7 +173,6 @@ tx sender signature;
 }
 ```
 * generate contractAMTRoot = AMT_add(X); 
-* generate contractNumber= AMT_get_count(SafetyContractResultStateRoot/contractAMTRoot number) +1
 * generate contractAMTRootWitness, hamp_add( contractAMTrootWitness, {all the ipfs address in the contract} ); // for seeking ipfs peers for find contract. 
 
 #### contract execute results
@@ -212,7 +202,6 @@ File operation
 * for seeding
 * fileNounceSeedingNounce++
 * fielNounceSeedingIPFSpeer = seeding peer id
-
 
 6. Put the all new generated states into  cbor block, generate ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
