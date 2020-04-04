@@ -40,6 +40,7 @@ Trie elements linking
 It helps to make process internal data access efficient. 
 * `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
+* `ChainID`ContractAMTroot;
 * UserChainList[]; // a list of Chains to follow/mine by users.
 * UserFileAMTlist[]; // a list for storing user kept files 
 * `ChainID`PeerList[]; // list of known peers for the chain by users.
@@ -68,30 +69,33 @@ It helps to make process internal data access efficient.
 `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
 ```
 # I. community chain - supports file sharing commands
-**Genesis** state generate, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
+**Genesis** generating with parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
 ```
-* `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
+* levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
 ChainID = `Tminer`+ random(1,000,000,000)
 X = `ChainID`contractAMTRoot.add({
-blocksize;
-blocktime;
-initial difficulty;
-chain nickname;
-total coins
-initial IPFS peers json;
-}); 
-* new `ChainID`SafetyContractResultStateRoot = new hamtnode()
+`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
+blocksize; // default 5
+blocktime; // default 10 minutes
+initial difficulty; // ???
+chain nickname; // hello world chain
+total coins; // default 1,000,000
+initial IPFS peers json({IPFS address});
+initial relaylist json({multi address});
+}); // X.
+
+* new `ChainID`ContractResultStateRoot = new hamt.node();
 * hamt_add(ChainID,`ChainID`);
-* hamt_add(`ChainID`contractAMTroot, X); 
+* hamt_add(`ChainID`contractAMTroot, `ChainID`contractAMTRoot.put(cbor);); 
 * hamt_add(`Tminer`Balance, 1,000,000); 
-* hamt_add( `Tminer`Nounce=1
-* hamt_add(genesisAddress, `Tminer`) // add genesis address wormhole
-* hamt_add(other KVs)
-* `ChainID`ContractReceitpStateRoot= hamt_put() 
-* levelDB vars update
-* levelDB.`ChainID`SafetyContractResultStateRoot = `ChainID`ContractReceitpStateRoot
-* levelDB.`ChainID`ContractResultStateRoot=`ChainID`SafetyContractResultStateRoot; 
+* hamt_add(`Tminer`Nounce, 1);
+* hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
+* hamt_add(other KVs); // initial chain address.
+* `ChainID`ContractResultStateRoot.put(cbor); // for responding to voting.
+
+* levelDB.`ChainID`SafetyContractResultStateRoot = null;
+* levelDB.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * levelDB.UserChainList.add(`ChainID`)
 * levelDB.`ChainID`PeerList.add(`Tminer);
 * levelDB.RelayList.add({aws relays by taucoin dev});
