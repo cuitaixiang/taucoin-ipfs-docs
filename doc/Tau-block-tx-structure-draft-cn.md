@@ -25,6 +25,7 @@ Launch steps:={
 * ChainIDContractAMTroot is the AMT trie for store chain contracts vector
 * ChainIDContractResultStateRoot is the HAMT tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
 * FileAMTroot is the AMT trie for chopping and store file.
+* RelayAMTroot is the AMT trie for relay, relay is not chain specific
 
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
@@ -38,7 +39,7 @@ It helps to make process internal data exchange efficient.
 ## Concept
 ```
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
-- Safety is the CBC concept of the safe and agreed history milestone.
+- Safety is the CBC concept of the safe and agreed history milestone. The future contract result is a CBD prediction. 
 - Mutable range is one week for now. 
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit, relay server will maintain connection to two peers. When cbor.cid is null, it means asking peer for the prediction chain CID, the target's future ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
@@ -49,30 +50,25 @@ It helps to make process internal data exchange efficient.
 - File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in wormhole. After file published, other peers will use basic contract command to operate file, the first command is "seeding -i info".
 - Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
 ```
-## Wormhole - the bridge between HAMT state and AMT data set.
+## Wormhole - in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 In each Chain stateroot, which is the contractResultStateRoot, we will setup wormhole for some future request. 
 The wormholes are:
 ```
-TsenderNounce, power
-TsenderNounceContractAMTRoot, the entry for the transaction
-TsenderBalance
+Chain specific:
+ChainIDTsenderNounce // indexing balance and pot power for each address
+ChainIDTsenderBalance
+ChainIDTsenderNounceContractAMTRoot, the entry for the transaction
 
-FileAMTRootCommandNounce // for each file, this is the history of the commands. 
-FileAMTRootCommandNounceContractAMTRoot
-
-ChainIDFileNouce
-ChainIDFileNouceRoot= fileAMTroot); // on one chain, file is a series. fileAMTroot is independant, even chain not existing, fileAMTroot can be referred by other chain. 
-ChainIDFileNouceCommandNounce ++) // new File tx nonce=1; commenting on File nounce ++
-ChainIDFileNonceCommandNouceTXContractRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
-
-
-ChainIDcontractAMTRoot 
+ChainIDcontractAMTRoot  // indexing the contract AMT trie entrie
 ChainIDcontractNumber
 ChinaIDcontractAMTRootWitness
+---
+Glboal: 
+FileAMTRootSeedingNounce // for each file, this is the history of the commands. 
+FileAMTRootSeedingNounceContractAMTRoot
 
-On TAU main chain, relay command
-RelayNounce  - amt trie ???
-RelayNounceRoot
+RelayAMTNouce // for index entire relay list
+
 ```
 # I. community chain - supports file sharing commands
 genesis state gen, parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
@@ -106,8 +102,8 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 0. release android wake-lock and wifi-lock
 ```
 code section H:
-1. random walk to next followed chain id; random walk until connect to a next relay using Kademlia selection on TAU chain info.  
-2. through relay, randomly request a chainPeer for the future receipt state root candidate according to CBC (correct by construction); 
+1. random walk to next followed chain id; random walk until connect to a next relay in the chainlist using Kademlia selection.  
+2. through relay, randomly request a chainPeer from chainID peer list for the future contract result state root.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractAMTRoot)); 
 // when CID is NULL,  - 0 means the relay will request ChainIDContractResultStateRoot from the peer via tcp
