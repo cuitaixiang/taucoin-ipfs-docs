@@ -156,8 +156,13 @@ copy code section H from B1.
 X = {
 SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
 contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
-version,8; timestamp, 4; base target, 8; cumulative difficulty,8 ; generation signature,32; // for POT calc
-ChainIDminerAddress, 20; Nounce, 8; // mining is treated as a tx sending to self
+version,8; 
+timestamp, 4; 
+base target, 8; // for POT calc
+cumulative difficulty,8 ; 
+generation signature,32; 
+ChainIDminerAddress, 20; 
+Nounce, 8; // mining is treated as a tx sending to self
  `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDminerOtherInfo, 128 bytes;
 TXsJSON, flexible bytes; 
@@ -166,7 +171,7 @@ nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
 txfee;
- `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+`ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDsenderOtherInfo, 128 bytes;
 
 FileAMTRoot;
@@ -177,7 +182,8 @@ tx sender signature;
 // 3. FileAMTroot=AMT_flush_put()
 // 4. return FileAMTroot to contract Json. 
 }
-32; signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
+ 
+signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }  // finish X.
 ```
 * hamt_update(`ChainID`contractAMTroot, chainIDcontractAMTroot.add(X)); 
