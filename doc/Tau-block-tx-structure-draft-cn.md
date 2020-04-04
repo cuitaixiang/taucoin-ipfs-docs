@@ -1,4 +1,4 @@
-# TAU - Decentralized File Sharing Community
+# TAU - P2P File Sharing Community
 ```
 User experienses:= {
 - File uploaded will be compressed to TGZ, which includes directory, pictures and videos. TGZ will be choped and added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. TAU app does not provide native media player to avoid legal issue.
