@@ -22,10 +22,18 @@ Launch steps:={
 * C. File Downloader.
 
 ## Tries
-* ChainIDContractAMTroot is the AMT trie for store chain contracts vector
-* ChainIDContractResultStateRoot is the HAMT tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
-* FileAMTroot is the AMT trie for chopping and store file.
-* RelayAMTroot is the AMT trie for relay, relay is not chain specific
+* ChainIDContractAMTroot is the root for AMT trie for store chain contracts vector
+* FileNounceAMTroot is the root for AMT trie for chopping and store the file.
+* RelayAMTroot is the root for AMT trie for relay, relay is not chain specific
+* ChainIDContractResultStateRoot is the root for **HAMT** tree for the chain state;  contract and receipt are interconnected in each state transition on that chain. 
+
+## Trie elements linking
+* state -> Contract AMT root
+* state-contract -> safety HAMT root
+
+* file -> contract AMT root
+* sender -> contract AMT root
+* relay is indepedant
 
 ## Global Context: store in levelDB
 It helps to make process internal data exchange efficient. 
@@ -36,7 +44,7 @@ It helps to make process internal data exchange efficient.
 * ChainList is a list of Chains to follow/mine by users.
 * PeerList[chain ID] is list of known peers for the chain by users.
 ```
-## Concept
+## Concept explain
 ```
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
 - Safety is the CBC concept of the safe and agreed history milestone. The future contract result is a CBD prediction. 
@@ -48,6 +56,12 @@ It helps to make process internal data exchange efficient.
 - Community chain ID: Tgenesisaddress + random number; new hamt node built with genesis state
 - Community chains peer address format : chain ID + own address; 
 - File operation transaction, FileRoot and nounce, the community is designed for handle file sharing, it list fileRoot nounce and related seeders in wormhole. After file published, other peers will use basic contract command to operate file, the first command is "seeding -i info".
+File operation command:
+//  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
+//  - cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
+//  e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
+//  rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
+//  - rootSeeding fileRoot -seeding on/off
 - Principle of traverse, the relay random walk is based on Kademlia to find close distance of chain ID and relay ID, peer random walk is real random. Once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence, neither using witness list. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the file search and contract search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
@@ -64,10 +78,13 @@ ChainIDcontractNumber
 ChinaIDcontractAMTRootWitness
 ---
 Glboal: 
-FileAMTRootSeedingNounce // for each file, this is the history of the commands. 
-FileAMTRootSeedingNounceContractAMTRoot
+FileNounce  // index the entire files uploaded globally
+FileNounceAMTroot // the AMT storage trie for the file
 
-RelayAMTNouce // for index entire relay list
+FileNounceSeedingNounce // for each file, this is the history of the seeding. 
+FileNounceSeedingNounceIPFSPeer // the seeding peer id for the file
+
+RelayNounce // for index entire relay list
 
 ```
 # I. community chain - supports file sharing commands
@@ -102,17 +119,17 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 0. release android wake-lock and wifi-lock
 ```
 code section H:
-1. random walk to next followed chain id; random walk until connect to a next relay in the chainlist using Kademlia selection.  
+1. random walk to next followed chain id; random walk connect to a next relayAMT in the chainlist using Kademlia selection.  
 2. through relay, randomly request a chainPeer from chainID peer list for the future contract result state root.  
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=contractAMTRoot)); 
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=ChainIDcontractAMTRoot)); 
 // when CID is NULL,  - 0 means the relay will request ChainIDContractResultStateRoot from the peer via tcp
 
 3. traverse history contract and states until mutable range.
 
-stateroot = ChainContractResultStateRoot
+stateroot = ChainIDContractResultStateRoot
 (*) 
-graphsyncAMT(contractAMTroot) 
+graphsyncAMT(ChainIDcontractAMTroot) 
 contractJson = amt_get(contractAMTroot )
 stateroot= contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 graphsyncHAMT(SafetyContractResultStateRoot) 
@@ -183,22 +200,19 @@ tx sender signature;
 * generate Treceiver..xNounce++
 * genreate Treceiver..xNounceRoot := contractAMTRoot
 ##### File operation transaction
-```
-File operation command in contractJSON
-rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
-- cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
-e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
-rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
-- rootSeeding fileRoot -seeding on/off
-```
-* generate Key 2c, hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
-* generate Tsender..xNounce++
-* genreate Tsender..xNounceRoot := contractAMTRoot
 
-* hamt_add(ChainIDFileNouce, fileNouce++);
-* hamt_add(ChainIDFileNouceRoot, fileAMTroot); // on one chain, file is a series. fileAMTroot is independant, even chain not existing, fileAMTroot can be referred by other chain. 
-* generate key 3c, hamt_update(ChainIDFileNouceCommandNounce ++) // new File tx nonce=1; commenting on File nounce ++
-* generate key 4c, hamt_add(ChainIDFileNonceCommandNouceTXContractRoot, contractAMTRoot); // everytime seeding/commenting, the nonce ++ and easy to find seeding hosts.
+Account operation
+* generate hamt_update(Tsender..xBalance,Tsender..xBalance-txfee); 
+* generate Tsender..xNounce++
+* genreate Tsender..xNounceRoot := chainIDcontractAMTRoot
+
+File operation
+* for new file upload: fileNounce ++
+* fileNounceAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
+* for seeding
+* fileNounceSeedingNounce++
+* fielNounceSeedingIPFSpeer = seeding peer id
+
 
 6. Put the all new generated states into  cbor block, generate ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
