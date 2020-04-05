@@ -70,7 +70,7 @@ It helps to make process internal data access efficient.
 `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
 ## community chain
-**Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses. TAU-Torrent has initial addresses.
+**Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses.
 ```
 * levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
@@ -82,7 +82,7 @@ blocktime; // default 10 minutes
 initial difficulty; // ???
 chain nickname; // hello world chain
 total coins; // default 1,000,000
-initial relaylist json({multi address}); // relay bootstrap
+initial relaylist json({multi address}); // relay bootstrap /ipv4/tcp
 telegramGroup; // https://t.me/taucoin for organizing the community.
 }); // X.
 
@@ -119,21 +119,19 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 0. release android wake-lock and wifi-lock
 ```
 code section H:
-1. random walk to next followed chain id; random walk connect to a next relayAMT in the chainlist using Kademlia selection.  
+1. random walk to next followed chain id; random walk connect to a next relay in the chainlist using Kademlia selection.  
 2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); 
-// when CID is NULL,  - 0 means the relay will request `ChainID`ContractResultStateRoot from the peer via tcp
+// when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 
 3. traverse history contract and states until mutable range.
 
-stateroot = `ChainID`ContractResultStateRoot
+stateroot = y
 (*) 
-graphsyncAMT(`ChainID`contractAMTroot) 
-contractJson = amt_get(contractAMTroot )
-stateroot= contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
-graphsyncHAMT(SafetyContractResultStateRoot) 
-contractAMTroot = hamt_get(stateroot, contractAMTRoot)
+graphsyncAMT(stateroot/`ChainID`contractAMTroot) 
+stateroot= `ChainID`contractAMTroot/count/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
+graphsyncHAMT(stateroot)
 goto (*) until the mutable range; // 
 goto step (2); 
 
@@ -154,7 +152,7 @@ copy code section H from B1.
 5. predict new future contract. 
 ```
 X = {
-SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
+`ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
 contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
 version,8; 
 timestamp, 4; 
