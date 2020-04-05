@@ -64,8 +64,7 @@ It helps to make process internal data access efficient.
 ```
 `ChainID``Tsender/receiver`Nounce // indexing balance and pot power for each address
 `ChainID``Tsender/receiver`Balance
-`ChainID``Tsender/receiver`Nounce`ChainID`contractAMTroot // contract entry for a transaction
-
+`ChainID``Tsender`NounceFileAMTroot // when user follow tsender, can traver its files.
 `FileAMTroot``ChainID``SeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
 `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
 ```
@@ -165,7 +164,7 @@ generation signature,32;
 ChainIDminerAddress, 20; 
 Nounce, 8; // mining is treated as a tx sending to self
  `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-ChainIDminerOtherInfo, 128 bytes;
+ChainIDminerOtherInfo, 128 bytes; //nick name.
 TXsJSON, flexible bytes; 
 = { //original tx from voting collection: wiring and file operation.
 nounce, 8;
@@ -173,7 +172,7 @@ version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
 txfee;
 `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-ChainIDsenderOtherInfo, 128 bytes;
+ChainIDsenderOtherInfo, 128 bytes;  // nick name.
 
 FileAMTRoot;
 tx sender signature;
@@ -202,13 +201,12 @@ Account operation
 ##### File creation and seeding transaction
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee); 
-* hamt_update(`Tsender`Nounce++)
+* hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
 File operation
 * fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
+* hamt_update(`ChainID``Tsender`NounceFileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
 * `fileAMTroot``ChainID`SeedingNounce++  
 * `FileAMTroot``ChainID`SeedingNounceIPFSpeer // seeding peer ipfs id, the first seeder is the creator of the file.
-#### setup wormhole for contract entry from transactions
-* `ChainID``Tsender/receiver`Nounce`ChainID`contractAMTroot = `ChainID`contractAMTroot // contract entry for a transaction
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
