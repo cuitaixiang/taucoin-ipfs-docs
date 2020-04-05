@@ -1,40 +1,40 @@
-# TAU - P2P File Sharing Blockchain
+# TAU - P2P File Sharing on blockchains
 ```
 User experienses:= {
-- File uploaded will be compressed to TGZ, which includes directory, pictures and videos. TGZ will be choped and added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. TAU app does not provide native media player to avoid legal issue. Filed downloaded will be decompressed to original format. Users will not feel the TGZ process.
-- Community creates community chains with own coins for file sharing. Community chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay for own use on community chain as well. 
-- TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions. Assume millions of community established file sharing. Relay config is a busy service. 
-- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for internet connection (the association of TAUaddr and IPFS address is by signature using ipfs RSA private key).
+- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Imported file can be seeded to a chain, shared to a peer or pinned in local to be avoid GC. TAU app does not provide native media player to avoid legal issue. Filed downloaded could be decompressed to original structure. Remove files after downloaded is considerred imported. 
+- Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay on community chain and TAU main chain. 
+- TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions, assuming millions of community established file sharing. Relay config will be a busy service. 
+- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
 Business model:= {
-- Tau foundation will develop TAU App and provide relays for free, in return for admob/mopub ads income to cover AWS data cost. Any one can add relay permission-lessly on TAU chain. 
-- Members can install and announce own relays to serve certain chains on TAU or on community chains.
-- Individual nodes will see ads to keep the data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
+- Tau foundation will develop TAU App and provide relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
 - Taucoin price will rise when relay configuration in high demand. 
 }
 Launch steps:={
-- Free community creation for file sharing. TAUTest coin is an initial test. At this stage, TAU provide static relay service via AWS. 
-- Tau main net turn on for community relays.
+- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. 
+- Tau mainnet turns on for relays operation.
 }
 ```
-## Three main processes exist in architecture
+## Four main processes exist in architecture
 * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
 * B. Collect votings from chain peers to find the chainid's safety state root. 
 * C. File Downloader.
+* D. Reponse to downloader the fileAMT trie. 
 
 ## Tries
 On community chain:
 * chain contract: `ChainID`ContractAMTroot is the root for **AMT** trie to store history contracts, which is blockchain in old concept.
-* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** trie for the chain state; contract and receipt are interconnected in each state transition. 
-* file AMT: the root for AMT trie for chopping and store the file.
+* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** trie for the chain state; contract and results are connected in each state transition. 
+```
+- future state/`ChainID`ContractAMTroot/K-V -> `ChainID`ContractAMTroot
+- `ChainID`ContractAMTroot/`count`/state -> `ChainID`SafetyContractResultStateRoot
+```
+* file AMT: the root for AMT trie for chopping and storing the file.
 
 On TAU chain: 
-* relay: RelayAMTroot is the root for AMT trie for relays, while relay is not chain specific.
-
-Trie elements linking
-* future state/`ChainID`ContractAMTroot -> `ChainID`ContractAMTroot
-* `ChainID`ContractAMTroot/`count`/state -> `ChainID`SafetyContractResultStateRoot
+* relay: RelayAMTroot is the root for AMT trie for all relays, while relay is not chain specific.
 
 ## Global Context: stored in levelDB
 It helps to make process internal data access efficient. 
@@ -42,23 +42,24 @@ It helps to make process internal data access efficient.
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
 * `ChainID`ContractAMTroot;
 * UserChainList[]; // a list of Chains to follow/mine by users.
-* UserFileAMTlist[]; // a list for storing user kept files 
-* `ChainID`PeerList[]; // list of known peers for the chain by users.
+* UserFileAMTlist[]; // a list for imported and downloaded files trie
+* `ChainID`PeerList[]; // list of known IPFS peers for the chain by users.
 * RelayList[]; // a list of known relays from TAU chain; initially will be hard-coded to use AWS EC2 relay.
 
 ## Concept explain
 ```
 - Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
-- Safety is the CBC concept of the safe and agreed history milestone. The future contract result is a CBD prediction. 
+- Safety is the CBC concept of the safe and agreed history. The future contract result is a CBC prediction. 
 - Mutable range is one week for now. 
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
+- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole.
+- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority.  However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 
+
 - Address system: 
 - TAU public key: the base for all address generation;
 - Community chain ID: Tgenesisaddress + random(1,000,000,000);
 - Community chains peer address format : `chainID` + TAU address; 
-- File operation transaction, FileAMTRoot creation and seeding, related seeders accessible through wormhole.
-- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some vars are missing, just abort process to go next randomness contact. depth priority.  However for the fileAMT search, it is the width priority to do paralell download. 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
