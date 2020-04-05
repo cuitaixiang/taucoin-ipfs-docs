@@ -100,22 +100,21 @@ telegramGroup; // https://t.me/taucoin for organizing the community.
 * levelDB.UserChainList.add(`ChainID`)
 * levelDB.`ChainID`PeerList.add(`Tminer);
 * levelDB.RelayList.add({aws relays by taucoin dev});
-
 ```
 ## A. One miner receives GraphSync request from a relay. 
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 ### A.1 for future `ChainID`ContractResultStateRoot
 ```
 1. Receive the `ChainID` from a graphRelaySync call
-2. If active on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process hamt_put
+2. If the node follows on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process step(6).
 ```
-### A.2 For file relay, from a file downloader running a graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector). 
-If the `fileAMTroot` exists, then return the blocks. 
+### A.2 From a file downloader 
+caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
+If the `fileAMTroot` exists, then return the blocks according to the range. 
 
 ## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 ### B1. non-mining users, which are on battery power or telecom data service. 
-
 0. release android wake-lock and wifi-lock
 ```
 code section H:
@@ -139,7 +138,7 @@ when connection timeout or hit any error, go to step(1)
 
 4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractResultStateRoot, voted SAFETY), 
 ``` 
-5. build a future contractResultState; use B2 - step 5.
+5. build a future `ChainID`ContractResultStateRoot; use B2 - step 5.
 6. then go to step (1).
 
 
@@ -233,19 +232,17 @@ until finish all relays or find the chainPeer
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 ### Files, this is where watching the ads
 - import files
-- seeding files to chain
+- seeding files to chains
 - download stats
 - pin a file, no directory at now, sort by dates and size
 ### Follow
 - follow chain
 - follow members
 * this is the folder stucture: /chain/members/files[1..nounce] and its messages.
-### Mining
+### Mining and account balances on different chains. 
 - coins mining config
 
 # To do
-
-
 ## TAU Chain
 TAU has only function that is relay configuration and related data payment settlement.
 * wormhole
