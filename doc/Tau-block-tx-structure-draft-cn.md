@@ -64,6 +64,7 @@ It helps to make process internal data access efficient.
 ```
 `ChainID``Tsender/receiver`Nounce // indexing balance and pot power for each address
 `ChainID``Tsender/receiver`Balance
+`ChainID``Tsender/receiver`Nounce`ChainID`contractAMTroot // contract entry for a transaction
 
 `FileAMTroot``ChainID``SeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
 `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
@@ -206,6 +207,8 @@ File operation
 * fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
 * `fileAMTroot``ChainID`SeedingNounce++  
 * `FileAMTroot``ChainID`SeedingNounceIPFSpeer // seeding peer ipfs id, the first seeder is the creator of the file.
+#### setup wormhole for contract entry from transactions
+* `ChainID``Tsender/receiver`Nounce`ChainID`contractAMTroot = `ChainID`contractAMTroot // contract entry for a transaction
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
