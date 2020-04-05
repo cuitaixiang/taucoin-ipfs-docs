@@ -238,6 +238,7 @@ until finish all relays or find the chainPeer
 - seeding files to chain
 - sharing files to friends privately
 - download stats
+- pin a file, no directory at now, sort by dates and size
 ### Follow
 - follow chain
 - follow members
