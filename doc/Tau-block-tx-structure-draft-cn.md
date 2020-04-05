@@ -234,10 +234,10 @@ until finish all relays or find the chainPeer
 # To do
 ## TAU Chain
 TAU has only function that is relay configuration and related data payment settlement.
-- wormhole
-relay nounce/ relaynounce = ...
-* hamt_update(relayNounce, relayNounce +1)
-* hamt_add(RelayNounceAddr, new relay info)
+* wormhole
+- relay nounce/ relaynounce = ...
+- hamt_update(relayNounce, relayNounce +1)
+- hamt_add(RelayNounceAddr, new relay info)
 ## Kademlia on relay and peers selection
 ## community relay annoucement on community chain. 
 ## file operation commands
