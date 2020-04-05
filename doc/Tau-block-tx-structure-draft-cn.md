@@ -1,4 +1,4 @@
-# TAU - P2P File Sharing on blockchains
+# TAU - Unlimited P2P File Sharing
 ```
 User experienses:= {
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Imported file can be seeded to a chain, shared to a peer or pinned in local to be avoid GC. TAU app does not provide native media player to avoid legal issue. Filed downloaded could be decompressed to original structure. Remove files after downloaded is considerred imported. 
@@ -63,14 +63,14 @@ It helps to make process internal data access efficient.
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
-`ChainID``Tsender/receiver`Nounce // indexing balance and pot power for each address
+`ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
 `ChainID``Tsender/receiver`Balance
-`ChainID``Tsender`NounceFileAMTroot // when user follow tsender, can traver its files.
-`FileAMTroot``ChainID``SeedingNounce // for each file, this is the history of the seeding, first seeding is the creation. e.g. `Fiuweh87..x`SeedingNounce = 00189
-`FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. eg. `Fiuweh87..x`Seeding`00187`IPFSpeer= QM....
+`ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+`FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
+`FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
-## community chain - supports file sharing commands
-**Genesis** generating with parameters: block size in number of txs, block time, chain nick name, coins total default is 1 million, initial peers ipfs address. // relay bootstrap is initially written in software until TAU mainet on.  
+## community chain
+**Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses. TAU-Torrent has initial addresses.
 ```
 * levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
@@ -82,8 +82,7 @@ blocktime; // default 10 minutes
 initial difficulty; // ???
 chain nickname; // hello world chain
 total coins; // default 1,000,000
-initial IPFS peers json({IPFS address});
-initial relaylist json({multi address});
+initial relaylist json({multi address}); // relay bootstrap
 telegramGroup; // https://t.me/taucoin for organizing the community.
 }); // X.
 
@@ -243,6 +242,7 @@ until finish all relays or find the chainPeer
 ### Follow
 - follow chain
 - follow members
+* this is the folder stucture: /chain/members/files[1..nounce] and its messages.
 ### Mining
 - coins mining config
 
