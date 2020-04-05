@@ -229,7 +229,24 @@ graphRelaySync(relay, chainID, chainPeerIPFSID, `fileAMTroot`, selector(field:=s
 until finish all relays or find the chainPeer
 }
 ```
+## App UI
+
+### Home
+- according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
+### Files, this is where watching the ads
+- import files
+- seeding files to chain
+- sharing files to friends privately
+- download stats
+### Follow
+- follow chain
+- follow members
+### Mining
+- coins mining config
+
 # To do
+
+
 ## TAU Chain
 TAU has only function that is relay configuration and related data payment settlement.
 * wormhole
