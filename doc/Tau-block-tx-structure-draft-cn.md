@@ -1,7 +1,7 @@
 # TAU - Unlimited P2P File Sharing
 ```
 User experienses:= {
-- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Imported file can be seeded to a chain, shared to a peer or pinned in local to be avoid GC. TAU app does not provide native media player to avoid legal issue. Filed downloaded could be decompressed to original structure. Remove files after downloaded is considerred imported. 
+- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay on community chain and TAU main chain. 
 - TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions, assuming millions of community established file sharing. Relay config will be a busy service. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
@@ -202,9 +202,9 @@ Account operation
 * hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
 File operation
 * fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
-* hamt_update(`ChainID``Tsender`NounceFileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* `fileAMTroot``ChainID`SeedingNounce++  
-* `FileAMTroot``ChainID`SeedingNounceIPFSpeer // seeding peer ipfs id, the first seeder is the creator of the file.
+* hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
+* hamt_update(`ChainID``Tsender``Nounce`FileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
+* hamt_update(`FileAMTroot``ChainID`SeedingNounceIPFSpeer) // seeding peer ipfs id, the first seeder is the creator of the file.
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
@@ -234,7 +234,6 @@ until finish all relays or find the chainPeer
 ### Files, this is where watching the ads
 - import files
 - seeding files to chain
-- sharing files to friends privately
 - download stats
 - pin a file, no directory at now, sort by dates and size
 ### Follow
