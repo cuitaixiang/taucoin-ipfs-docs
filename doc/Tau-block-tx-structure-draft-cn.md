@@ -54,8 +54,8 @@ It helps to make process internal data access efficient.
 - Mutable range is one week for now. 
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
-- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole.
-- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority.  However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 
+- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
+- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority. 验证过程深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载广度优先
 
 - Address system: 
 - TAU public key: the base for all address generation;
@@ -71,20 +71,20 @@ It helps to make process internal data access efficient.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
 ## community chain
-**Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses.
+**Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
 * levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
 ChainID = `Tminer`+ random(1,000,000,000)
 X = `ChainID`contractAMTRoot.add({
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-blocksize; // default 5
-blocktime; // default 10 minutes
+blocksize; // default 5，区块交易数
+blocktime; // default 10 minutes， 出块时间
 initial difficulty; // ???
 chain nickname; // hello world chain
-total coins; // default 1,000,000
-initial relaylist json({multi address}); // relay bootstrap /ipv4/tcp
-telegramGroup; // https://t.me/taucoin for organizing the community.
+total coins; // default 1,000,000， 币数量
+initial relaylist json({multi address}); // relay bootstrap /ipv4/tcp， 初始中继
+telegramGroup; // https://t.me/taucoin for organizing the community. 社区通信
 }); // X.
 
 * new `ChainID`ContractResultStateRoot = new hamt.node();
@@ -102,20 +102,20 @@ telegramGroup; // https://t.me/taucoin for organizing the community.
 * levelDB.PeerList[`ChainID`][].add(`Tminer);
 * levelDB.RelayList.add({aws relays by taucoin dev});
 ```
-## A. One miner receives GraphSync request from a relay. 
+## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
-### A.1 for future `ChainID`ContractResultStateRoot
+### A.1 for future `ChainID`ContractResultStateRoot， 投票
 
 -  Receive the `ChainID` from a graphRelaySync call
 -  If the node follows on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process step(6).
 
-### A.2 From a file downloader 
+### A.2 From a file downloader，提供文件
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
 
 ## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
-### B1. non-mining users, which is triggered by 1. low battery power(< 50%), or 2. telecom data. 
+### B1. non-mining users, which is triggered by 1. low battery power(< 50%), or 2. telecom data. 轻节点
 ```
 0. release android wake-lock and wifi-lock
 
@@ -139,7 +139,7 @@ goto step (1) until surveyed half of the know PeerList[`ChainID`][]  and at leas
 
 ```
 ### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
-
+矿工节点
 0. turn on android wake-lock and wifi-lock
 ```
 copy code section H from B1.
