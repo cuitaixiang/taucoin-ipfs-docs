@@ -209,7 +209,10 @@ through graphrelaySync randomly request a chainPeer (get chainPeerListIPFSaddr) 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
 ```
-8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTroot/`difficulty`, then verify this chain's transactions for ONEWEEK range. OR, local time passed 3 blocks time, means too few miners, than verify this chain for aone week.  难度更高，或者出块时间超过3倍
+8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTroot/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
+```
+ if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
+```
 9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
 ## C. File Downloader
