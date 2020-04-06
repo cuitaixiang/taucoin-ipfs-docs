@@ -3,14 +3,14 @@
 User experienses:= {
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay on community chain and TAU main chain. 
-- TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions, assuming millions of community established file sharing. Relay config will be a busy service. 
+- TAU mainnet does not hold files, only provide community annoucement service such as relay, geneis and other important community parameters. When more communities, TAU chain will be in demand for cross chain communication. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
 Business model:= {
 - Tau foundation will develop TAU App and provide public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
-- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
-- Taucoin price will rise when relay configuration on TAU chain in high demand. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. When nodes getting data from community relay, the TAU app will not show ads. This is relating to how to config relay as well. 
+- Taucoin price will rise when annoucement on TAU chain in high demand. 
 }
 Launch steps:={
 - Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. 
@@ -19,9 +19,9 @@ Launch steps:={
 ```
 ## Four main processes exist in architecture
 * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
-* B. Collect votings from chain peers to find the chainid's safety state root. 
+* B. Collect votings from chain peers to discover the chainid's safety state root. 
 * C. File Downloader.
-* D. Reponse to fileAMT request. 
+* D. Reponse to file downloader request. 
 
 ## Tries
 On community chain:
@@ -33,16 +33,13 @@ On community chain:
 ```
 * file AMT: the root for AMT trie for chopping and storing the file.
 
-On TAU chain: 
-* relay: RelayAMTroot is the root for AMT trie for all relays, while relay is not chain specific.
-
 ## Global vars, stored in levelDB
 It helps to make process internal data access efficient. 
 * `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B1-step 4. 
 * `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, B2-step 6.
 
-* ChainList[]; // a list of Chains to follow/mine by users.
-* FileAMTlist[]; // a list for imported and downloaded files trie
+* ChainList[]; // a  list of Chains to follow/mine by users.
+* FileAMTlist[]; // a  list for imported and downloaded files trie
 * PeerList[`ChainID`][]; // list of known IPFS peers for the chain by users.
 * RelayList[`ChainID`][]; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
 * TXpool[`ChainID`][]; // a list of verified txs for adding to new contract
@@ -55,12 +52,12 @@ It helps to make process internal data access efficient.
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
 - File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
-- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority. 验证过程深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载广度优先
+- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority. 验证投票过程访问节点深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载访问节点广度优先
 
 - Address system: 
-- TAU public key: the base for all address generation;
-- Community chain ID: Tgenesisaddress + random(1,000,000,000);
-- Community chains peer address format : `chainID` + TAU address; 
+- TAU private key: the base for all community chain address generation;
+- Community chain ID: `Tgenesisaddress` + random(1,000,000,000);
+- Community chains peer address format : `chainID` + `TAU address`; 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
 ```
@@ -113,13 +110,13 @@ Miner does not know which peer requesting them, because the relay shields the pe
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
 
-## B. Collect votings from peers: this process has two modes: miner and non-miner: 
+## B. Collect votings from peers: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
-### B1. non-mining users, which is triggered by 1. low battery power(< 50%), or 2. telecom data. 轻节点
+nodes state changes: 节点工作状态微调
+- on power charging turn on wake lock; charging off, release wake lock.
+- on wifi data, start mining and turn on wifi lock, wifi off, stop mining and release wifi lock
+- give a button for stop. 
 ```
-0. release android wake-lock and wifi-lock
-
-code section H: 
 1. for each `chainID`, multiple process; random walk connect to a next relay in the chainlist using Kademlia selection.  
 2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
 
@@ -133,19 +130,10 @@ stateroot= `ChainID`contractAMTroot/count/`ChainID`SafetyContractResultStateRoot
 graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
 goto step (1) until surveyed half of the know PeerList[`ChainID`][]  and at least 1 x block time.
-4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY),  // H finish, 
-5. build a future contract and root; use B2 - step 5 and step 6.
-7. then go to step (1).
 
-```
-### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
-矿工节点
-0. turn on android wake-lock and wifi-lock
-```
-copy code section H from B1.
-```
+4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
+
 5. predict new future contract. 
-```
 X = {
 `ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
 contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
@@ -178,7 +166,7 @@ tx sender signature;
  
 signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }  // finish X.
-```
+
 * hamt_update(`ChainID`contractAMTroot, chainIDcontractAMTroot.add(X)); 
 
 #### contract execute results
@@ -204,15 +192,16 @@ File operation
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
 randomly request a PeerList[`ChainID`][] for the future receipt state 
-```
+
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
-```
+
 8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTroot/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
-```
+
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
-```
+
 9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
+```
 ## C. File Downloader
 ```
 input (`fileAMTroot`); // this is for single thread download
