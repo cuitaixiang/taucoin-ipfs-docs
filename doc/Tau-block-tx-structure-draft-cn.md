@@ -223,18 +223,18 @@ graphRelaySync(relay, chainID, chainPeerIPFSID, `fileAMTroot`, selector(field:=s
 until finish all relays or find the chainPeer
 }
 ```
-## App UI
-### Community
+## App UI 界面
+### Community 社区
 - follow chain, first layer
 - follow members, second layer
 - member messages & file, third layer, support import
-### Files, this is where watching the ads
+### Files, this is where watching the ads 文件
 - import files
 - seeding files to chains
 - pin a file, no directory at now, sort by dates and size
 - delete a file
 - "serve on charging and wifi only" botton
-### Forum
+### Forum 论坛
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 
 ### Mining and account balances on different chains. 
