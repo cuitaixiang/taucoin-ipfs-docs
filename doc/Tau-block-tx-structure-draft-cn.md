@@ -99,7 +99,7 @@ telegramGroup; // https://t.me/taucoin for organizing the community.
 * levelDB.`ChainID`SafetyContractResultStateRoot = null;
 * levelDB.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * levelDB.UserChainList.add(`ChainID`)
-* levelDB.`ChainID`PeerList.add(`Tminer);
+* levelDB.PeerList[`ChainID`][].add(`Tminer);
 * levelDB.RelayList.add({aws relays by taucoin dev});
 ```
 ## A. One miner receives GraphSync request from a relay. 
@@ -116,30 +116,28 @@ If the `fileAMTroot` exists, then return the blocks according to the range.
 ## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 ### B1. non-mining users, which is triggered by 1. low battery power(< 50%), or 2. telecom data. 
-- 0. release android wake-lock and wifi-lock
-code section H:
-- 1. random walk to next followed chain id; random walk connect to a next relay in the chainlist using Kademlia selection.  
-- 2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
 ```
+0. release android wake-lock and wifi-lock
+
+code section H: 
+1. for each `chainID`, multiple process; random walk connect to a next relay in the chainlist using Kademlia selection.  
+2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
+
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
-```
-- 3. traverse history contract and states until mutable range.
-```
+
+3. traverse history contract and states until mutable range.
 stateroot = y
 (*) 
 graphsyncAMT(stateroot/`ChainID`contractAMTroot) 
 stateroot= `ChainID`contractAMTroot/count/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 graphsyncHAMT(stateroot)
-goto (*) until the mutable range; // 
-goto step (2); 
+goto (*) until the mutable range or any error like connect time out; // 
+goto step (1) until surveyed half of the know PeerList[`ChainID`][]  and at least 1 x block time.
+4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY),  // H finish, 
+5. build a future contract and root; use B2 - step 5 and step 6.
+7. then go to step (1).
 
-when connection timeout or hit any error, go to step(1)
 ```
-- 4. accounting the new voting, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
-- 5. build a future contract and root; use B2 - step 5 and step 6.
-- 6. then go to step (1).
-
-
 ### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
 
 0. turn on android wake-lock and wifi-lock
@@ -205,7 +203,7 @@ File operation
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 7. random walk until connect to a next relay
-through graphrelaySync randomly request a chainPeer (get chainPeerListIPFSaddr) for the future receipt state root candidate 
+randomly request a PeerList[`ChainID`][] for the future receipt state 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
 ```
