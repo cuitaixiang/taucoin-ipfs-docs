@@ -1,4 +1,4 @@
-# TAU - Unlimited P2P File Sharing
+# TAU - File Sharing Community on blockchain
 ```
 User experienses:= {
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
@@ -227,18 +227,18 @@ until finish all relays or find the chainPeer
 }
 ```
 ## App UI
-
-### Home
-- according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
+### Community
+- follow chain
+- follow members
+* this is the folder stucture: /chain/members/files[1..nounce] and its messages.
 ### Files, this is where watching the ads
 - import files
 - seeding files to chains
 - download stats
 - pin a file, no directory at now, sort by dates and size
-### Follow
-- follow chain
-- follow members
-* this is the folder stucture: /chain/members/files[1..nounce] and its messages.
+### Forum
+- according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
+
 ### Mining and account balances on different chains. 
 - coins mining config
 
