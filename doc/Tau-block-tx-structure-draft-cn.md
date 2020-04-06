@@ -8,9 +8,9 @@ User experienses:= {
 }
 
 Business model:= {
-- Tau foundation will develop TAU App and provide relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
+- Tau foundation will develop TAU App and provide public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. 
-- Taucoin price will rise when relay configuration in high demand. 
+- Taucoin price will rise when relay configuration on TAU chain in high demand. 
 }
 Launch steps:={
 - Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. 
