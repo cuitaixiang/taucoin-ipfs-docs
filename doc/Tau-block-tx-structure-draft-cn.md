@@ -62,13 +62,13 @@ It helps to make process internal data access efficient.
 - Community chains peer address format : `chainID` + TAU address; 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
-```
-`ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
-`ChainID``Tsender/receiver`Balance
-`ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-`FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-`FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
-```
+
+- `ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
+- `ChainID``Tsender/receiver`Balance
+- `ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+- `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
+- `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+
 ## community chain
 **Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses.
 ```
@@ -104,10 +104,10 @@ telegramGroup; // https://t.me/taucoin for organizing the community.
 ## A. One miner receives GraphSync request from a relay. 
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 ### A.1 for future `ChainID`ContractResultStateRoot
-```
-1. Receive the `ChainID` from a graphRelaySync call
-2. If the node follows on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process step(6).
-```
+
+-  Receive the `ChainID` from a graphRelaySync call
+-  If the node follows on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process step(6).
+
 ### A.2 From a file downloader 
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
@@ -115,17 +115,15 @@ If the `fileAMTroot` exists, then return the blocks according to the range.
 ## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 ### B1. non-mining users, which are on battery power or telecom data service. 
-0. release android wake-lock and wifi-lock
-```
+- 0. release android wake-lock and wifi-lock
 code section H:
-1. random walk to next followed chain id; random walk connect to a next relay in the chainlist using Kademlia selection.  
-2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
-
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); 
-// when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
-
-3. traverse history contract and states until mutable range.
-
+- 1. random walk to next followed chain id; random walk connect to a next relay in the chainlist using Kademlia selection.  
+- 2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
+```
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
+```
+- 3. traverse history contract and states until mutable range.
+```
 stateroot = y
 (*) 
 graphsyncAMT(stateroot/`ChainID`contractAMTroot) 
@@ -135,11 +133,10 @@ goto (*) until the mutable range; //
 goto step (2); 
 
 when connection timeout or hit any error, go to step(1)
-
-4. accounting the new voting, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
-``` 
-5. build a future contract and root; use B2 - step 5 and step 6.
-6. then go to step (1).
+```
+- 4. accounting the new voting, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
+- 5. build a future contract and root; use B2 - step 5 and step 6.
+- 6. then go to step (1).
 
 
 ### B2. mining user, which requires wifi and power plugged, while missing wifi or plug will switch to non-mining mode B1. 
