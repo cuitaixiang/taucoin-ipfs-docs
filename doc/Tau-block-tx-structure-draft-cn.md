@@ -113,12 +113,13 @@ If the `fileAMTroot` exists, then return the blocks according to the range.
 ## B. Collect votings from peers: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 nodes state changes: 节点工作状态微调
-- on power charging turn on wake lock; charging off, release wake lock.
-- on wifi data, start mining and turn on wifi lock, wifi off, stop mining and release wifi lock
-- give a button for stop. 
+- on power charging turn on wake lock; charging off, turn off wake lock.
+- on wifi data, start mining; wifi off, stop mining.
+ 
 ```
-1. for each `chainID`, multiple process; random walk connect to a next relay in the chainlist using Kademlia selection.  
-2. through relay, randomly request a chainPeer from chainIDpeerlist for the future contract result state root.  
+
+1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is within 48 hours, jump to step 5. // means not a new node. 
+2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from leveldb.PeerList[`ChainID`][] for the future state root voting.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 
@@ -129,7 +130,7 @@ graphsyncAMT(stateroot/`ChainID`contractAMTroot)
 stateroot= `ChainID`contractAMTroot/count/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
-goto step (1) until surveyed half of the know PeerList[`ChainID`][]  and at least 1 x block time.
+goto step (2) until surveyed half of the know PeerList[`ChainID`][]
 
 4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
 
