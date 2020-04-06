@@ -62,13 +62,13 @@ It helps to make process internal data access efficient.
 - Community chains peer address format : `chainID` + TAU address; 
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
-
+```
 - `ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
 - `ChainID``Tsender/receiver`Balance
 - `ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
-
+```
 ## community chain
 **Genesis** with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses.
 ```
