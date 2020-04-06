@@ -36,15 +36,15 @@ On community chain:
 On TAU chain: 
 * relay: RelayAMTroot is the root for AMT trie for all relays, while relay is not chain specific.
 
-## Global Context: stored in levelDB
+## Global vars, stored in levelDB
 It helps to make process internal data access efficient. 
-* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B. When most difficulty chain is found or verified after voting process.
-* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, which is a hamt node.cid
-* `ChainID`ContractAMTroot;
-* UserChainList[]; // a list of Chains to follow/mine by users.
-* UserFileAMTlist[]; // a list for imported and downloaded files trie
-* `ChainID`PeerList[]; // list of known IPFS peers for the chain by users.
-* RelayList[]; // a list of known relays from TAU chain; initially will be hard-coded to use AWS EC2 relay.
+* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B1-step 4. 
+* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, B2-step 6.
+
+* ChainList[]; // a list of Chains to follow/mine by users.
+* FileAMTlist[]; // a list for imported and downloaded files trie
+* PeerList[`ChainID`][]; // list of known IPFS peers for the chain by users.
+* RelayList[`ChainID`][]; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
 
 ## Concept explain
 ```
@@ -136,9 +136,9 @@ goto step (2);
 
 when connection timeout or hit any error, go to step(1)
 
-4. accounting the new voting, update the CBC safety root: levelDB_update(SafetyContractResultStateRoot, voted SAFETY), 
+4. accounting the new voting, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
 ``` 
-5. build a future `ChainID`ContractResultStateRoot; use B2 - step 5.
+5. build a future contract and root; use B2 - step 5 and step 6.
 6. then go to step (1).
 
 
