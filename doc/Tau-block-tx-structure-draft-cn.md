@@ -21,7 +21,7 @@ Launch steps:={
 * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
 * B. Collect votings from chain peers to find the chainid's safety state root. 
 * C. File Downloader.
-* D. Reponse to downloader the fileAMT trie. 
+* D. Reponse to fileAMT request. 
 
 ## Tries
 On community chain:
@@ -45,6 +45,7 @@ It helps to make process internal data access efficient.
 * FileAMTlist[]; // a list for imported and downloaded files trie
 * PeerList[`ChainID`][]; // list of known IPFS peers for the chain by users.
 * RelayList[`ChainID`][]; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
+* TXpool[`ChainID`][]; // a list of verified txs for adding to new contract
 
 ## Concept explain
 ```
@@ -114,7 +115,7 @@ If the `fileAMTroot` exists, then return the blocks according to the range.
 
 ## B. Collect votings from peers: this process has two modes: miner and non-miner: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
-### B1. non-mining users, which are on battery power or telecom data service. 
+### B1. non-mining users, which is triggered by 1. low battery power(< 50%), or 2. telecom data. 
 - 0. release android wake-lock and wifi-lock
 code section H:
 - 1. random walk to next followed chain id; random walk connect to a next relay in the chainlist using Kademlia selection.  
@@ -208,7 +209,7 @@ through graphrelaySync randomly request a chainPeer (get chainPeerListIPFSaddr) 
 ```
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
 ```
-8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain, then verify this chain's transactions for ONEWEEK range.
+8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTroot/`difficulty`, then verify this chain's transactions for ONEWEEK range. OR, local time passed 3 blocks time, means too few miners, than verify this chain for aone week.  难度更高，或者出块时间超过3倍
 9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
 ## C. File Downloader
@@ -223,6 +224,12 @@ graphRelaySync(relay, chainID, chainPeerIPFSID, `fileAMTroot`, selector(field:=s
 until finish all relays or find the chainPeer
 }
 ```
+## D. reponse to fileAMT request
+on high battery power and wifi
+on high battery power and telcom
+on low battery power and wifi
+on low battery power and telecom
+
 ## App UI 界面
 ### Community 社区
 - follow chain, first layer
