@@ -205,21 +205,19 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractA
 ```
 ## C. File Downloader
 ```
-input (`fileAMTroot`); // this is for single thread download
+input (`fileAMTroot`); //this root can not be null.
 
-From `fileAMTroot`, loop the seeder nouce, loop the nounce;
-{ random walk on all relays
+From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce;
+{ 
+random walk on RelayList[`ChainID`][] to find `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer
 
-graphRelaySync(relay, chainID, chainPeerIPFSID, `fileAMTroot`, selector(field:=section 1..m))
+graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section 1..m))
 
 until finish all relays or find the chainPeer
 }
 ```
 ## D. reponse to fileAMT request
-on high battery power and wifi
-on high battery power and telcom
-on low battery power and wifi
-on low battery power and telecom
+this is part of graphsync. 
 
 ## App UI 界面
 ### Community 社区
@@ -228,10 +226,9 @@ on low battery power and telecom
 - member messages & file, third layer, support import
 ### Files, this is where watching the ads 文件
 - import files
-- seeding files to chains
+- seeding files to chains, unseeding
 - pin a file, no directory at now, sort by dates and size
 - delete a file
-- "serve on charging and wifi only" botton
 ### Forum 论坛
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 
