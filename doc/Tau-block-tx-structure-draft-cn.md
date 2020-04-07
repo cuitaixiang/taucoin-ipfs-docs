@@ -110,6 +110,8 @@ Miner does not know which peer requesting them, because the relay shields the pe
 ### A.2 From a file downloader，提供文件
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
+If the `fileAMTroot` equal null, then return `ChainID``Tsender``Nounce`fileAMTroot, 最新文件
+
 
 ## B. Collect votings from peers: 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
@@ -185,15 +187,13 @@ Account operation
 * hamt_update(`Tsender`Nounce,`Tsender`Nounce + 1);
 * hamt_update(`Treceiver`Nounce,`Treceiver`Nounce++);
 ##### File creation and seeding transaction
-Account operation
-* hamt_update(`Tsender`Balance,`Tsender`Balance-txfee); 
-* hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
 File operation
-* hamt_update(`ChainID``Tsender``Nounce`FileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-
+* hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
+* hamt_add(`ChainID``Tsender``Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
-* hamt_add(`FileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
-
+* hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+Account operation
+* hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
 
