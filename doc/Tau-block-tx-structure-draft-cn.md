@@ -73,7 +73,7 @@ It helps to make process internal data access efficient.
 ```
 * levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
 * generate genesis contract, 
-ChainID = `Tminer`+ random(1,000,000,000)
+ChainID = `Tminer`+ sig(random(1,000,000,000))// 用创世矿工的TAU私钥签署
 X = `ChainID`contractAMTRoot.add({
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 blocksize; // default 5，区块交易数
