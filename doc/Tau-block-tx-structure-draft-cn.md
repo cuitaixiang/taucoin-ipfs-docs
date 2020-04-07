@@ -67,7 +67,10 @@ It helps to make process internal data access efficient.
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
-
+## constants
+* mutable range = 1 week
+* new node time cut off = 48 hours
+* transaction expirey 24 hours
 ## community chain
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
@@ -133,7 +136,7 @@ nodes state changes: 节点工作状态微调
  
 ```
 
-1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is within 48 hours, jump to step 5. // means not a new node. 
+1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
 2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from leveldb.PeerList[`ChainID`][] for the future state root voting.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
