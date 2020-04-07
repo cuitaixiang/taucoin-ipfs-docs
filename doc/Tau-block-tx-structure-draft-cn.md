@@ -1,4 +1,4 @@
-# TAU - unlimited file sharing on blockchain
+# TAU - Unlimited file sharing on blockchain
 ```
 User experienses:= {
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
