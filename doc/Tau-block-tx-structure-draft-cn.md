@@ -76,8 +76,8 @@ It helps to make process internal data access efficient.
 ChainID = `Tminer`+ sig(random(1,000,000,000))// 用创世矿工的TAU私钥签署
 X = `ChainID`contractAMTRoot.add({
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-blocksize; // default 5，区块交易数
-blocktime; // default 10 minutes， 出块时间
+blocksize; // default 3，区块交易数
+blocktime; // default 5 minutes， 出块时间
 initial difficulty; // ???
 chain nickname; // hello world chain
 total coins; // default 1,000,000， 币数量
