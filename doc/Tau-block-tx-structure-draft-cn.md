@@ -74,7 +74,20 @@ It helps to make process internal data access efficient.
 ```
 * X = new hamt.node();
 * hamt_add(ChainID,`Tminer`+ sig(random(1,000,000,000));用创世矿工的TAU私钥签署
-* hamt_add(`ChainID`contractJSON, { // root for contact AMT 
+
+type contractJSON struct { // define the contract strut
+`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
+contractNumber int32;
+blocksize int; // default 3，区块交易数
+blocktime int; // default 5 minutes， 出块时间
+initial difficulty int64; // ???
+chainNickname string; // hello world chain
+totalCoins int64; // default 1,000,000， 币数量
+relaylist []string{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继
+telegramGroup string("telegram"); // https://t.me/taucoin for organizing the community. 社区通信
+signature []byte //by genesis miner
+}
+* hamt_add(`ChainID`contractJSON, contractJSON { // root for contact AMT 
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber = 0;
 blocksize; // default 3，区块交易数
