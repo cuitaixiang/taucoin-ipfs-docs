@@ -135,6 +135,9 @@ goto step (2) until surveyed half of the know PeerList[`ChainID`][]
 
 4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
 
+
+
+--------
 5. predict new future contract. 
 X = {
 `ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
@@ -186,12 +189,15 @@ Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee); 
 * hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
 File operation
-* fileAMTroot = new AMTnode().put(file) // tgz, chop and put file into AMT trie, return the root
-* hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_update(`ChainID``Tsender``Nounce`FileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* hamt_update(`FileAMTroot``ChainID`SeedingNounceIPFSpeer) // seeding peer ipfs id, the first seeder is the creator of the file.
+
+* hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
+* hamt_add(`FileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 
 6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+
+
+---
 7. random walk until connect to a next relay
 randomly request a PeerList[`ChainID`][] for the future receipt state 
 
