@@ -25,11 +25,10 @@ Launch steps:={
 
 ## Tries
 On community chain:
-* chain contract: `ChainID`ContractAMTroot is the root for **AMT** trie to store history contracts, which is blockchain in old concept.
-* chain contract result: `ChainID`ContractResultStateRoot is the root for **HAMT** trie for the chain state; contract and results are connected in each state transition. 
+* chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
 ```
-- future state/`ChainID`ContractAMTroot/K-V -> `ChainID`ContractAMTroot
-- `ChainID`ContractAMTroot/`count`/state -> `ChainID`SafetyContractResultStateRoot
+- future state ->`ChainID`ContractJSON
+- `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 ```
 * file AMT: the root for AMT trie for chopping and storing the file.
 
@@ -71,11 +70,10 @@ It helps to make process internal data access efficient.
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
-* levelDB.add `ChainID`contractAMTroot = amt_new node(). // root for contact AMT
-* generate genesis contract, 
 ChainID = `Tminer`+ sig(random(1,000,000,000))// 用创世矿工的TAU私钥签署
-X = `ChainID`contractAMTRoot.add({
+* `ChainID`contractJSON = { // root for contact AMT 
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
+contractNumber = 0;
 blocksize; // default 3，区块交易数
 blocktime; // default 5 minutes， 出块时间
 initial difficulty; // ???
@@ -87,7 +85,6 @@ telegramGroup; // https://t.me/taucoin for organizing the community. 社区通�
 
 * new `ChainID`ContractResultStateRoot = new hamt.node();
 * hamt_add(ChainID,`ChainID`);
-* hamt_add(`ChainID`contractAMTroot, `ChainID`contractAMTRoot.put(cbor);); 
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`Nounce, 1);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
@@ -124,26 +121,23 @@ nodes state changes: 节点工作状态微调
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is within 48 hours, jump to step 5. // means not a new node. 
 2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from leveldb.PeerList[`ChainID`][] for the future state root voting.  
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTRoot)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 
 3. traverse history contract and states until mutable range.
-stateroot = y
-(*) 
-graphsyncAMT(stateroot/`ChainID`contractAMTroot) 
-stateroot= `ChainID`contractAMTroot/count/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
-graphsyncHAMT(stateroot)
+
+(*)  
+stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
+y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
 goto step (2) until surveyed half of the know PeerList[`ChainID`][]
 
 4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
 
-
-
 --------
 5. predict new future contract. 
 X = {
 `ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
-contractNumber = AMT_get_count(`ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTRoot/number) +1;
+contractNumber = `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/contactNumber) +1;
 version,8; 
 timestamp, 4; 
 base target, 8; // for POT calc
@@ -174,7 +168,7 @@ tx sender signature;
 signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 }  // finish X.
 
-* hamt_update(`ChainID`contractAMTroot, chainIDcontractAMTroot.add(X)); 
+* hamt_update(`ChainID`contractJSON, X); 
 
 #### contract execute results
 ##### output coinbase tx
@@ -201,9 +195,9 @@ Account operation
 7. random walk until connect to a next relay
 randomly request a PeerList[`ChainID`][] for the future receipt state 
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractAMTroot)); 
+graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); 
 
-8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractAMTroot shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractAMTroot/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
+8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
 
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
 
