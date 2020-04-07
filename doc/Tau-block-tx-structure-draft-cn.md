@@ -1,18 +1,18 @@
 # TAU - Unlimited file sharing on blockchain
 ```
-User experienses:= {
+User experienses:= { 用户体验
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
-- Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay on community chain and TAU main chain. 
+- Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
 - TAU mainnet does not hold files, only provide community annoucement service such as relay, geneis and other important community parameters. When more communities, TAU chain will be in demand for cross chain communication. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
-Business model:= {
+Business model:= { 商业模式
 - Tau foundation will develop TAU App and provide public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. When nodes getting data from community relay, the TAU app will not show ads. This is relating to how to config relay as well. 
 - Taucoin price will rise when annoucement on TAU chain in high demand. 
 }
-Launch steps:={
+Launch steps:={ 发布步骤
 - Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. 
 - Tau mainnet turns on for relays operation.
 }
@@ -34,8 +34,8 @@ On community chain:
 
 ## Global vars, stored in levelDB
 It helps to make process internal data access efficient. 
-* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B1-step 4. 
-* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, B2-step 6.
+* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B(1-4). CBC 安全点
+* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
 
 * ChainList[]; // a  list of Chains to follow/mine by users.
 * FileAMTlist[]; // a  list for imported and downloaded files trie
@@ -55,23 +55,26 @@ It helps to make process internal data access efficient.
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- Community chain ID: `Tgenesisaddress` + random(1,000,000,000);
+- Community chain ID: `Tgenesisaddress` + sign(random(1,000,000,000));
 - Community chains peer address format : `chainID` + `TAU address`; 
 ```
-## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract AMT trie to get history proof. 
+## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract history. 
 ```
 - `ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
 - `ChainID``Tsender/receiver`Balance
 - `ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+- `ChainID``Tsender``Nounce`fileMsg
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
+
 ## community chain
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
-ChainID = `Tminer`+ sig(random(1,000,000,000))// 用创世矿工的TAU私钥签署
-* `ChainID`contractJSON = { // root for contact AMT 
+* X = new hamt.node();
+* hamt_add(ChainID,`Tminer`+ sig(random(1,000,000,000));用创世矿工的TAU私钥签署
+* hamt_add(`ChainID`contractJSON, { // root for contact AMT 
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber = 0;
 blocksize; // default 3，区块交易数
@@ -81,15 +84,14 @@ chain nickname; // hello world chain
 total coins; // default 1,000,000， 币数量
 initial relaylist json({multi address}); // relay bootstrap /ipv4/tcp， 初始中继
 telegramGroup; // https://t.me/taucoin for organizing the community. 社区通信
-}); // X.
+signature by genesis miner
+}); 
 
-* new `ChainID`ContractResultStateRoot = new hamt.node();
-* hamt_add(ChainID,`ChainID`);
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`Nounce, 1);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
-* `ChainID`ContractResultStateRoot.put(cbor); // for responding to voting.
+* `ChainID`ContractResultStateRoot = hamt.node.put(cbor); // for responding to voting.
 
 * levelDB.`ChainID`SafetyContractResultStateRoot = null;
 * levelDB.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
@@ -153,6 +155,7 @@ nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
 txfee;
+msg;
 `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDsenderOtherInfo, 128 bytes;  // nick name.
 
@@ -184,6 +187,7 @@ Account operation
 File operation
 * hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
 * hamt_add(`ChainID``Tsender``Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
+* hamt_add(`ChainID``Tsender``Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 Account operation
