@@ -60,10 +60,12 @@ It helps to make process internal data access efficient.
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract history. 
 ```
-- `ChainID``Tsender/receiver`Nounce; //  balance and POT power for each address
-- `ChainID``Tsender/receiver`Balance
-- `ChainID``Tsender``Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-- `ChainID``Tsender``Nounce`fileMsg
+// Tsender = `ChinaID` + TAUaddress
+- `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
+- `Tsender/receiver`Balance
+- `Tsender`FileNounce // file command counting 文件交易计数
+- `Tsender`file`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+- `Tsender`file`Nounce`fileMsg
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 ```
@@ -104,7 +106,7 @@ signature by genesis miner
 }); 
 
 * hamt_add(`Tminer`Balance, 1,000,000); 
-* hamt_add(`Tminer`Nounce, 1);
+* hamt_add(`Tminer`TXNounce, 1);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
 * `ChainID`ContractResultStateRoot = hamt.node.put(cbor); // for responding to voting.
@@ -125,7 +127,7 @@ Miner does not know which peer requesting them, because the relay shields the pe
 ### A.2 From a file downloader，提供文件
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
-If the `fileAMTroot` equal null, then return `ChainID``Tsender``Nounce`fileAMTroot, 最新文件
+If the `fileAMTroot` equal null, then return `ChainID``Tsender`file`Nounce`fileAMTroot, 最新文件
 
 
 ## B. Collect votings from peers: 
@@ -192,13 +194,13 @@ signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 #### contract execute results
 ##### output coinbase tx
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
-* hamt_update(`Tminer`Nounce,`Tminer`Nounce + 1); // for the coinbase tx nounce increase
+* hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
 * hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* hamt_update(`Tsender`Nounce,`Tsender`Nounce + 1);
-* hamt_update(`Treceiver`Nounce,`Treceiver`Nounce++);
+* hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* hamt_update(`Treceiver`TXnounce,`Treceiver`TXnounce++);
 ##### File creation and seeding transaction
 File operation
 * hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
