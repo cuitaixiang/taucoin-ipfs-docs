@@ -32,16 +32,15 @@ On community chain:
 ```
 * file AMT: the root for AMT trie for chopping and storing the file.
 
-## Global vars, stored in levelDB
+## Global vars, stored in database
 It helps to make process internal data access efficient. 
-* `ChainID`SafetyContractResultStateRoot; // this is constantly updated by voting process B(1-4). CBC 安全点
-* `ChainID`ContractResultStateRoot; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
-
-* ChainList[]; // a  list of Chains to follow/mine by users.
-* FileAMTlist[]; // a  list for imported and downloaded files trie
-* PeerList[`ChainID`][]; // list of known IPFS peers for the chain by users.
-* RelayList[`ChainID`][]; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
-* TXpool[`ChainID`][]; // a list of verified txs for adding to new contract
+* SafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
+* ContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
+* ChainList []String ; // a  list of Chains to follow/mine by users.
+* FileAMTlist []cid; // a  list for imported and downloaded files trie
+* PeerList [`ChainID`][`peer`]String; // list of known IPFS peers for the chain by users.
+* RelayList [`ChainID`][`relay`]String; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
+* TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 
 ## Concept explain
 ```
@@ -111,18 +110,18 @@ signature by genesis miner
 * hamt_add(other KVs); // initial chain address.
 * `ChainID`ContractResultStateRoot = hamt.node.put(cbor); // for responding to voting.
 
-* levelDB.`ChainID`SafetyContractResultStateRoot = null;
-* levelDB.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
-* levelDB.UserChainList.add(`ChainID`)
-* levelDB.PeerList[`ChainID`][].add(`Tminer);
-* levelDB.RelayList.add({aws relays by taucoin dev});
+* database.`ChainID`SafetyContractResultStateRoot = null;
+* database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
+* database.UserChainList.add(`ChainID`)
+* database.PeerList[`ChainID`][].add(`Tminer);
+* database.RelayList.add({aws relays by taucoin dev});
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 ### A.1 for future `ChainID`ContractResultStateRoot， 投票
 
 -  Receive the `ChainID` from a graphRelaySync call
--  If the node follows on this chain, return leveldb.`ChainID`contractResultStateRoot, which was generated in B process step(6).
+-  If the node follows on this chain, return database.`ChainID`contractResultStateRoot, which was generated in B process step(6).
 
 ### A.2 From a file downloader，提供文件
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
@@ -139,7 +138,7 @@ nodes state changes: 节点工作状态微调
 ```
 
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
-2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from leveldb.PeerList[`ChainID`][] for the future state root voting.  
+2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 
@@ -151,7 +150,7 @@ y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
 goto step (2) until surveyed half of the know PeerList[`ChainID`][]
 
-4. accounting the voting rule, update the CBC safety root: levelDB_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
+4. accounting the voting rule, update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
 
 --------
 5. predict new future contract. 
@@ -210,7 +209,7 @@ File operation
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
-6. Put new generated states into  cbor block, levelDB.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
 
 ---
@@ -223,7 +222,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
 
-9. If verification succesful, levelDB_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
+9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
 10. if network-disconnected from internet 48 hours, go to step (1).
 ```
 ## C. File Downloader
@@ -243,13 +242,18 @@ until finish all relays or find the chainPeer
 this is part of graphsync. 
 
 ## App UI 界面
+leading function: 
+* "Share File" big button, clear and big sign. 醒目标志。user can share file to a chain or directly to a friend.
+* "Create Sharing Blockchain" big button on screen. 
 ### Community 社区
 - follow chain, first layer
 - follow members, second layer
 - member messages & file, third layer, support import
 ### Files, this is where watching the ads 文件
 - import files
-- seeding files to chains, unseeding
+- share file to friend
+- share file to community chain
+- seeding files and unseeding
 - pin a file, no directory at now, sort by dates and size
 - delete a file
 ### Forum 论坛
