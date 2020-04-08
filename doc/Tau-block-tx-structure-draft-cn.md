@@ -13,7 +13,7 @@ Business model:= { 商业模式
 - Taucoin price will rise when annoucement on TAU chain in high demand. 
 }
 Launch steps:={ 发布步骤
-- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. 
+- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. The relay info is maintained on central server before TAU mainnet.
 - Tau mainnet turns on for relays operation.
 }
 ```
