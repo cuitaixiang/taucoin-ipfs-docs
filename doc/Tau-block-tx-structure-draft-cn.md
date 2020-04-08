@@ -201,9 +201,9 @@ Account operation
 * hamt_update(`Treceiver`Nounce,`Treceiver`Nounce++);
 ##### File creation and seeding transaction
 File operation
-* hamt_update(`Tsender`Nounce, `Tsender`Nounce + 1);
-* hamt_add(`ChainID``Tsender``Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* hamt_add(`ChainID``Tsender``Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
+* hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
+* hamt_add(`ChainID``Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
+* hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 Account operation
