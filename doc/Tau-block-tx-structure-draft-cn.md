@@ -171,7 +171,7 @@ nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
 txfee;
-msg;
+msg 2048;
 `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDsenderOtherInfo, 128 bytes;  // nick name.
 
