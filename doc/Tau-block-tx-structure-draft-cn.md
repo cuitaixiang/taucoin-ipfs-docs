@@ -1,6 +1,6 @@
 # TAU - Unlimited P2P File Sharing
 ```
-User experienses:= {
+User experienses:= { tt
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+random(1,000,000,000). Community chains can announce relay on community chain and TAU main chain. 
 - TAU mainnet does not hold files, only provide relay management service. Potentially to annouce relay for mulitple communities or regions, assuming millions of community established file sharing. Relay config will be a busy service. 
