@@ -1,6 +1,7 @@
 # TAU - Unlimited file sharing on blockchains
 ```
 User experienses:= { 用户体验
+- Core: create "My Seeding Blockchain", which builds a china 1m coins. next step: invite your friends and commit for "seeding all" to make income. TAU dev will distribute income to your address for seeding. 
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
 - TAU mainnet does not hold files, only provide community annoucement service such as relay, geneis and other important community parameters. When more communities, TAU chain will be in demand for cross chain communication. 
@@ -31,7 +32,7 @@ On community chain:
 - `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 ```
 * file AMT: the root for AMT trie for chopping and storing the file.
-//hamt:  hnode(root cbor.cid,key) -> value;  cid = hnode.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
+//hamt:  hamt_node(root cbor.cid,key) -> value;  cid = hamt_node.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
 //amt:   amtNode(root cbor.cid).count -> value
 ## Global vars, stored in database
 It helps to make process internal data access efficient. 
@@ -77,8 +78,8 @@ It helps to make process internal data access efficient.
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
-* X := hnode := <nil> new.hamt_node(); // execute once per chain, for future all is put.
-* hamt_add(ChainID,`Tminer`+ sig(random(1,000,000,000));用创世矿工的TAU私钥签署
+* X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
+* hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
 
 type contractJSON struct { // define the contract strut
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
@@ -109,7 +110,7 @@ signature by genesis miner
 * hamt_add(`Tminer`TXNounce, 1);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
-* `ChainID`ContractResultStateRoot = hnode.hamt_put(cbor); // for responding to voting.
+* `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
 
 * database.`ChainID`SafetyContractResultStateRoot = null;
 * database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
@@ -210,7 +211,7 @@ File operation
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
-6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hnode.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
 
 ---
