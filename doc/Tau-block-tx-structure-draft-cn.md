@@ -31,7 +31,8 @@ On community chain:
 - `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 ```
 * file AMT: the root for AMT trie for chopping and storing the file.
-
+//hamt:  hnode(root cbor.cid,key) -> value;  cid = hnode.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
+//amt:   amtNode(root cbor.cid).count -> value
 ## Global vars, stored in database
 It helps to make process internal data access efficient. 
 * SafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
@@ -76,7 +77,7 @@ It helps to make process internal data access efficient.
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
-* X = new hamt.node();
+* X := hnode := <nil> new.hamt_node(); // execute once per chain, for future all is put.
 * hamt_add(ChainID,`Tminer`+ sig(random(1,000,000,000));用创世矿工的TAU私钥签署
 
 type contractJSON struct { // define the contract strut
@@ -108,7 +109,7 @@ signature by genesis miner
 * hamt_add(`Tminer`TXNounce, 1);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
-* `ChainID`ContractResultStateRoot = hamt.node.put(cbor); // for responding to voting.
+* `ChainID`ContractResultStateRoot = hnode.hamt_put(cbor); // for responding to voting.
 
 * database.`ChainID`SafetyContractResultStateRoot = null;
 * database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
@@ -209,7 +210,7 @@ File operation
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
-6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
+6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hnode.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
 
 ---
