@@ -64,7 +64,7 @@ It helps to make process internal data access efficient.
 // Tsender = `ChinaID` + TAUaddress
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
-- `Tsender/receiver`Nounce`Msg // for future command, such as "seeding all" comment, no file attachment
+- `Tsender/receiver`TXNounce`Msg // for future command, such as "seeding all" comment, no file attachment
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`file`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
 - `Tsender`file`Nounce`fileMsg
