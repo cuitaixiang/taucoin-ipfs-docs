@@ -1,7 +1,9 @@
 # TAU - Unlimited file sharing on blockchains
 ```
 User experienses:= { 用户体验
-- Core: create "My Seeding Blockchain", which builds a china 1m coins. next step: invite your friends and commit for "seeding all" to make income. TAU dev will pay for $0.03 per Gbyte for the difference of seeding minus downloading, the revenue is from the mobile ads income. $0.03/g is what AWS charge for storage. The wire will happen when reach $100 dollars. // the rate is subject to change. if seeding > download, no ads and make money, if downlaod > seeding, see ads. this creats incentive for seeding and posting file. 
+- Core: * One big button, uppon open: 1. create seeding blockchain 2. airdrop or seeding friends.  3. upload a file
+* Data dashboard:  (download - upload) > 1G, start ads., wifi only. "seeding to increase free data"
+
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
 - Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. 
