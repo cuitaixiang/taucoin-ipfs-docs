@@ -4,7 +4,7 @@ User experienses:= { 用户体验
 - Core: * One big button, uppon open: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file
 * Data dashboard:  (download - upload) > 1G, start ads., wifi only. "seeding to increase free data"
 
-- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
+- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
 - Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
