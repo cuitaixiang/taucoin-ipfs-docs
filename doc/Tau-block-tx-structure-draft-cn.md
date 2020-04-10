@@ -90,7 +90,7 @@ relay
 // build genesis block
 type contractJSON struct { // define the contract strut
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-contractNumber int32;
+contractNumber int32; :=0
 blocksize int; // default 3，区块交易数
 blocktime int; // default 5 minutes， 出块时间
 initial difficulty int64; // ???
@@ -98,32 +98,20 @@ chainNickname string; // hello world chain
 totalCoins int64; // default 1,000,000， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
-anchorChain string :=TAUgenesisID; // default is TAU mainchain ID
-telegramGroup string("telegram"); // https://t.me/taucoin for organizing the community. 社区通信
+anchorChain string:=TAUgenesisID; // default is TAU mainchain ID
+msg string:="telegram"; // https://t.me/taucoin for organizing the community. 社区通信
 signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
 
--   // recording the relays counter
 
 * database.anchorChainRelaylist[`TAUmainnetchainID`][]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
 * hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
 * hamt_add(`ChainID`contractJSON, contractJSON { // root for contact AMT 
-`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-contractNumber = 0;
-blocksize; // default 3，区块交易数
-blocktime; // default 5 minutes， 出块时间
-initial difficulty; // ???
-chain nickname; // hello world chain
-total coins; // default 1,000,000， 币数量
-initial relaylist json({multi address}); // relay bootstrap /ipv4/tcp， 初始中继
-telegramGroup; // https://t.me/taucoin for organizing the community. 社区通信
-signature by genesis miner
-}); 
-
+* hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
 * hamt_add(`Tminer`FileNounce, 0);
