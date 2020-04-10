@@ -4,7 +4,7 @@ User experienses:= { 用户体验
 - Core: create "My Seeding Blockchain", which builds a china 1m coins. next step: invite your friends and commit for "seeding all" to make income. TAU dev will pay for $0.03 per Gbyte for the difference of seeding minus downloading, the revenue is from the mobile ads income. $0.03/g is what AWS charge for storage. The wire will happen when reach $100 dollars. // the rate is subject to change. if seeding > download, no ads and make money, if downlaod > seeding, see ads. this creats incentive for seeding and posting file. 
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. TAU app does not provide native media player to avoid legal issue. 
 - Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
-- TAU mainnet does not hold files, only provide community annoucement service such as relay, geneis and other important community parameters. When more communities, TAU chain will be in demand for cross chain communication. 
+- Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. 
 - All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
@@ -40,8 +40,8 @@ It helps to make process internal data access efficient.
 * ContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
 * ChainList []String ; // a  list of Chains to follow/mine by users.
 * FileAMTlist []cid; // a  list for imported and downloaded files trie
-* PeerList [`ChainID`][`peer`]String; // list of known IPFS peers for the chain by users.
-* RelayList [`ChainID`][`relay`]String; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
+* PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
+* RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 
 ## Concept explain
@@ -61,15 +61,23 @@ It helps to make process internal data access efficient.
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract history. 
 ```
-// Tsender = `ChinaID` + TAUaddress
+// TX oriented Tsender = `ChinaID` + TAUaddress
+wiring tx
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
 - `Tsender/receiver`TXNounce`Msg // for future command, such as "seeding all" comment, no file attachment
+file tx
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`file`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
 - `Tsender`file`Nounce`fileMsg
+
+// entity oritened
+file
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+relay
+- Relay`ChainID`Nouce  // recording the relays counter
+- Relay`ChainID`NouceAddress // recording the relay address
 ```
 ## constants
 * mutable range = 1 week
@@ -90,13 +98,17 @@ chainNickname string; // hello world chain
 totalCoins int64; // default 1,000,000， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
-
-relaylist []string{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继
+anchorChain string :=TAUgenesisID; // default is TAU mainchain ID
 telegramGroup string("telegram"); // https://t.me/taucoin for organizing the community. 社区通信
 signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
+
+-   // recording the relays counter
+- Relay`ChainID`NouceAddress // recording the relay address
+* database.anchorChainRelaylist[`TAUmainnetchainID`][]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继
+* hamt_add(Relay`ChainID`Nouce, number of relays) // 配置
 * hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
 * hamt_add(`ChainID`contractJSON, contractJSON { // root for contact AMT 
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
@@ -122,7 +134,7 @@ signature by genesis miner
 * database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.UserChainList.add(`ChainID`)
 * database.PeerList[`ChainID`][].add(`Tminer);
-* database.RelayList.add({aws relays by taucoin dev});
+* database.anchorChainRelayList [][].add({aws relays by taucoin dev});
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
@@ -281,9 +293,10 @@ leading function
 ### Mining and account balances on different chains. 
 - coins mining config
 
-# To do
+# To do "anchor chain"
+community chains needs place to get relay info and exchange coins. TAU main chain is an anchor chain. 
 ## TAU Chain
-TAU has only function that is relay configuration and related data payment settlement.
+TAU has services on relay, exchange coins. .
 * wormhole
 - relay nounce/ relaynounce = ...
 - hamt_update(relayNounce, relayNounce +1)
