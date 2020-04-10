@@ -256,9 +256,9 @@ leading function
 * One big button, uppon open: 1. create seeding blockchain 2. airdrop or seeding friends.  3. upload a file
 ```
 // 建立区块链，发币邀请，上传
-1. Own a blockchain with 1 million coins to recruite your community for video and files sharing. 
-2. Send coins to your friends and seeding all their uploads.
-3. Upload or seeding files to earn more data.
+1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
+2. Send coins to friends and seeding all their uploads.
+3. Seeding files to keep ads free.
 
 
 ```
