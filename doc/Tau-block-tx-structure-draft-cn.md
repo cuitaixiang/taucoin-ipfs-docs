@@ -164,9 +164,9 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
-goto step (2) until surveyed half of the know PeerList[`ChainID`][]
+goto step (2) until surveyed half of the know PeerList[`ChainID`][] or 
 
-4. accounting the voting rule, update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 
+4. accounting the voting rule, if the safety root difficulty is less than own difficulty, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 如果投票无人参加，或者投票结果比自己的难度低，就用自己的安全root.
 
 --------
 5. predict new future contract. 
