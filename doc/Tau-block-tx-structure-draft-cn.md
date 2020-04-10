@@ -1,30 +1,34 @@
 # TAU - Unlimited file sharing on blockchains
 ```
 User experienses:= { 用户体验
-- Core: * One big button, uppon open: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file
-* Data dashboard:  (download - upload) > 1G, start ads., wifi only. "seeding to increase free data"
+- Core: One button: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file (with new chain ability)
+* Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
 
-- File imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
-- Community creates community chains for file sharing using own coins. The chain ID is the creator's `TAUaddress`+signature(random(1,000,000,000))// with private key of miner. Community chains can announce relay on community chain and TAU main chain. 
-- Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. 
-- All chain addresses are derivative from TAU private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
+- File/video imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
+
+- For each video, generate a "preview" at in the beginning of amt trie, which take a random chop of the video then show 9 pictures.  
+
+- Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. Community chain can use itself as one of the anchor chains for relay annoucement. For security, community chain needs at least two anchors, another wellknow public chain like TAU and own. Otherwise, it could be blinded by secret chain. 
+
+- All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
 Business model:= { 商业模式
-- Tau foundation will develop TAU App and provide public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and community chain. 
-- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data and ads time. When nodes getting data from community relay, the TAU app will not show ads. This is relating to how to config relay as well. 
-- Taucoin price will rise when annoucement on TAU chain in high demand. 
+- Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and own chain. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will counting the download. 
+- Anchor chain coin price will rise when in demand. 
 }
+
 Launch steps:={ 发布步骤
-- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. The relay info is maintained on central server before TAU mainnet.
-- Tau mainnet turns on for relays operation.
+- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. The relay info is written in the software.
+- Tau mainnet turns on for relays and exchange operation.
 }
 ```
-## Four main processes exist in architecture
-* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. 
-* B. Collect votings from chain peers to discover the chainid's safety state root. 
-* C. File Downloader.
-* D. Reponse to file downloader request. 
+## Four main processes
+* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service)
+* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread request, for first use, possible to run concurrency)
+* C. File Downloader. (concurrent goroutine and logging download data)
+* D. Reponse amt cbor.cid to file downloader request. (service and logging upload data)
 
 ## Tries
 On community chain:
@@ -268,8 +272,8 @@ leading function
 ```
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
-2. Send coins to friends and seeding all their latest uploads upto 1G. 可以配置。
-3. Seeding files to keep ads free.
+2. Send coins to friends and seeding all their latest uploads upto 1G. 可以配置。 or seeding the previews only. 
+3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. 
 
 
 ```
