@@ -79,9 +79,7 @@ It helps to make process internal data access efficient.
 ## Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
 ```
-* X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
-* hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
-
+// build genesis block
 type contractJSON struct { // define the contract strut
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber int32;
@@ -90,10 +88,16 @@ blocktime int; // default 5 minutes， 出块时间
 initial difficulty int64; // ???
 chainNickname string; // hello world chain
 totalCoins int64; // default 1,000,000， 币数量
+`Tminer`TXnoucne:=0;
+`Tminer`FileNounce:=0;
+
 relaylist []string{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继
 telegramGroup string("telegram"); // https://t.me/taucoin for organizing the community. 社区通信
 signature []byte //by genesis miner
 }
+// build genesis state
+* X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
+* hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
 * hamt_add(`ChainID`contractJSON, contractJSON { // root for contact AMT 
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber = 0;
@@ -108,7 +112,8 @@ signature by genesis miner
 }); 
 
 * hamt_add(`Tminer`Balance, 1,000,000); 
-* hamt_add(`Tminer`TXNounce, 1);
+* hamt_add(`Tminer`TXNounce, 0);
+* hamt_add(`Tminer`FileNounce, 0);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
 * `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
@@ -166,7 +171,7 @@ base target, 8; // for POT calc
 cumulative difficulty,8 ; 
 generation signature,32; 
 ChainIDminerAddress, 20; 
-Nounce, 8; // mining is treated as a tx sending to self
+TXNounce ++, 8; // mining is treated as a tx sending to self
  `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDminerOtherInfo, 128 bytes; //nick name.
 TXsJSON, flexible bytes; 
