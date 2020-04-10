@@ -257,7 +257,7 @@ leading function
 ```
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
-2. Send coins to friends and seeding all their uploads.
+2. Send coins to friends and seeding all their latest uploads upto 1G. 可以配置。
 3. Seeding files to keep ads free.
 
 
