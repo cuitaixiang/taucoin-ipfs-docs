@@ -252,9 +252,18 @@ until finish all relays or find the chainPeer
 this is part of graphsync. 
 
 ## App UI 界面
-leading function: 
-* "Share File" big button, clear and big sign. 醒目标志。user can share file to a chain or directly to a friend.
-* "Create Sharing Blockchain" big button on screen. 
+leading function
+* One big button, uppon open: 1. create seeding blockchain 2. airdrop or seeding friends.  3. upload a file
+```
+// 建立区块链，发币邀请，上传
+1. Own a blockchain with 1 million coins to recruite your community for video and files sharing. 
+2. Send coins to your friends and seeding their uploads.
+3. Upload or seeding files to earn more data
+
+
+```
+* Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"
+
 ### Community 社区
 - follow chain, first layer
 - follow members, second layer
