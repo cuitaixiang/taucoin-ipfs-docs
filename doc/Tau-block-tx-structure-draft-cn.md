@@ -58,6 +58,12 @@ It helps to make process internal data access efficient.
 - TAU private key: the base for all community chain address generation;
 - Community chain ID: `Tgenesisaddress` + sign(random(1,000,000,000));
 - Community chains peer address format : `chainID` + `TAU address`; 
+
+- msg: the contract content for genesis, coin base, wiring and file tx
+   * genesis, msg is the initial info such as telegram channel
+   * coin base, msg is the txpool attached
+   * wiring, msg is the contract relating to this tx
+   * file, msg is the discription of the file or file command
 ```
 ## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract history. 
 ```
@@ -114,6 +120,7 @@ signature []byte //by genesis miner
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
+* hamt_add(`Tminer`TXNounceMsg,msg);
 * hamt_add(`Tminer`FileNounce, 0);
 * hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
@@ -175,7 +182,7 @@ ChainIDminerAddress, 20;
 TXNounce ++, 8; // mining is treated as a tx sending to self
  `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDminerOtherInfo, 128 bytes; //nick name.
-TXsJSON, flexible bytes; 
+msg, flexible bytes; 
 = { //original tx from voting collection: wiring and file operation.
 nounce, 8;
 version,8, "0x1" as default;
@@ -203,6 +210,7 @@ signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 ##### output coinbase tx
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
 * hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
+* hamt_add(`Tminer`TXnounceMsg, `ChainID`contractJSON/msg); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
