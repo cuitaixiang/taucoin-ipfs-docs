@@ -8,7 +8,7 @@ User experienses:= { 用户体验
 
 - For each video, since we are randomly download pieces, so we can support a `hopping player` to only play the randon pieces that is downloaded. 
 
-- TAU provides basic communication services like relay, TAU payment and genesis annoucement. Community chain can use itself for relay annoucement as well.
+- TAU provides basic communication services like relay, TAU payment, content annoucement and genesis annoucement. Community chain can use itself for relay annoucement as well.
 
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
