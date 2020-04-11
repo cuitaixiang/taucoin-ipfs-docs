@@ -62,7 +62,7 @@ It helps to make process internal data access efficient.
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- Community chain ID: ChainID := `Tminer`+ `blocksize`+`blocktime` // chainID include genesis address, block size 3, time 5 ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
+- Community chain ID: ChainID := `Tminer`+ `blocksize`+`blocktime` + random // chainID include genesis address, block size 3, time 5 ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
 - msg: the contract content for genesis, coin base, wiring and file tx
@@ -101,7 +101,7 @@ relay
 ```
 // build genesis block
 type contractJSON struct { // define the contract strut
-ChainID := `Tminer`+ `blocksize`+`blocktime` // chainID include genesis address, block size 3 and time 5
+ChainID := `Tminer`+ `blocksize`+`blocktime` + random // chainID include genesis address, block size 3 and time 5
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber int32; :=0
 initial difficulty int64; // ???
