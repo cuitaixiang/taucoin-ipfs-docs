@@ -69,8 +69,7 @@ It helps to make process internal data access efficient.
 - Community ChainID := `Tminer`+ `blocksize`+`blocktime` + randomness // chainID include genesis address, block size 5, time 5, 1 transaction per minute ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
-- msg: the contract content for genesis, coin base, wiring and file tx
-   * genesis, msg is the initial info such as telegram  channel used
+- msg: the contract content for coin base, wiring and file tx
    * coin base, msg is the txpool attached
    * wiring, msg is the contract relating to this tx
    * file, msg is the discription of the file or file command
@@ -95,35 +94,34 @@ Relay
 - Relay`ChainID`Nounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
 - Relay`ChainID`NounceAddress // recording the relay address
 ```
-## constants
+## Constants
 * mutable range = 1 week
-* new node time cut off = 48 hours
+* new node qualification time cut off = 48 hours // off line longer than 48 hours will be consider new nodes for that chain
 * transaction expirey 24 hours
-## community chain
-## Genesis
-* with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million,  relay bootstrap.  // initial mining peers is established through issue coins to those addresses, such as TAU-Torrent has initial addresses. 社区链创世区块
+* voting percentage 67%
+## Community chain
+### Genesis
+* with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
-type contractJSON struct { // define the contract strut
-ChainID := `Tminer`+ `blocksize`+`blocktime` + random // chainID include genesis address, block size 3 and time 5
+contractJSON:= { // define the contract strut
+ChainID := `Nickname`+ `blocksize`+`blocktime` + random // chainID include nickname, block size 5 and time 5, these are critical information to pass down in the stateless mode.
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-contractNumber int32; :=0
+contractNumber:=0 int32;
 initial difficulty int64; // ???
-chainNickname string; // hello world chain
 totalCoins int64; // default 1,000,000， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
-msg string:="annoucement"; // https://t.me/taucoin for organizing the community. 社区通信
 signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
 
-* database.ChainRelaylist[]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
-* hamt_add(RelayNouce, number of relays)
-* hamt_add(RelayNouceAddress) // recording the relay address
-* hamt_add(ChainID,`Tminer`+ `blocksize`+`blocktime`+sig(random(time seeds));用创世矿工的TAU私钥签署
-* hamt_add(`ChainID`contractJSON, contractJSON { 
+* database.ChainRelaylist[ChainID][...]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
+* hamt_add(Relay`ChainID`Nouce, number of relays)
+* hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
+* hamt_add(ChainID,`Nickname`+ `blocksize`+`blocktime` + random );用创世矿工的TAU私钥签署 randomness
+* hamt_add(`ChainID`contractJSON, contractJSON) 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
