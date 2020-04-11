@@ -57,6 +57,7 @@ It helps to make process internal data access efficient.
 - Mutable range is one week for now. 
 - HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
+- in graphRelaySycn, it need to test wether the target KV holding blocks are in local or not. 
 - File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
 - Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority. 验证投票过程访问节点深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载访问节点广度优先
 
@@ -242,7 +243,7 @@ randomly request a PeerList[`ChainID`][] for the future receipt state
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); 
 
 8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
-
+    for some Key value, it will need graphRelaySync to get data from the new root supplying peer.
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
 
 9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
