@@ -47,7 +47,7 @@ It helps to make process internal data access efficient.
 * ChainList []String ; // a  list of Chains to follow/mine by users.
 * FileAMTlist []cid; // a  list for imported and downloaded files trie
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays from TAU chain or community chains; initially will be hard-coded to use AWS EC2 relays.
+* RelayList [`ChainID][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 
 ## Concept explain
@@ -133,7 +133,7 @@ signature []byte //by genesis miner
 * database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.UserChainList.add(`ChainID`)
 * database.PeerList[`ChainID`][].add(`Tminer);
-* database.ChainRelayList [].add({aws relays by taucoin dev});
+* database.ChainRelayList [`ChainID][].add({aws relays by taucoin dev}); // each chain annouced relay recorded.
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
