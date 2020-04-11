@@ -47,23 +47,26 @@ It helps to make process internal data access efficient.
 * ChainList []String ; // a  list of Chains to follow/mine by users.
 * FileAMTlist []cid; // a  list for imported and downloaded files trie
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* RelayList [`ChainID][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.
+* RelayList [`ChainID][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community 1][...]. The real final relay list for community 1 is the combination of TAU + community 1
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 
 ## Concept explain
 ```
-- Miner is what nodes call itself, in CBC POT all miners predicting future; Sender is what nodes call other peers. 
-- Safety is the CBC concept of the safe and agreed history. The future contract result is a CBC prediction. 
-- Mutable range is one week for now. 
-- HamtGraphyRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replace the relay circuit. When cbor.cid is null, it means asking peer for the prediction, the target's future `ChainID`ContractResultStateRoot.
-- AMTgraphRelaySync(relay multiaddress, remote ipfs peer, CID, selector); CID can not be null. 
-- in graphRelaySycn, it need to test wether the target KV holding blocks are in local or not. 
+- Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
+- Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
+- Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
+
+- HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the `ChainID`ContractResultStateRoot prediction on the chainID.
+- AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. AMT is not chain specific, and it is rather relating to IPFS peers. 
+- In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. 
+
 - File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
-- Principle of traverse, once in a relay+peer communication, we will not incur another recursive process to a new relay+peer to get supporting evidence. if some Key-value are missing to prevent validation, just abort process to go next randomness peer. This is the depth priority. 验证投票过程访问节点深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载访问节点广度优先
+- Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. This is the depth priority. 验证投票过程访问节点深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载访问节点广度优先
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- Community chain ID: ChainID := `Tminer`+ `blocksize`+`blocktime` + random // chainID include genesis address, block size 3, time 5 ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
+- TAU Chain ID = "0"
+- Community ChainID := `Tminer`+ `blocksize`+`blocktime` + randomness // chainID include genesis address, block size 5, time 5, 1 transaction per minute ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
 - msg: the contract content for genesis, coin base, wiring and file tx
@@ -72,25 +75,25 @@ It helps to make process internal data access efficient.
    * wiring, msg is the contract relating to this tx
    * file, msg is the discription of the file or file command
 ```
-## Wormhole - Keys in the HAMT, hashed keys are wormhole inito contract history. 
+## Wormhole - HAMT Hashed keys are wormhole inito contract history. 
 ```
 // TX oriented Tsender = `ChinaID` + TAUaddress
-wiring tx
+Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
-- `Tsender/receiver`TXNounce`Msg // for future command, such as "seeding all" comment, no file attachment
-file tx
+- `Tsender/receiver`TXnounce`Msg // for future command, such as "seeding all up to 1G" comment, no file attachment
+File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
-- `Tsender`file`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-- `Tsender`file`Nounce`fileMsg
+- `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+- `Tsender`File`Nounce`Msg
 
 // entity oritened
-file
+File
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
-relay
-- Relay`ChainID`Nouce  // recording the relays counter
-- Relay`ChainID`NouceAddress // recording the relay address
+Relay
+- Relay`ChainID`Nounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
+- Relay`ChainID`NounceAddress // recording the relay address
 ```
 ## constants
 * mutable range = 1 week
@@ -156,7 +159,6 @@ nodes state changes: 节点工作状态微调
 - on wifi data, start mining; wifi off, stop mining.
  
 ```
-
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
 2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
 
@@ -202,7 +204,7 @@ tx sender signature;
 // the File processing
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
-// 3. FileAMTroot=AMT_flush_put()
+// 3. FileAMTroot=AMT.put(cbor)
 // 4. return FileAMTroot to contract Json. 
 }
  
