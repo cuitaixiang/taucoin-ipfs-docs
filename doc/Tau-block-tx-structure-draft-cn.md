@@ -24,11 +24,11 @@ Launch steps:={ 发布步骤
 - Tau mainnet turns on for relays and exchange operation.
 }
 ```
-## Four main processes
-* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service)
-* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread request, for first use, possible to run concurrency)
-* C. File Downloader. (concurrent goroutine and logging download data)
-* D. Reponse amt cbor.cid to file downloader request. (service and logging upload data)
+## Four core processes
+* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
+* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func, possible to run concurrency)
+* C. File Downloader. (concurrent goroutine to download files and logging download data)
+* D. Reponse amt cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
 ## Tries
 On community chain:
@@ -49,6 +49,8 @@ It helps to make process internal data access efficient.
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
+* Download data
+* Upload data
 
 ## Concept explain
 ```
@@ -148,7 +150,6 @@ Miner does not know which peer requesting them, because the relay shields the pe
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
 If the `fileAMTroot` equal null, then return `ChainID``Tsender`file`Nounce`fileAMTroot, 最新文件
-
 
 ## B. Collect votings from peers:  maybe concurrency? 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
