@@ -4,7 +4,7 @@ User experienses:= { 用户体验
 - Core: One button: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file (with new chain ability)
 * Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
 
-- File/video imported to TAU will be compressed and chopped by TGZ, which includes directory, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
+- File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 
 - For each video, generate a "preview" at in the beginning of amt trie, which take a random chop of the video then show 9 pictures.  
 
@@ -148,7 +148,7 @@ If the `fileAMTroot` exists, then return the blocks according to the range.
 If the `fileAMTroot` equal null, then return `ChainID``Tsender`file`Nounce`fileAMTroot, 最新文件
 
 
-## B. Collect votings from peers: 
+## B. Collect votings from peers:  maybe concurrency? 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
@@ -160,6 +160,7 @@ nodes state changes: 节点工作状态微调
 2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
+if err := !<nil> go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
 
 3. traverse history contract and states until mutable range.
 
@@ -167,7 +168,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error like connect time out; // 
-goto step (2) until surveyed half of the know PeerList[`ChainID`][] or 
+goto step (2) until surveyed 2/3 of the know PeerList[`ChainID`][] or 
 
 4. accounting the voting rule, if the safety root difficulty is less than own difficulty, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 如果投票无人参加，或者投票结果比自己的难度低，就用自己的安全root.
 
