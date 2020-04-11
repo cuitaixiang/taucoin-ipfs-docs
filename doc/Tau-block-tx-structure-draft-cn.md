@@ -158,6 +158,8 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
 - on wifi data, start mining; wifi off, stop mining.
+- in the sleeping mode, periodically wake up to check whether on charging to turn on wake lock. 
+- Alert - wifi only, keep charging to prevent sleep, along with the data dash board. 
  
 ```
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
