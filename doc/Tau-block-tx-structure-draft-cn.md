@@ -8,7 +8,7 @@ User experienses:= { 用户体验
 
 - For each video, generate a "preview" at in the beginning of amt trie, which take a random chop of the video then show 9 pictures.  
 
-- Chain can serve as anchor chains. TAU is first such anchor chain, providing services like relay, coins exchange pairs with TAU, genesis annoucement. Community chain can use itself as one of the anchor chains for relay annoucement. For security, community chain needs at least two anchors, another wellknow public chain like TAU and own. Otherwise, it could be blinded by secret chain. 
+- TAU provides basic communication services like relay, TAU payment and genesis annoucement. Community chain can use itself for relay annoucement as well.
 
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
@@ -16,7 +16,7 @@ User experienses:= { 用户体验
 Business model:= { 商业模式
 - Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and own chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will counting the download. 
-- Anchor chain coin price will rise when in demand. 
+- TAU coin price will rise when cross-chain comm in demand. 
 }
 
 Launch steps:={ 发布步骤
@@ -62,11 +62,11 @@ It helps to make process internal data access efficient.
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- Community chain ID: `Tgenesisaddress` + sign(random(1,000,000,000));
+- Community chain ID: ChainID := `Tminer`+ `blocksize`+`blocktime` // chainID include genesis address, block size 3, time 5 ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
 - msg: the contract content for genesis, coin base, wiring and file tx
-   * genesis, msg is the initial info such as telegram channel
+   * genesis, msg is the initial info such as telegram  channel used
    * coin base, msg is the txpool attached
    * wiring, msg is the contract relating to this tx
    * file, msg is the discription of the file or file command
@@ -101,28 +101,25 @@ relay
 ```
 // build genesis block
 type contractJSON struct { // define the contract strut
+ChainID := `Tminer`+ `blocksize`+`blocktime` // chainID include genesis address, block size 3 and time 5
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber int32; :=0
-blocksize int; // default 3，区块交易数
-blocktime int; // default 5 minutes， 出块时间
 initial difficulty int64; // ???
 chainNickname string; // hello world chain
 totalCoins int64; // default 1,000,000， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
-anchorChain string:=TAUgenesisID; // default is TAU mainchain ID
-msg string:="telegram"; // https://t.me/taucoin for organizing the community. 社区通信
+msg string:="annoucement"; // https://t.me/taucoin for organizing the community. 社区通信
 signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
 
-
-* database.anchorChainRelaylist[`TAUmainnetchainID`][]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
-* hamt_add(Relay`ChainID`Nouce, number of relays)
-* hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
-* hamt_add(ChainID,`Tminer`+ sig(random(time seeds));用创世矿工的TAU私钥签署
-* hamt_add(`ChainID`contractJSON, contractJSON { // root for contact AMT 
+* database.ChainRelaylist[]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
+* hamt_add(RelayNouce, number of relays)
+* hamt_add(RelayNouceAddress) // recording the relay address
+* hamt_add(ChainID,`Tminer`+ `blocksize`+`blocktime`+sig(random(time seeds));用创世矿工的TAU私钥签署
+* hamt_add(`ChainID`contractJSON, contractJSON { 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
@@ -136,7 +133,7 @@ signature []byte //by genesis miner
 * database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.UserChainList.add(`ChainID`)
 * database.PeerList[`ChainID`][].add(`Tminer);
-* database.anchorChainRelayList [][].add({aws relays by taucoin dev});
+* database.ChainRelayList [].add({aws relays by taucoin dev});
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
@@ -296,14 +293,9 @@ leading function
 ### Mining and account balances on different chains. 
 - coins mining config
 
-# To do "anchor chain"
-community chains needs place to get relay info and exchange coins. TAU main chain is an anchor chain. 
+# To do 
 ## TAU Chain
-TAU has services on relay, exchange coins. .
-* wormhole
-- relay nounce/ relaynounce = ...
-- hamt_update(relayNounce, relayNounce +1)
-- hamt_add(RelayNounceAddr, new relay info)
+TAU has services on relay, payment and genesis announcement.
 ## Kademlia on relay and peers selection
 ## community relay annoucement on community chain. 
 ## file operation commands
