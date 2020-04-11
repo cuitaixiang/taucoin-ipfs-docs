@@ -107,7 +107,7 @@ Relay
 ```
 // build genesis block
 contractJSON:= { // define the contract strut
-ChainID := `Nickname`+ `blocksize`+`blocktime` + random // chainID include nickname, block size 5 and time 5, these are critical information to pass down in the stateless mode.
+ChainID := `Nickname`+ `blocksize`+`blocktime` + signature(random) // chainID include nickname, block size 5 and time 5, these are critical information to pass down in the stateless mode.
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
 initial difficulty int64; // ???
