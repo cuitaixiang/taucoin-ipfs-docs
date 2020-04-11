@@ -49,8 +49,8 @@ It helps to make process internal data access efficient.
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
-* Download data
-* Upload data
+* Downloaded data
+* Uploaded data
 
 ## Concept explain
 ```
@@ -78,7 +78,8 @@ It helps to make process internal data access efficient.
 ```
 ## Wormhole - HAMT Hashed keys are wormhole inito contract history. 
 ```
-// TX oriented Tsender = `ChinaID` + TAUaddress
+// TX oriented 
+genesisAddress = `ChinaID` + TAUaddress
 Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
@@ -114,6 +115,7 @@ initial difficulty int64; // ???
 totalCoins int64; // default 1,000,000， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
+msg;
 signature []byte //by genesis miner
 }
 // build genesis state
@@ -122,14 +124,14 @@ signature []byte //by genesis miner
 * database.ChainRelaylist[ChainID][...]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
-* hamt_add(ChainID,`Nickname`+ `blocksize`+`blocktime` + random );用创世矿工的TAU私钥签署 randomness
+* hamt_add(ChainID,`Nickname`+ `blocksize`+`blocktime` + sig(random) );用创世矿工的TAU私钥签署 randomness
 * hamt_add(`ChainID`contractJSON, contractJSON) 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
 * hamt_add(`Tminer`TXNounceMsg,msg);
 * hamt_add(`Tminer`FileNounce, 0);
-* hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
+* hamt_add(genesisAddress, ChainID+`Tminer`); // add genesis address wormhole
 * hamt_add(other KVs); // initial chain address.
 * `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
 
