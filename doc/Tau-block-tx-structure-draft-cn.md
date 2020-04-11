@@ -6,7 +6,7 @@ User experienses:= { 用户体验
 
 - File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 
-- For each video, generate a "preview" at in the beginning of amt trie, which take a random chop of the video then show 9 pictures.  
+- For each video, since we are randomly download pieces, so we can support a `hopping player` to only play the randon pieces that is downloaded. 
 
 - TAU provides basic communication services like relay, TAU payment and genesis annoucement. Community chain can use itself for relay annoucement as well.
 
@@ -259,7 +259,7 @@ input (`fileAMTroot`); //this root can not be null.
 From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce;
 { 
 random walk on RelayList[`ChainID`][] to find `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer
-
+find a random peer in the list and request a randam piece from graphsync, since graphsync can identify the local exisitnce, if duplicated, it will be be stop. do not do specific cut. 
 graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section 1..m))
 
 until finish all relays or find the chainPeer
