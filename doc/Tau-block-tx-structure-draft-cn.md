@@ -47,7 +47,7 @@ It helps to make process internal data access efficient.
 * ChainList []String ; // a  list of Chains to follow/mine by users.
 * FileAMTlist []cid; // a  list for imported and downloaded files trie
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* RelayList [`ChainID][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community 1][...]. The real final relay list for community 1 is the combination of TAU + community 1
+* RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 
 ## Concept explain
