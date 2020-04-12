@@ -36,10 +36,10 @@ Launch steps:={ 发布步骤
 ## Tries
 On community chain:
 * chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
-```
-- future state ->`ChainID`ContractJSON
-- `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
-```
+
+> future state ->`ChainID`ContractJSON
+> `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
+
 * file AMT: the root for AMT trie for chopping and storing the file.
 //hamt:  hamt_node(root cbor.cid,key) -> value;  cid = hamt_node.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
 //amt:   amtNode(root cbor.cid).count -> value
