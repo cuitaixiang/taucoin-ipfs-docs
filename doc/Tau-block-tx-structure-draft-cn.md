@@ -3,6 +3,7 @@
 User experienses:= { 用户体验
 - Core: One button: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file (with new chain ability)
 * Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
+* For saving resources on mobile device, our implementation is single thread with lots of randomness design.
 
 - File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 
@@ -26,11 +27,11 @@ Launch steps:={ 发布步骤
 ```
 ## Four core processes
 * **Chain** meta data
-* A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
+* A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
 * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func, possible to run concurrency)
 * **File**
 * C. File Downloader. (concurrent goroutine to download files and logging download data)
-* D. Reponse amt cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
+* D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
 ## Tries
 On community chain:
@@ -52,6 +53,7 @@ On community chain:
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * myRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
 * myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
+* myDownloadQue[index] []map{fileAMT:completion count}
 * myDownloaded data
 * myUploaded data
 
@@ -145,15 +147,8 @@ signature []byte //by genesis miner
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
-### A.1 for future `ChainID`ContractResultStateRoot， 投票
-
 -  Receive the `ChainID` from a graphRelaySync call
--  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot, which was generated in B process step(6).
-
-### A.2 From a file downloader，提供文件
-caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
-If the `fileAMTroot` exists, then return the blocks according to the range. 
-If the `fileAMTroot` equal null, then return `ChainID``Tsender`file`Nounce`fileAMTroot, 最新文件
+-  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot; else response <nil>
 
 ## B. Collect votings from peers:  maybe concurrency? 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
@@ -239,6 +234,7 @@ File operation
 * hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* myFilesAMTlist[].add(  amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
 6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
@@ -256,14 +252,11 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 
 9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
 ```
-## C. File Downloader, default is 1 goroutine. 
-
-// for graph sync , one time just accept one job from save address. 
-database.downloadque[index]=fileAMTroot
+## C. File Downloader - nonconcurrency design. 
+For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[] map.
 ```
-input (`fileAMTroot`); //this root can not be null.
-
-From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce; read from this and store into  myFilesAMTseedersDB[fileAMT][ChainID][index]
+Do a range on map myDownloadque, key, value. inputFileAMTroot = key 
+random pickup a piece from fileAMTroot.count. random pick a peer `FileAMTroot``ChainID`SeedingNounce; read from this and store into  myFilesAMTseedersDB[fileAMT][ChainID][index]
 { 
 - generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
 - according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][ChainID][index].  
@@ -272,8 +265,9 @@ From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce; 
 until finish all relays or find the chainPeer
 }
 ```
-## D. reponse to fileAMT request
-this is part of graphsync. 
+## D. reponse to fileAMT request - root cannot be <nil>
+response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
+If the `fileAMTroot` exists, then return the blocks according to the range. 
 
 ## App UI 界面
 leading function
