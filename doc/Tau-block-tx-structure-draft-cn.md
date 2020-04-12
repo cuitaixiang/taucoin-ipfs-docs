@@ -164,7 +164,7 @@ nodes state changes: 节点工作状态微调
  
 ```
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
-2. random walk connect to a next relay in the RelayList[`ChainID`][] using time to relay distance selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
+2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
 using time as indicator to choose chain relay. 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
