@@ -304,11 +304,8 @@ leading function
 - coins mining config
 
 # To do 
-## TAU Chain
-TAU has services on relay, payment and genesis announcement.
-## Kademlia on relay and peers selection
-## community relay annoucement on community chain. 
-## file operation commands
+- [x] TAU Chain
+- [x]file operation commands
 ```
 File operation command:
 //  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
