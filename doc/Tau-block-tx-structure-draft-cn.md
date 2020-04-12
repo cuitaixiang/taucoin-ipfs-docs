@@ -49,9 +49,10 @@ On community chain:
 * myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
 * myChainsList [index]String ; // a  list of Chains to follow/mine by users.
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
-* myFilesAMTseedersDB[fileAMT][ChainID][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
+* myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* myRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
+* myHamtRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
+* myAMTRelaysList[index]; amt is chain non specific, amt is ipfs layer
 * myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
 * myDownloadQue[index] []map{fileAMT:completion count}
 * myDownloaded data
@@ -144,7 +145,8 @@ signature []byte //by genesis miner
 * database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.myChainsList.add(`ChainID`)
 * database.myPeersList[`ChainID`][index].add(`Tminer);
-* database.myRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
+* database.myHamtRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
+* database.myAmtRelaysList[index]
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
@@ -235,6 +237,7 @@ File operation
 * hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* myFilesAMTseedersDB[fileAMT][index].add(`ChainID``Tsender`IPFSaddr)
 * myFilesAMTlist[].add(  amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
@@ -247,26 +250,27 @@ randomly request a PeerList[`ChainID`][] for the future receipt state
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); 
 
-8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. 
+8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. in the verify process, it needs to add all db variables, hamt and amt trie. 
     for some Key value, it will need graphRelaySync to get data from the new root supplying peer.
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
 
 9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
 ```
-## C. File Downloader - nonconcurrency design. 
+## C. File Downloader - nonconcurrency design // ipfs layer
 For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[] map.
 ```
 Do a range on map myDownloadque, key, value. inputFileAMTroot = key 
-random pickup a piece from fileAMTroot.count. random pick a peer `FileAMTroot``ChainID`SeedingNounce; read from this and store into  myFilesAMTseedersDB[fileAMT][ChainID][index]
+random pickup a piece from fileAMTroot.count. random pick a peer myFilesAMTseedersDB[fileAMT][index]
 { 
 - generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
-- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][ChainID][index].  
+- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest relays. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][index].  
 - graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section N))
 
 until finish all relays or find the chainPeer
 }
 ```
-## D. reponse to fileAMT request - root cannot be null
+## D. reponse to fileAMT request - root cannot be null // ipfs layer
+the process with connect to closest relay using hash(timestamp + ipfs address) to relay distance, when time stamp switch, so that other peers can find it using time consensus. c/d process is not chain specific, it is all on the ipfs layer.
 response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
 
