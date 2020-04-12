@@ -51,6 +51,7 @@ It helps to make process internal data access efficient.
 * TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
 * Downloaded data
 * Uploaded data
+* FileAMTdb[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, this is cross chain 
 
 ## Concept explain
 ```
@@ -163,7 +164,8 @@ nodes state changes: 节点工作状态微调
  
 ```
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
-2. random walk connect to a next relay in the RelayList[`ChainID`][] using Kademlia selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
+2. random walk connect to a next relay in the RelayList[`ChainID`][] using time to relay distance selection. through relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
+using time as indicator to choose chain relay. 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 if err := !<nil> go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
@@ -255,6 +257,8 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 10. if network-disconnected from internet 48 hours, go to step (1).
 ```
 ## C. File Downloader
+the queue idea, FIFO, in the fileATM seeding list, build an availability queue, give each seeder a graphsync job, when job finish, the seeder return to que. 
+* https://github.com/containerd/fifo
 ```
 input (`fileAMTroot`); //this root can not be null.
 
