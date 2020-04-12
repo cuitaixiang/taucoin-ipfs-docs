@@ -25,8 +25,10 @@ Launch steps:={ 发布步骤
 }
 ```
 ## Four core processes
+* **Chain** meta data
 * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
 * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func, possible to run concurrency)
+* **File**
 * C. File Downloader. (concurrent goroutine to download files and logging download data)
 * D. Reponse amt cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
@@ -40,18 +42,19 @@ On community chain:
 * file AMT: the root for AMT trie for chopping and storing the file.
 //hamt:  hamt_node(root cbor.cid,key) -> value;  cid = hamt_node.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
 //amt:   amtNode(root cbor.cid).count -> value
+
 ## Global vars, stored in database
 It helps to make process internal data access efficient. 
 * SafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
 * ContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
 * ChainList []String ; // a  list of Chains to follow/mine by users.
 * FileAMTlist []cid; // a  list for imported and downloaded files trie
+* FileAMTseedersDB[fileAMT][ChainID][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
 * PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
-* TXpool [`ChainID`][`TX`]String; // a list of verified txs for adding to new contract
+* TXpool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
 * Downloaded data
 * Uploaded data
-* FileAMTdb[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, this is cross chain 
 
 ## Concept explain
 ```
@@ -64,7 +67,7 @@ It helps to make process internal data access efficient.
 - In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. 
 
 - File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
-- Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. This is the depth priority. 验证投票过程访问节点深度优先。 However for the fileAMTroot search, it is the width priority to do paralell download using all seeders. 文件下载访问节点广度优先
+- Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. This is the depth priority. 验证投票过程访问节点深度优先。 
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
@@ -158,10 +161,11 @@ If the `fileAMTroot` equal null, then return `ChainID``Tsender`file`Nounce`fileA
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
-- on wifi data, start mining; wifi off, stop mining.
-- in the sleeping mode, periodically wake up to check whether on charging to turn on wake lock. 
-- Alert - wifi only, keep charging to prevent sleep, along with the data dash board. 
- 
+- on wifi data, start file download and upload; wifi off, stop file operation.
+- in the sleeping mode, periodically wake up to run for a cycle of all chains follow up and check whether in power charging to turn on wake lock. 
+
+- Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
+  with a button to pause everything. 
 ```
 1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
 2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
@@ -244,7 +248,7 @@ Account operation
 
 
 ---
-7. random walk until connect to a next relay
+7. random walk until connect to a next chainID relay
 randomly request a PeerList[`ChainID`][] for the future receipt state 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); 
@@ -253,10 +257,9 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
     for some Key value, it will need graphRelaySync to get data from the new root supplying peer.
  if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
 
-9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (5) to get a new state prediction; Else go to step (7)
-10. if network-disconnected from internet 48 hours, go to step (1).
+9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
 ```
-## C. File Downloader
+## C. File Downloader, default is 10 goroutine. 
 the queue idea, FIFO, in the fileATM seeding list, build an availability queue, give each seeder a graphsync job, when job finish, the seeder return to que. 
 * https://github.com/containerd/fifo
 ```
@@ -264,9 +267,9 @@ input (`fileAMTroot`); //this root can not be null.
 
 From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce;
 { 
-random walk on RelayList[`ChainID`][] to find `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer
-find a random peer in the list and request a randam piece from graphsync, since graphsync can identify the local exisitnce, if duplicated, it will be be stop. do not do specific cut. 
-graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section 1..m))
+- generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
+- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  FileAMTseedersDB[fileAMT][ChainID][index].  
+- graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section N))
 
 until finish all relays or find the chainPeer
 }
