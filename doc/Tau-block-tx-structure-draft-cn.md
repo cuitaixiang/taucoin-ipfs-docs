@@ -155,7 +155,7 @@ In the peer randome walking, no recursively switching peers inside the loop, it 
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
 - on wifi data, start file download and upload; wifi off, stop file operation.
-- in the sleeping mode, periodically wake up to run for a cycle of all chains follow up and check whether in power charging to turn on wake lock. 
+- in the sleeping mode, random wake up between 1..5 minutes to run for a cycle of all chains follow up and check whether in power charging to turn on wake lock. 
 
 - Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
   with a button to pause everything. 
