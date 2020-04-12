@@ -256,13 +256,14 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 
 9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
 ```
-## C. File Downloader, default is 10 goroutine. 
-the queue idea, FIFO, in the fileATM seeding list, build an availability queue, give each seeder a graphsync job, when job finish, the seeder return to que. 
-* https://github.com/containerd/fifo
+## C. File Downloader, default is 1 goroutine. 
+
+// for graph sync , one time just accept one job from save address. 
+database.downloadque[index]=fileAMTroot
 ```
 input (`fileAMTroot`); //this root can not be null.
 
-From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce;
+From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce; read from this and store into  myFilesAMTseedersDB[fileAMT][ChainID][index]
 { 
 - generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
 - according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][ChainID][index].  
