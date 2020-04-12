@@ -54,7 +54,7 @@ On community chain:
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * myHamtRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
 * myAMTRelaysList[index]; amt is chain non specific, amt is ipfs layer
-* myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
+* myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract prediction
 * myDownloadQue[index] []map{fileAMT:completion count}
 * myDownloaded data
 * myUploaded data
@@ -62,6 +62,7 @@ On community chain:
 ## Concept explain
 ```
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
+- Block size is 1, only one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
 - Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
@@ -76,7 +77,7 @@ On community chain:
 - Address system: 
 - TAU private key: the base for all community chain address generation;
 - TAU Chain ID = "0"
-- Community ChainID := `Tminer`+ `blocksize`+`blocktime` + randomness // chainID include genesis address, block size 5, time 5, 1 transaction per minute ; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
+- ChainID := `Nickname`+`blocktime` + signature(random) // chainID include genesis address, block size 1, time 60 seconds; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
 - msg: the contract content for coin base, wiring and file tx
@@ -110,13 +111,14 @@ Relay
 * new node qualification time cut off = 48 hours // off line longer than 48 hours will be consider new nodes for that chain
 * transaction expirey 24 hours
 * voting percentage 67%
+* time base, 5 minutes, which is what peers comes to their scheduled relays. 
 ## Community chain
 ### Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
 contractJSON:= { // define the contract strut
-ChainID := `Nickname`+ `blocksize`+`blocktime` + signature(random) // chainID include nickname, block size 5 and time 5, these are critical information to pass down in the stateless mode.
+ChainID := `Nickname`+`blocktime` + signature(random) // chainID include nickname and time 5, these are critical information to pass down in the stateless mode.
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
 initial difficulty int64; // ???
@@ -131,7 +133,7 @@ signature []byte //by genesis miner
 
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
-* hamt_add(ChainID,`Nickname`+ `blocksize`+`blocktime` + sig(random) );用创世矿工的TAU私钥签署 randomness
+* hamt_add(ChainID, `Nickname`+`blocktime` + signature(random));用创世矿工的TAU私钥签署 randomness
 * hamt_add(`ChainID`contractJSON, contractJSON) 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
@@ -194,8 +196,8 @@ ChainIDminerAddress, 20;
 TXNounce ++, 8; // mining is treated as a tx sending to self
  `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDminerOtherInfo, 128 bytes; //nick name.
-msg, flexible bytes; 
-= { //original tx from voting collection: wiring and file operation.
+msg, flexible bytes; // one block support one transaction only
+= { 
 nounce, 8;
 version,8, "0x1" as default;
 timestamp,4,tx expire in 24 hours;
@@ -253,7 +255,7 @@ graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJ
 
 8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. in the verify process, it needs to add all db variables, hamt and amt trie. 
     for some Key value, it will need graphRelaySync to get data from the new root supplying peer.
- if not be able to find a more difficult chain than current "difficulty" for 3 x blockTime, then assume verifiation successful, to generate a new state on own last block, reflexing 3x time, then next miners will be in lower difficulty.  
+ if not be able to find a more difficult chain than current "difficulty" for 5 minutes, then assume verifiation successful, to generate a new state on own last block.  
 
 9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
 ```
