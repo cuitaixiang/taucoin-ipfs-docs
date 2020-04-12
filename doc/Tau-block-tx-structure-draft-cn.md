@@ -1,7 +1,7 @@
 # TAU - Unlimited file sharing on blockchains
 ```
 User experienses:= { 用户体验
-- Core: One button: 1. create sharing blockchain 2. airdroping to friends and subscribe preview.  3. upload a file (with new chain ability)
+- Core: One button: 1. create sharing blockchain 2. airdroping to friends and follow preview.  3. upload a file (with new chain ability)
 * Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
 * For saving resources on mobile device, our implementation is single thread with lots of randomness design.
 
@@ -28,9 +28,9 @@ Launch steps:={ 发布步骤
 ## Four core processes
 * **Chain** meta data
 * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
-* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func, possible to run concurrency)
+* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
 * **File**
-* C. File Downloader. (concurrent goroutine to download files and logging download data)
+* C. File Downloader. (download files and logging download data)
 * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
 ## Tries
@@ -59,6 +59,7 @@ On community chain:
 
 ## Concept explain
 ```
+- Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
 - Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
@@ -150,7 +151,7 @@ Miner does not know which peer requesting them, because the relay shields the pe
 -  Receive the `ChainID` from a graphRelaySync call
 -  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot; else response null
 
-## B. Collect votings from peers:  maybe concurrency? 
+## B. Collect votings from peers 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
