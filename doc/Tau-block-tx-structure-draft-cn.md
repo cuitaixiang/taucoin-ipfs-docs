@@ -124,7 +124,7 @@ msg;
 signature []byte //by genesis miner
 }
 // build genesis state
-* X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
+* X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
 
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
@@ -148,7 +148,7 @@ signature []byte //by genesis miner
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 -  Receive the `ChainID` from a graphRelaySync call
--  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot; else response <nil>
+-  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot; else response null
 
 ## B. Collect votings from peers:  maybe concurrency? 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
@@ -164,7 +164,7 @@ nodes state changes: 节点工作状态微调
 2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance the closest relays. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting. at this time, if the node is on the same chain, it will be a definitive match. 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
-if err := !<nil> go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
+if err := !null go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
 
 3. traverse history contract and states until mutable range.
 
@@ -265,7 +265,7 @@ random pickup a piece from fileAMTroot.count. random pick a peer `FileAMTroot``C
 until finish all relays or find the chainPeer
 }
 ```
-## D. reponse to fileAMT request - root cannot be <nil>
+## D. reponse to fileAMT request - root cannot be null
 response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the blocks according to the range. 
 
