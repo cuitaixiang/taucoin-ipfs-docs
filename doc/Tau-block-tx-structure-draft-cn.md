@@ -43,18 +43,17 @@ On community chain:
 //hamt:  hamt_node(root cbor.cid,key) -> value;  cid = hamt_node.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
 //amt:   amtNode(root cbor.cid).count -> value
 
-## Global vars, stored in database
-It helps to make process internal data access efficient. 
-* SafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
-* ContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
-* ChainList []String ; // a  list of Chains to follow/mine by users.
-* FileAMTlist []cid; // a  list for imported and downloaded files trie
-* FileAMTseedersDB[fileAMT][ChainID][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
-* PeerList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* RelayList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
-* TXpool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
-* Downloaded data
-* Uploaded data
+## Node local variables - stored in database leveldb
+* mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
+* myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
+* myChainsList [index]String ; // a  list of Chains to follow/mine by users.
+* myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
+* myFilesAMTseedersDB[fileAMT][ChainID][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
+* myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
+* myRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
+* myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract
+* myDownloaded data
+* myUploaded data
 
 ## Concept explain
 ```
@@ -125,7 +124,6 @@ signature []byte //by genesis miner
 // build genesis state
 * X := hamt_node := <nil> new.hamt_node(); // execute once per chain, for future all is put.
 
-* database.ChainRelaylist[ChainID][...]={"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
 * hamt_add(ChainID,`Nickname`+ `blocksize`+`blocktime` + sig(random) );用创世矿工的TAU私钥签署 randomness
@@ -139,18 +137,18 @@ signature []byte //by genesis miner
 * hamt_add(other KVs); // initial chain address.
 * `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
 
-* database.`ChainID`SafetyContractResultStateRoot = null;
-* database.`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
-* database.UserChainList.add(`ChainID`)
-* database.PeerList[`ChainID`][].add(`Tminer);
-* database.ChainRelayList [`ChainID][].add({aws relays by taucoin dev}); // each chain annouced relay recorded.
+* database.my`ChainID`SafetyContractResultStateRoot = null;
+* database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
+* database.myChainsList.add(`ChainID`)
+* database.myPeersList[`ChainID`][index].add(`Tminer);
+* database.myRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 ### A.1 for future `ChainID`ContractResultStateRoot， 投票
 
 -  Receive the `ChainID` from a graphRelaySync call
--  If the node follows on this chain, return database.`ChainID`contractResultStateRoot, which was generated in B process step(6).
+-  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot, which was generated in B process step(6).
 
 ### A.2 From a file downloader，提供文件
 caller with graphRelaySync（ relay, peer, chainID, `fileAMTroot`, selector(range of the trie))
@@ -167,9 +165,8 @@ nodes state changes: 节点工作状态微调
 - Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
   with a button to pause everything. 
 ```
-1. for a random `chainID` in the ChainList[],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
-2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting.  
-using time as indicator to choose chain relay. 
+1. Pickup a random `chainID` in the myChainsList[index],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
+2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance the closest relays. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting. at this time, if the node is on the same chain, it will be a definitive match. 
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
 if err := !<nil> go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
@@ -268,7 +265,7 @@ input (`fileAMTroot`); //this root can not be null.
 From `fileAMTroot`, 广度优先遍历 the `FileAMTroot``ChainID`SeedingNounce;
 { 
 - generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
-- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  FileAMTseedersDB[fileAMT][ChainID][index].  
+- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest 10 relays, then random walk connect to a relay in the 10. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][ChainID][index].  
 - graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section N))
 
 until finish all relays or find the chainPeer
