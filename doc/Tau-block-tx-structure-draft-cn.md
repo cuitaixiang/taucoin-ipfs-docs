@@ -38,6 +38,7 @@ On community chain:
 * chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
 
 > future state ->`ChainID`ContractJSON
+
 > `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 
 * file AMT: the root for AMT trie for chopping and storing the file.
