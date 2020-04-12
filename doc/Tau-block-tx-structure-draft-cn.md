@@ -306,8 +306,8 @@ leading function
 - coins mining config
 
 # To do 
-- [] TAU Chain
-- [] file operation commands
+- [ ] TAU Chain
+- [ ] file operation commands
 
 ```
 File operation command:
