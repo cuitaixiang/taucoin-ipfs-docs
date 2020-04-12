@@ -26,12 +26,12 @@ Launch steps:={ 发布步骤
 }
 ```
 ## Four core processes
-* **Chain** meta data
-* A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
-* B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
-* **File**
-* C. File Downloader. (download files and logging download data)
-* D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
+* **Chain** meta data - hamt trie, blockchain level.
+  * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
+  * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
+* **File** amt trie, ipfs level.
+  * C. File Downloader. (download files and logging download data)
+  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
 ## Tries
 On community chain:
