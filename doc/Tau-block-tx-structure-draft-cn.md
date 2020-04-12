@@ -1,7 +1,7 @@
 # TAU - Unlimited file sharing on blockchains
 ```
 User experienses:= { 用户体验
-- Core: One button: 1. create seeding blockchain 2. airdroping and seeding friends.  3. upload a file (with new chain ability)
+- Core: One button: 1. create sharing blockchain 2. airdroping to friends and subscribe preview.  3. upload a file (with new chain ability)
 * Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
 * For saving resources on mobile device, our implementation is single thread with lots of randomness design.
 
@@ -275,10 +275,8 @@ leading function
 ```
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
-2. Send coins to friends and seeding all their latest uploads upto 1G. 可以配置。 or seeding the previews only. 
+2. Send coins to friends.  // get their video previews and 2% automatically on the followed friends.  
 3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. 
-
-
 ```
 * Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"
 
