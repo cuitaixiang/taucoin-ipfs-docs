@@ -2,8 +2,8 @@
 ```
 User experienses:= { 用户体验
 - Core: One button: 1. create sharing blockchain 2. airdroping to friends and follow preview.  3. upload a file (with new chain ability)
-* Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
-* For saving resources on mobile device, our implementation is single thread with lots of randomness design.
+   - Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
+   - For saving resources on mobile device, our implementation is single thread with lots of randomness design.
 
 - File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 
@@ -26,10 +26,10 @@ Launch steps:={ 发布步骤
 }
 ```
 ## Four core processes
-* **Chain** meta data - hamt trie, blockchain level.
+* Chain hamt trie, blockchain meta data level.
   * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
   * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
-* **File** amt trie, ipfs level.
+* File amt trie, ipfs block store level.
   * C. File Downloader. (download files and logging download data)
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
 
@@ -304,8 +304,9 @@ leading function
 - coins mining config
 
 # To do 
-- [x] TAU Chain
-- [x]file operation commands
+- [] TAU Chain
+- [] file operation commands
+
 ```
 File operation command:
 //  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
