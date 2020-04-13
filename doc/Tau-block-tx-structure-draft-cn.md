@@ -322,15 +322,14 @@ If the `fileAMTroot` exists, then return the block.
 * Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func).
 
 ## App UI 界面
-leading function
-* One big button, uppon open: 1. create seeding blockchain 2. airdrop or seeding friends.  3. upload a file
+
 ```
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
 2. Send coins to friends.  // get their video previews and 2% automatically on the followed friends.  
 3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. 
 ```
-* Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"
+* Data dashboard:  upload - download = free download data amount, more than 10G, wifi only. "seeding to increase data"
 
 ### Community 社区
 - follow chain, first layer
