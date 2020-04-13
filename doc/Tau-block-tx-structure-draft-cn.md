@@ -31,7 +31,7 @@ Launch steps:={ 发布步骤
   * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
 * File amt trie, ipfs block store level.
   * C. File Downloader. (download files and logging download data)
-  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos. 
+  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 * Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
 
 ## Tries
@@ -167,26 +167,33 @@ nodes state changes: 节点工作状态微调
 - Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
   with a button to pause everything. 
 ```
-1. Pickup a random `chainID` in the myChainsList[index],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
+1.Generate chain+relay+peer combo, Pickup ONE random `chainID` in the myChainsList[index],
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+ONE Chain + ONE Relay + ONE peer
 
-2. according to the global time in the base of 5 minutes, hash (time + chain ID) to hash(RelayList[`ChainID`][] )find vector distance the closest relays. Through that relay, randomly request a chainPeer from database.myPeerList[`ChainID`][] for the future state root voting. 
-// if this relay+peer is disconnected, then go to next shortest on step 2, until 5 minutes passed.
+2. if the  database.my`ChainID`SafetyContractResultStateRoot/miner  == past safety root miner, go to step (3); // 上两次连续出块是同一个地址，就要投票。 
+else go to step (7); // it is educated
+ 
+3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to (5)
 
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
-if err := !null go to (2);  // how long not_found rejection?  1 tx/block, 5 minutes. block time,  
-
-3. traverse history contract and states until mutable range.
-
+4. traverse history for states roots collection until mutable range.
 (*)  
 stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 y = graphsyncHAMT(stateroot)
-goto (*) until the mutable range or any error like connect time out; // 
-goto step (2) until surveyed 2/3 of the know PeerList[`ChainID`][] or 
+goto (*) until the mutable range or any error; // 
 
-4. accounting the voting rule, if the safety root difficulty is less than own difficulty, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 如果投票无人参加，或者投票结果比自己的难度低，就用自己的安全root. 统计方法是所有的root的计数，选最高。
+5 On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+goto step (3) until surveyed 2/3 of the know PeerList[`ChainID`][]
 
---------
-5. predict new future contract. 
+6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 统计方法是所有的root的计权重，选最高。
+goto (9)
+
+7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to step 1.
+
+8. verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A.
+  if failed verify, the safety state time stamp is longer than 5 minutes from now, then generate a new state on own safety base.  If safety time stamp is less than 5 minutes, go to step 1. 
+
+9. Now verification succesful, 
 X = {
 `ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
 contractNumber = `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/contactNumber) +1;
@@ -246,20 +253,10 @@ File operation
 * myFilesAMTlist[].add(  amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
-6. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid
 
+10. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
 
----
-7. random walk until connect to a next chainID relay
-randomly request a PeerList[`ChainID`][] for the future receipt state 
-
-graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); 
-
-8. mining by following the most difficult chain: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions for ONEWEEK range. in the verify process, it needs to add all db variables, hamt and amt trie. 
-    for some Key value, it will need graphRelaySync to get data from the new root supplying peer.
- if not be able to find a more difficult chain than current "difficulty" for 5 minutes, then assume verifiation successful, to generate a new state on own last block.  
-
-9. If verification succesful, database_update(`ChainID`SafetyContractResultStateRoot, `ChainID`ContractResultStateRoot), go to step (1) to get a new ChainID state prediction; Else go to step (7)
+go to step (1) to get a new ChainID state prediction.
 ```
 ## C. File Downloader - nonconcurrency design // ipfs layer
 For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[] map.
