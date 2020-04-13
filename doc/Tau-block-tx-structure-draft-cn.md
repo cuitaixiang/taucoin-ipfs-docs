@@ -291,7 +291,7 @@ for each file and count, using the chainID as the relay entry to contact seedrs.
 
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsMap[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
@@ -301,10 +301,10 @@ if success, mFileDownloadProgress[FileAMT]++; until mFileDownloadProgress[FileAM
 go to step (1)
 }
 ```
-## D. reponse to fileAMT request - root cannot be null // ipfs layer
-the process with connect to closest relay using hash(timestamp + ipfs address) to relay distance, when time stamp switch, so that other peers can find it using time consensus. c/d process is not chain specific, it is all on the ipfs layer.
-response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
-If the `fileAMTroot` exists, then return the block. 
+## D. reponse to fileAMT request
+
+response to AMTgraphRelaySync（ relay, peer, `ChainID`,`fileAMTroot`, selector(piece N))
+If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 ## E. process manager - main func
  * myChainsMap[].add (TAU), autodiscovery = off
@@ -317,7 +317,6 @@ If the `fileAMTroot` exists, then return the block.
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
  
-
 * Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func).
 
 ## App UI 界面
