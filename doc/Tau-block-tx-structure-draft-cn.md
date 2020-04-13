@@ -25,13 +25,14 @@ Launch steps:={ 发布步骤
 - Tau mainnet turns on for relays and exchange operation.
 }
 ```
-## Four core processes
+## Five core processes
 * Chain hamt trie, blockchain meta data level.
-  * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync)
+  * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
   * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
 * File amt trie, ipfs block store level.
   * C. File Downloader. (download files and logging download data)
-  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data)
+  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos. 
+* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
 
 ## Tries
 On community chain:
