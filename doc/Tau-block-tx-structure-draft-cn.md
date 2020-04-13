@@ -51,7 +51,7 @@ Business model:= { 商业模式
 * myPeersList[`ChainID`] [index]String `peer`; // list of known IPFS peers for the chain by users.
 * myRelaysList [`ChainID`][index] = String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays in the genesis.
 * myTXsPool [`ChainID`][`TXindex`] = String; // a list of verified txs for adding to new contract prediction
-* myDownloadQue map{fileAMT:completion count} // when complete, added to myFileAMTlist
+* myDownloadQue map{fileAMT:completion count} // when complete, added to myFilesAMTlist
 * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]
 * mytotalFileAMTDownloaded data
 * mytotalFileAMTUploaded data
@@ -264,7 +264,7 @@ File operation
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 * myFilesAMTseedersDB[fileAMT][index].add(`ChainID``Tsender`IPFSaddr)
-* myFilesAMTlist[].add(  amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
+* myFilesAMTlist[].add(amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
 
@@ -279,8 +279,9 @@ Account operation
 go to step (1) to get a new ChainID state prediction.
 ```
 ## C. File Downloader - nonconcurrency design // ipfs layer
-For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[ChainID]=FileAMT map.
-myFileDownloadProgress[FileAMT] = count.
+* For saving mobile phone resources, we adopt non-concurrrency execution. 
+Starting from a downloaded que; 
+* [ChainID]myDownloadQue map[FileAMT cbor.cid:count int] 
 
 for each file and count, using the chainID as the relay entry to contact seedrs. 
 
@@ -292,7 +293,7 @@ ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece.
 2. If the piece is in local, go to step (1); 
 else 
 - AMTgraphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
-if success, mFileDownloadProgress[FileAMT]++; until mFileDownloadProgress[FileAMT] = fileAMTroot.count; remove this fileAMT from myDownloadQue.
+if success, myDownloadQue[`ChainID`][`fileAMTroot`]++; until myDownloadQue[`ChainID`][`fileAMTroot`] = fileAMTroot.count; remove this fileAMT from myDownloadQue[`ChainID`]; add to myFilesAMTlist[]
 go to step (1)
 }
 ```
@@ -312,7 +313,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
  
-* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func).
+* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func). If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
 
 ## App UI 界面
 
