@@ -34,7 +34,7 @@ Launch steps:={ 发布步骤
 * File amt trie, ipfs block store level.
   * C. File Downloader. (download files and logging download data)
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
-* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
+* E. Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
 
 ## Tries
 On community chain:
@@ -53,7 +53,7 @@ On community chain:
 * mySafttyContractResultStateRootMiner[`ChainID`]
 * mypreviousSafttyContractResultStateRootMiner[`ChainID`]; // if miner = previous miner then go to voting. 
 * myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state
-* myChainsList [index]String ; // a  list of Chains to follow/mine by users.
+* myChainsList [index][autoRelay y/n]String ; // a  list of Chains to follow/mine by users.
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 * myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
@@ -140,7 +140,6 @@ signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
-
 * hamt_add(Relay`ChainID`Nouce, number of relays)
 * hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
 * hamt_add(ChainID, `Nickname`+`blocktime` + signature(random));用创世矿工的TAU私钥签署 randomness
@@ -160,7 +159,10 @@ signature []byte //by genesis miner
 * database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.myChainsList.add(`ChainID`)
 * database.myPeersList[`ChainID`][index].add(`Tminer);
-* database.myRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
+
+for range { aws tx from config file}
+* myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay
+
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
@@ -179,7 +181,7 @@ nodes state changes: 节点工作状态微调
 ```
 1.Generate chain+relay+peer combo, Pickup ONE random `chainID` in the myChainsList[index],
 according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
-ONE Chain + ONE Relay + ONE peer
+ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move down. 
 
 2. if the  database.my`ChainID`SafetyContractResultStateRoot/miner  == past safety root miner, go to step (3); // 上两次连续出块是同一个地址，就要投票。 
 else go to step (7); // it is educated
@@ -254,6 +256,18 @@ Account operation
 * hamt_update(`Treceiver`TXnounce,`Treceiver`TXnounce++);
 * hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * hamt_add(`Treceiver`TXnounceMsg, msg); // when user follow tsender, can traver its files.
+
+
+##### output relay annoucement tx, both sender and receive increase power, this is good for new users to produce contract.
+Relay annoucement operation
+* hamt_update(`Tsender`Balance,`Tsender`Balance - txfee); 
+* hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
+* hamt_update(Relay`ChainID`Nounce , ++) 
+* hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
+* database.myRelaysList [`ChainID][index].add({msg/relay multiaddress});
+
+
 ##### File creation and seeding transaction
 File operation
 * hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
@@ -292,6 +306,15 @@ go to step (1)
 the process with connect to closest relay using hash(timestamp + ipfs address) to relay distance, when time stamp switch, so that other peers can find it using time consensus. c/d process is not chain specific, it is all on the ipfs layer.
 response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the block. 
+
+## E. process manager
+ * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
+ * onHamtGraphsyncMsg Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+ * on HMTGraphSyncMsg D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
+ * onMyDownloadQue.has iten, launch File Downloader. (download files and logging download data)
+ 
+
+* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func).
 
 ## App UI 界面
 leading function
