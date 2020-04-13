@@ -27,33 +27,30 @@ Launch steps:={ 发布步骤
 - Tau mainnet turns on for relays and exchange operation.
 }
 ```
-## Five core processes
-* Chain hamt trie, blockchain meta data level.
-  * A. Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
-  * B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func)
-* File amt trie, ipfs block store level.
-  * C. File Downloader. (download files and logging download data)
-  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
-* E. Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
-
-## Tries
+## Two Tries
 On community chain:
 * chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
-
 > future state ->`ChainID`ContractJSON
-
 > `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 
 * file AMT: the root for AMT trie for chopping and storing the file.
-//hamt:  hamt_node(root cbor.cid,key) -> value;  cid = hamt_node.hamt_put(cbor); flush -> put.  one key(contract, acct, nounce), put one board.  root is from newnode() or history.
-//amt:   amtNode(root cbor.cid).count -> value
+
+## Five core processes
+> Hamt trie.
+  * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+  * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
+> Amt trie.
+  * C. File Downloader. (download files and logging download data)
+  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
+> E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
 
 ## Node local variables - stored in database leveldb
 * mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process
-* mySafttyContractResultStateRootMiner[`ChainID`]
-* mypreviousSafttyContractResultStateRootMiner[`ChainID`]; // if miner = previous miner then go to voting. 
+* mySafetyContractResultStateRootMiner[`ChainID`]
+* myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if miner = previous miner then go to voting. 
+
 * myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state
-* myChainsList [index][autoRelay y/n]String ; // a  list of Chains to follow/mine by users.
+* myChainsList [index][TAURelayDiscovery y/n]String ; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 * myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
@@ -154,10 +151,10 @@ signature []byte //by genesis miner
 * `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
 
 * database.my`ChainID`SafetyContractResultStateRoot = null;
-* mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;
-* mypreviousSafttyContractResultStateRootMiner[`ChainID`] = null;
+* mySafetyContractResultStateRootMiner[`ChainID`] = Tminer;
+* mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
 * database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
-* database.myChainsList.add(`ChainID`)
+* database.myChainsList.add(`ChainID`)[TAURelayDiscovery y] // for genesis miner, you need to watch TAU chain for new relays. 
 * database.myPeersList[`ChainID`][index].add(`Tminer);
 
 for range { aws tx from config file}
@@ -307,11 +304,16 @@ the process with connect to closest relay using hash(timestamp + ipfs address) t
 response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
 If the `fileAMTroot` exists, then return the block. 
 
-## E. process manager
+## E. process manager - main func
+ * myChainsList[].add (TAU), autodiscovery = off
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
- * onHamtGraphsyncMsg Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
- * on HMTGraphSyncMsg D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
- * onMyDownloadQue.has iten, launch File Downloader. (download files and logging download data)
+ * onHamtGraphsyncMsg, 
+ if hamtsync not finish, reject; else 
+ A.Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+ * on AMTGraphSyncMsg 
+  if amtsync not finish, reject; else 
+ D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
+ * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
  
 
 * Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func).
