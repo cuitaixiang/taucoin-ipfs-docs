@@ -1,8 +1,8 @@
-# TAU - Unlimited file sharing on blockchains
+# TAU - File sharing on blockchains
 ```
 User experienses:= { 用户体验
 - Core: One button: 1. create sharing blockchain 2. airdroping to friends and follow preview.  3. upload a file (with new chain ability)
-   - Data dashboard: if (download - upload) > 1G, start ads., wifi only. "seeding/uploading to increase free data"
+   - Data dashboard: if (download - upload) > 10G, start ads., wifi only. "seeding/uploading to increase free data"
    - For saving resources on mobile device, our implementation is single thread with lots of randomness design.
 
 - File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
@@ -47,8 +47,10 @@ On community chain:
 //amt:   amtNode(root cbor.cid).count -> value
 
 ## Node local variables - stored in database leveldb
-* mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process B(1-4). CBC 安全点
-* myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state, B(5-6). CBC 未来状态
+* mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process
+* mySafttyContractResultStateRootMiner[`ChainID`]
+* mypreviousSafttyContractResultStateRootMiner[`ChainID`]; // if miner = previous miner then go to voting. 
+* myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state
 * myChainsList [index]String ; // a  list of Chains to follow/mine by users.
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 * myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
@@ -109,10 +111,15 @@ Relay
 ## Constants
 * mutable range = 1 week
 * transaction expirey 24 hours
-* voting percentage 67%
+* voting cover percentage 67%
 * time base, 1 minutes, which is what peers comes to their scheduled relays. 
 * sleeping mode wake up random range 5 minutes
-* self mining time 5 minutes. 
+* self mining qualify time 5 minutes. 
+* default coins 1,000,000
+* initial difficulty according to the block time.
+* block size = 1 transaction fixed
+* block time = default 5 minutes
+
 ## Community chain
 ### Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
@@ -146,6 +153,8 @@ signature []byte //by genesis miner
 * `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
 
 * database.my`ChainID`SafetyContractResultStateRoot = null;
+* mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;
+* mypreviousSafttyContractResultStateRootMiner[`ChainID`] = null;
 * database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.myChainsList.add(`ChainID`)
 * database.myPeersList[`ChainID`][index].add(`Tminer);
@@ -181,7 +190,7 @@ stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // rec
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5 On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+5. On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
 goto step (3) until surveyed 2/3 of the know PeerList[`ChainID`][]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -190,7 +199,7 @@ goto (9)
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to step 1.
 
 8. verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A.
-  if failed verify, the safety state time stamp is longer than 5 minutes from now, then generate a new state on own safety base.  If safety time stamp is less than 5 minutes, go to step 1. 
+  if failed verify, the safety state time stamp is longer than 5 minutes from now, then generate a new state on own safety root, this will cause safety miner = previous safety miner to trigger voting.  If safety time stamp is less than 5 minutes, go to step 1. 
 
 9. Now verification succesful, 
 X = {
@@ -233,6 +242,8 @@ signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
 * hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
 * hamt_add(`Tminer`TXnounceMsg, `ChainID`contractJSON/msg); // recording the block tx pool
+* mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
+* mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
