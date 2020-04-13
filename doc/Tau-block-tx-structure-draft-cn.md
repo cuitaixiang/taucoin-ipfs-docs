@@ -260,22 +260,24 @@ Account operation
 go to step (1) to get a new ChainID state prediction.
 ```
 ## C. File Downloader - nonconcurrency design // ipfs layer
-For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[] map.
+For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[ChainID]=FileAMT map.
+myFileDownloadProgress[FileAMT] = count.
 ```
-Do a range on map myDownloadque, key, value. inputFileAMTroot = key 
-random pickup a piece from fileAMTroot.count. random pick a peer myFilesAMTseedersDB[fileAMT][index]
-{ 
-- generate request a randam piece N for graphsync, since graphsync can identify the local exisitnce, if duplicated in local, it will ask another random block id. do not do specific cut. 
-- according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance closest relays. Through that relay, randomly request a Peer from  myFilesAMTseedersDB[fileAMT][index].  
-- graphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=section N))
+1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsList[index],
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from database.myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
+ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
-until finish all relays or find the chainPeer
+2. If the piece is in local, go to step (1); 
+else 
+- AMTgraphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
+if success, mFileDownloadProgress[FileAMT]++; until mFileDownloadProgress[FileAMT] = fileAMTroot.count; remove this fileAMT from myDownloadQue.
+go to step (1)
 }
 ```
 ## D. reponse to fileAMT request - root cannot be null // ipfs layer
 the process with connect to closest relay using hash(timestamp + ipfs address) to relay distance, when time stamp switch, so that other peers can find it using time consensus. c/d process is not chain specific, it is all on the ipfs layer.
 response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of the trie))
-If the `fileAMTroot` exists, then return the blocks according to the range. 
+If the `fileAMTroot` exists, then return the block. 
 
 ## App UI 界面
 leading function
