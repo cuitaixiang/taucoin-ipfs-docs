@@ -23,9 +23,9 @@ Business model:= { 商业模式
 }
 ```
 ## Two Tries
-On community chain:
 * chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
 > future state ->`ChainID`ContractJSON
+
 > `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
 
 * file AMT: the root for AMT trie for chopping and storing the file.
@@ -42,18 +42,19 @@ On community chain:
 ## Node local variables - stored in database leveldb
 * mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process
 * mySafetyContractResultStateRootMiner[`ChainID`]
-* myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if miner = previous miner then go to voting. 
+* myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if current safety miner = previous miner then consider a new chain go to voting. 
 
 * myContractResultStateRoot[`ChainID`] cid; // after found safety, this is the new contract state
-* myChainsList [index][TAURelayDiscovery y/n]String ; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
+* myChainsMap map[`ChainID`][TAURelayDiscovery boolean]; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
-* myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
+
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
 * myRelaysList [`ChainID`][index] = String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays in the genesis.
-* myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract prediction
-* myDownloadQue[index] []map{fileAMT:completion count}
-* myDownloaded data
-* myUploaded data
+* myTXsPool [`ChainID`][`TXindex`] = String; // a list of verified txs for adding to new contract prediction
+* myDownloadQue map{fileAMT:completion count} // when complete, added to myFileAMTlist
+* myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]
+* mytotalFileAMTDownloaded data
+* mytotalFileAMTUploaded data
 
 ## Concept explain
 ```
@@ -79,12 +80,13 @@ On community chain:
 - msg: the contract content for coin base, wiring and file tx
    * coin base, msg is the txpool attached
    * wiring, msg is the contract relating to this tx
+   * relay, msg is the multiaddress
    * file, msg is the discription of the file or file command
 ```
 ## Wormhole - HAMT Hashed keys are wormhole inito contract history. 
 ```
+`ChainID`genesisAddress = TAUaddress
 // TX oriented 
-genesisAddress = `ChinaID` + TAUaddress
 Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
@@ -98,6 +100,7 @@ File transactions
 File
 - `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+
 Relay
 - Relay`ChainID`Nounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
 - Relay`ChainID`NounceAddress // recording the relay address
@@ -116,7 +119,7 @@ Relay
 
 ## Community chain
 ### Genesis
-* with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
+* with parameters: block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
 contractJSON:= { // define the contract strut
@@ -132,8 +135,6 @@ signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
-* hamt_add(Relay`ChainID`Nouce, number of relays)
-* hamt_add(Relay`ChainID`NouceAddress) // recording the relay address
 * hamt_add(ChainID, `Nickname`+`blocktime` + signature(random));用创世矿工的TAU私钥签署 randomness
 * hamt_add(`ChainID`contractJSON, contractJSON) 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
@@ -141,16 +142,16 @@ signature []byte //by genesis miner
 * hamt_add(`Tminer`TXNounce, 0);
 * hamt_add(`Tminer`TXNounceMsg,msg);
 * hamt_add(`Tminer`FileNounce, 0);
-* hamt_add(genesisAddress, ChainID+`Tminer`); // add genesis address wormhole
-* hamt_add(other KVs); // initial chain address.
-* `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // for responding to voting.
+* hamt_add(`ChainID`genesisAddress, `Tminer`); // add genesis address wormhole
+* hamt_add(other KVs); // initial chain address. optional, this is for tau and taut population
 
-* database.my`ChainID`SafetyContractResultStateRoot = null;
+
+* myContractResultStateRoot[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
+* mySafetyContractResultStateRoot[`ChainID`] = null;
 * mySafetyContractResultStateRootMiner[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
-* database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
-* database.myChainsList.add(`ChainID`)[TAURelayDiscovery y] // for genesis miner, you need to watch TAU chain for new relays. 
-* database.myPeersList[`ChainID`][index].add(`Tminer);
+* myChainsMap.add(`ChainID`:TAURelayDiscovery) // for genesis miner, you need to watch TAU chain for new relays. 
+* myPeersList[`ChainID`][index].add(`Tminer);
 
 for range { aws tx from config file}
 * myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay
@@ -159,7 +160,7 @@ for range { aws tx from config file}
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
 -  Receive the `ChainID` from a graphRelaySync call
--  If the node follows on this chain, return database.my`ChainID`contractResultStateRoot; else response null
+-  If the node follows on this chain, return my`ChainID`contractResultStateRoot; else response null
 
 ## B. Collect votings from peers 
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
@@ -171,11 +172,11 @@ nodes state changes: 节点工作状态微调
 - Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
   with a button to pause everything. 
 ```
-1.Generate chain+relay+peer combo, Pickup ONE random `chainID` in the myChainsList[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+1.Generate chain+relay+peer combo, Pickup ONE random `chainID` in the myChainsMap,
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from myPeerList[`ChainID`][]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move down. 
 
-2. if the  database.my`ChainID`SafetyContractResultStateRoot/miner  == past safety root miner, go to step (3); // 上两次连续出块是同一个地址，就要投票。 
+2. if the  my`ChainID`SafetyContractResultStateRoot/miner  == past safety root miner, go to step (3); // 上两次连续出块是同一个地址，就要投票。 
 else go to step (7); // it is educated
  
 3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to (5)
@@ -186,7 +187,7 @@ stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // rec
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5. On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+5. On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from myPeerList[`ChainID`][]. 
 goto step (3) until surveyed 2/3 of the know PeerList[`ChainID`][]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -234,12 +235,12 @@ signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
 * hamt_update(`ChainID`contractJSON, X); 
 
 #### contract execute results
+
 ##### output coinbase tx
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
 * hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
 * hamt_add(`Tminer`TXnounceMsg, `ChainID`contractJSON/msg); // recording the block tx pool
-* mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
-* mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
+
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
@@ -257,7 +258,7 @@ Relay annoucement operation
 * hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * hamt_update(Relay`ChainID`Nounce , ++) 
 * hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
-* database.myRelaysList [`ChainID][index].add({msg/relay multiaddress});
+* myRelaysList [`ChainID][index].add({msg/relay multiaddress});
 
 
 ##### File creation and seeding transaction
@@ -272,7 +273,14 @@ File operation
 Account operation
 * hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
 
-10. Put new generated states into  cbor block, database.add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
+10. Put new generated states into  cbor block, add `ChainID`ContractResultStateRoot = hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
+
+* mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
+* mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
+
+* myContractResultStateRoot[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
+* mySafetyContractResultStateRoot[`ChainID`] = `ChainID`SafetyContractResultStateRoot;
+* myPeersList[`ChainID`][index].add(`Tminer);
 
 go to step (1) to get a new ChainID state prediction.
 ```
@@ -283,8 +291,8 @@ myFileDownloadProgress[FileAMT] = count.
 for each file and count, using the chainID as the relay entry to contact seedrs. 
 
 ```
-1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsList[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from database.myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
+1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsMap[index],
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
@@ -300,7 +308,7 @@ response to AMTgraphRelaySync（ relay, peer, `fileAMTroot`, selector(range of t
 If the `fileAMTroot` exists, then return the block. 
 
 ## E. process manager - main func
- * myChainsList[].add (TAU), autodiscovery = off
+ * myChainsMap[].add (TAU), autodiscovery = off
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
