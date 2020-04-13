@@ -45,7 +45,7 @@ Business model:= { 商业模式
 * myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if current safety miner = previous miner then consider a new chain go to voting. 
 
 * myContractResultStateRoot[`ChainID`] = cbor.cid; // after found safety, this is the new contract state
-* myChainsMap map[`ChainID`][myTAURelayDiscovery boolean]; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
+* myChainsMap map[`ChainID`]string; // a  list of Chains to follow/mine by users, string is for potential config
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 
 * myPeersList[`ChainID`] [index]String `peer`; // list of known IPFS peers for the chain by users.
@@ -122,7 +122,7 @@ Relay
 * with parameters: block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
-contractJSON:= { // define the contract strut
+Y:= { // define the contract strut
 ChainID := `Nickname`+`blocktime` + signature(random) // chainID include nickname and time 5, these are critical information to pass down in the stateless mode.
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
@@ -136,7 +136,7 @@ signature []byte //by genesis miner
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
 * hamt_add(ChainID, `Nickname`+`blocktime` + signature(random));用创世矿工的TAU私钥签署 randomness
-* hamt_add(`ChainID`contractJSON, contractJSON) 
+* hamt_add(`ChainID`contractJSON, Y) 
 * hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 * hamt_add(`Tminer`Balance, 1,000,000); 
 * hamt_add(`Tminer`TXNounce, 0);
@@ -150,7 +150,7 @@ signature []byte //by genesis miner
 * mySafetyContractResultStateRoot[`ChainID`] = null;
 * mySafetyContractResultStateRootMiner[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
-* myChainsMap.add(`ChainID`:myTAURelayDiscovery ON) // for genesis miner, you need to watch TAU chain for new relays. 
+* myChainsMap.add(`ChainID`:"")
 * myPeersList[`ChainID`][index].add(`Tminer);
 
 for range { aws tx from config file}
@@ -196,51 +196,40 @@ goto (9)
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON));
 
 8. if ok, then verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
-if `ChainID` == TAU and `ChainID`contractJSON/txtype == relay annoucement;
-for range myChainsMap map[`ChainID`][myTAURelayDiscovery ON(except TAU chain) {
- myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay tx
-}
 goto (9)
   if failed , if the safety state time stamp is longer than 5 minutes from now, then generate a new state on own previous safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9).  If safety time stamp is less than 5 minutes, go to step 1. 
 
-9. gen new state 
+9. generate new state 
 X = {
-`ChainID`SafetyContractResultStateRoot 32; // link to current safety state node.cid, and move to generate future
-contractNumber = `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/contactNumber) +1;
-version,8; 
-timestamp, 4; 
-base target, 8; // for POT calc
-cumulative difficulty,8 ; 
-generation signature,32; 
-ChainIDminerAddress, 20; 
+`ChainID`SafetyContractResultStateRoot; // type cbor.cid
+contractNumber;  hamt_get(`ChainID`SafetyContractResultStateRoot,`ChainID`contractJSON) / contractNumber +1;
+version; 
+timestamp; 
+base target; // for POT calc
+cumulative difficulty; 
+generation signature; 
 `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-ChainIDminerOtherInfo, 128 bytes; //nick name.
-msg, flexible bytes; // one block support one transaction only
-= { 
-nounce, 8;
-version,8, "0x1" as default;
-timestamp,4,tx expire in 24 hours;
+msg = { // one block support one transaction only
+nounce;
+version;
+timestamp;
 txfee;
-msg 2048;
+msg;
 `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-ChainIDsenderOtherInfo, 128 bytes;  // nick name.
-
-FileAMTRoot;
-tx sender signature;
-// the File processing
+fileAMTroot;
+// the File importing to AMT
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
-// 2. newNode.amt(1,piece(1)); loop to newNode.hamt(m,piece(m));
+// 2. newNode.amt(1,piece(1)); loop to newNode.amt(m,piece(m));
 // 3. FileAMTroot=AMT.put(cbor)
-// 4. return FileAMTroot to contract Json. 
+// 4. return FileAMTroot to here for fileAMTroot. 
+tx sender signature; // this can generate `ChainID`senderAddress
 }
- 
-signature , 65:r: 32 bytes, s: 32 bytes, v: 1 byte
+signature;  // this can generate `ChainID`minerAddress
 }  // finish X.
 
 * hamt_update(`ChainID`contractJSON, X); 
 
 #### contract execute results
-
 ##### output coinbase tx
 * hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
 * hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
@@ -313,7 +302,7 @@ response to AMTgraphRelaySync（ relay, peer, `ChainID`,`fileAMTroot`, selector(
 If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 ## E. process manager - main func
- * myChainsMap[].add (TAU), autodiscovery = off
+ * myChainsMap.add (TAU)
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
