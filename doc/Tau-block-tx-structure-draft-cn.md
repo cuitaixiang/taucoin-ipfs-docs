@@ -109,7 +109,7 @@ Relay
 * mutable range = 1 week
 * transaction expirey 24 hours
 * voting cover percentage 67%
-* time base, 1 minutes, which is what peers comes to their scheduled relays. 
+* relay time base, 5 seconds, which is what peers comes to their scheduled relays. 
 * sleeping mode wake up random range 5 minutes
 * self mining qualify time 5 minutes. 
 * default coins 1,000,000
@@ -172,7 +172,7 @@ nodes state switching: 节点工作状态微调
 - Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChainsMap,
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
+according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 2. if the  mySafetyContractResultStateRootMiner[`ChainID`] == myPreviousSafetyContractResultStateRootMiner[`ChainID`]; 
@@ -187,7 +187,7 @@ stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // rec
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5. On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
+5. On the same chainID, according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
 goto step (3) until surveyed 2/3 of myPeersList[`ChainID`][...]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: mySafetyContractResultStateRoot[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -297,7 +297,7 @@ for each file and count, using the chainID as the relay entry to contact seedrs.
 
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsMap[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
+according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
