@@ -7,17 +7,17 @@ User experienses:= { 用户体验
 
 - File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Imported file can be seeded to a chain or pinned in local. 
 
-- For each video, since we are randomly download pieces, so we can support a `hopping player` to only play the randon pieces that is downloaded. 
+- For all videos, since we are randomly download pieces in the set, so we can support a `hopping player` to only play the randon pieces that is downloaded. 
 
-- TAU provides basic communication services like relay, TAU payment, content annoucement and genesis annoucement. Community chain can use itself for relay annoucement as well.
+- TAU provides basic communication services mostly like relay. Of course, you can choose others in price is right, TAU payment, content annoucement and genesis annoucement. Community chain can use itself for relay as well.
 
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
 Business model:= { 商业模式
 - Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and own chain. 
-- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will counting the download. 
-- TAU coin price will rise when cross-chain comm in demand. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will not counting community relay download. 
+- TAU coin price will rise when cross-chain communications in demand. 
 }
 
 Launch steps:={ 发布步骤
