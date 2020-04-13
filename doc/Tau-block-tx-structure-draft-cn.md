@@ -45,7 +45,7 @@ Business model:= { 商业模式
 * myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if current safety miner = previous miner then consider a new chain go to voting. 
 
 * myContractResultStateRoot[`ChainID`] = cbor.cid; // after found safety, this is the new contract state
-* myChainsMap map[`ChainID`][TAURelayDiscovery boolean]; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
+* myChainsMap map[`ChainID`][myTAURelayDiscovery boolean]; // a  list of Chains to follow/mine by users, default TAUrelaydiscovery turn off unless you are the creator, for creator you need to add relaysto your local chain form time to time. 
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 
 * myPeersList[`ChainID`] [index]String `peer`; // list of known IPFS peers for the chain by users.
@@ -150,7 +150,7 @@ signature []byte //by genesis miner
 * mySafetyContractResultStateRoot[`ChainID`] = null;
 * mySafetyContractResultStateRootMiner[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
-* myChainsMap.add(`ChainID`:TAURelayDiscovery) // for genesis miner, you need to watch TAU chain for new relays. 
+* myChainsMap.add(`ChainID`:myTAURelayDiscovery ON) // for genesis miner, you need to watch TAU chain for new relays. 
 * myPeersList[`ChainID`][index].add(`Tminer);
 
 for range { aws tx from config file}
@@ -195,7 +195,12 @@ goto (9)
 
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON));
 
-8. if ok, then verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A; goto (9)
+8. if ok, then verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
+if `ChainID` == TAU and `ChainID`contractJSON/txtype == relay annoucement;
+for range myChainsMap map[`ChainID`][myTAURelayDiscovery ON(except TAU chain) {
+ myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay tx
+}
+goto (9)
   if failed , if the safety state time stamp is longer than 5 minutes from now, then generate a new state on own previous safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9).  If safety time stamp is less than 5 minutes, go to step 1. 
 
 9. gen new state 
@@ -259,6 +264,7 @@ Relay annoucement operation
 * hamt_update(Relay`ChainID`Nounce , ++) 
 * hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
 * myRelaysList [`ChainID][index].add({msg/relay multiaddress});
+* if 
 
 
 ##### File creation and seeding transaction
