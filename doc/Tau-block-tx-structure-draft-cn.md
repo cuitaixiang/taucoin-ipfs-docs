@@ -18,6 +18,8 @@ Business model:= { 商业模式
 - Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay on own chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will not counting community relay download. 
 - TAU coin price will rise when cross-chain communications in demand. 
+- TAUT is tau-torrent, a file sharing service by tau dev
+- TAU is a relay annoucement service by tau dev. 
 }
 
 Launch steps:={ 发布步骤
