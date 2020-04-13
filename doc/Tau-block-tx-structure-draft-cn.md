@@ -39,7 +39,7 @@ Business model:= { 商业模式
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 > E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
 
-## Node local variables - stored in database leveldb
+## Node local variables - stored in database, in each blockchain step, following variables will be populated by wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these consensus variables. 
 * mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process
 * mySafetyContractResultStateRootMiner[`ChainID`]
 * myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if current safety miner = previous miner then consider a new chain go to voting. 
