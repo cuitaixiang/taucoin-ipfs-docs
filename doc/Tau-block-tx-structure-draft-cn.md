@@ -171,7 +171,7 @@ Miner does not know which peer requesting them, because the relay shields the pe
 In the peer randome walking, no recursively switching peers inside the loop, it relies on top random working. In the process of voting, the loose coupling along time is good practise to keep the new miners learning without influcence from external. This process is for multiple chain, multiple relay and mulitple peers.  
 nodes state changes: 节点工作状态微调
 - on power charging turn on wake lock; charging off, turn off wake lock.
-- on wifi data, start file download and upload; wifi off, stop file operation.
+- on wifi data, start all process ; wifi off, stop all process.
 - in the sleeping mode, random wake up between 1..5 minutes to run for a cycle of all chains follow up and check whether in power charging to turn on wake lock. 
 
 - Alert to user iterface- wifi only for file up and down, keep charging to prevent sleep, along with the data dash board. 
@@ -273,6 +273,9 @@ go to step (1) to get a new ChainID state prediction.
 ## C. File Downloader - nonconcurrency design // ipfs layer
 For saving mobile phone resources, we adopt non-concurrrency execution. Starting from a to-be downloaded myDownloadQue[ChainID]=FileAMT map.
 myFileDownloadProgress[FileAMT] = count.
+
+for each file and count, using the chainID as the relay entry to contact seedrs. 
+
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsList[index],
 according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from database.myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
