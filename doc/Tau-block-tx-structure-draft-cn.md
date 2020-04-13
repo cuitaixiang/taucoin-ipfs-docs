@@ -21,11 +21,6 @@ Business model:= { 商业模式
 - TAUT is tau-torrent, a file sharing service by tau dev
 - TAU is a relay annoucement service by tau dev. 
 }
-
-Launch steps:={ 发布步骤
-- Free community creation for file sharing. TAUTest coin is an initial test by TAU dev. At this stage, TAU provide static relay service via AWS. The relay info is written in the software.
-- Tau mainnet turns on for relays and exchange operation.
-}
 ```
 ## Two Tries
 On community chain:
