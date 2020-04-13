@@ -9,13 +9,13 @@ User experienses:= { 用户体验
 
 - For all videos, since we are randomly download pieces in the set, so we can support a `hopping player` to only play the randon pieces that is downloaded. 
 
-- TAU provides basic communication services mostly like relay. Of course, you can choose others in price is right, TAU payment, content annoucement and genesis annoucement. Community chain can use itself for relay as well.
+- TAU provides basic annoucement service include relays and genesis. Of course, you can choose others in price is right, TAU payment, content annoucement and genesis annoucement. Community chain can use itself for relay annoucement as primary.
 
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 }
 
 Business model:= { 商业模式
-- Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay permission-lessly on both TAU and own chain. 
+- Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay on own chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will not counting community relay download. 
 - TAU coin price will rise when cross-chain communications in demand. 
 }
@@ -53,8 +53,7 @@ On community chain:
 * myFilesAMTlist [index]cid; // a  list for imported and downloaded files trie
 * myFilesAMTseedersDB[fileAMT][index]=seeders IPFS addresss, a local database recording all files seeding, the chainID is for relay timing pace. 
 * myPeersList [`ChainID`][index]String `peer`; // list of known IPFS peers for the chain by users.
-* myHamtRelaysList [`ChainID`][index]String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays.there will be RelayList[TAU][...]; Relay[community #1][...]. The real final relay list for community 1 is the combination of TAU + community #1
-* myAMTRelaysList[index]; amt is chain non specific, amt is ipfs layer
+* myRelaysList [`ChainID`][index] = String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays in the genesis.
 * myTXsPool [`ChainID`][`TX`] = String; // a list of verified txs for adding to new contract prediction
 * myDownloadQue[index] []map{fileAMT:completion count}
 * myDownloaded data
@@ -150,8 +149,7 @@ signature []byte //by genesis miner
 * database.my`ChainID`ContractResultStateRoot=`ChainID`ContractResultStateRoot; 
 * database.myChainsList.add(`ChainID`)
 * database.myPeersList[`ChainID`][index].add(`Tminer);
-* database.myHamtRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
-* database.myAmtRelaysList[index]
+* database.myRelaysList [`ChainID][index].add({aws relays by taucoin dev}); // each chain annouced relay recorded.{"multi address1", "multiaddress2"}; // relay bootstrap /ipv4/tcp， 初始中继配置表在软件文件里
 ```
 ## A. One miner receives GraphSync request from a relay.  
 Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" and `fileAMTroot`. 
@@ -169,7 +167,7 @@ nodes state changes: 节点工作状态微调
   with a button to pause everything. 
 ```
 1.Generate chain+relay+peer combo, Pickup ONE random `chainID` in the myChainsList[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
 ONE Chain + ONE Relay + ONE peer
 
 2. if the  database.my`ChainID`SafetyContractResultStateRoot/miner  == past safety root miner, go to step (3); // 上两次连续出块是同一个地址，就要投票。 
@@ -183,7 +181,7 @@ stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // rec
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5 On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
+5 On the same chainID, according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONe chainPeer from database.myPeerList[`ChainID`][]. 
 goto step (3) until surveyed 2/3 of the know PeerList[`ChainID`][]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: database_update(`ChainID`SafetyContractResultStateRoot, voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -264,7 +262,7 @@ For saving mobile phone resources, we adopt non-concurrrency execution. Starting
 myFileDownloadProgress[FileAMT] = count.
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsList[index],
-according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(RelayList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from database.myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
+according to the global time in the base of 1 minute, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find next closest ONE relays. Randomly request ONE File from database.myDownloadQue[`ChainID`]. Randomly select a seeder from the myFilesAMTseedersDB[fileAMT][index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
