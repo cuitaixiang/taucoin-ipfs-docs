@@ -168,10 +168,12 @@ nodes state changes: 节点工作状态微调
   with a button to pause everything. 
 ```
 1. Pickup a random `chainID` in the myChainsList[index],if the `ChainID`SafetyContractResultStateRoot/time stamp is older than 48 hours of present time, jump to step 2, means a new node; else jump to step 5, means an experinces note. 如果节点安全点时间戳在48小时前，被认为是新节点，需要重新投票。
-2. according to the global time in the base of 5 minutes, hash (time + chain ID), in RelayList[`ChainID`][] find vector distance the closest relays. Through that relay, randomly request a chainPeer from database.PeerList[`ChainID`][] for the future state root voting. at this time, if the node is on the same chain, it will be a definitive match. 
+
+2. according to the global time in the base of 5 minutes, hash (time + chain ID) to hash(RelayList[`ChainID`][] )find vector distance the closest relays. Through that relay, randomly request a chainPeer from database.myPeerList[`ChainID`][] for the future state root voting. 
+// if this relay+peer is disconnected, then go to next shortest on step 2, until 5 minutes passed.
 
 graphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); // when CID is NULL,  - 0 means the relay will request y:= `ChainID`ContractResultStateRoot from the peer via tcp
-if err := !null go to (2);  // how long not_found rejection?  3tx/block, 5 minutes. block time,  
+if err := !null go to (2);  // how long not_found rejection?  1 tx/block, 5 minutes. block time,  
 
 3. traverse history contract and states until mutable range.
 
@@ -194,8 +196,7 @@ base target, 8; // for POT calc
 cumulative difficulty,8 ; 
 generation signature,32; 
 ChainIDminerAddress, 20; 
-TXNounce ++, 8; // mining is treated as a tx sending to self
- `ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+`ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 ChainIDminerOtherInfo, 128 bytes; //nick name.
 msg, flexible bytes; // one block support one transaction only
 = { 
