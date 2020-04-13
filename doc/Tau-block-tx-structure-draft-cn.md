@@ -109,10 +109,11 @@ Relay
 ```
 ## Constants
 * mutable range = 1 week
-* new node qualification time cut off = 48 hours // off line longer than 48 hours will be consider new nodes for that chain
 * transaction expirey 24 hours
 * voting percentage 67%
-* time base, 5 minutes, which is what peers comes to their scheduled relays. 
+* time base, 1 minutes, which is what peers comes to their scheduled relays. 
+* sleeping mode wake up random range 5 minutes
+* self mining time 5 minutes. 
 ## Community chain
 ### Genesis
 * with parameters: block size in number of txs, block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
