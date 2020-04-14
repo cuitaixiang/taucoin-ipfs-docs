@@ -356,8 +356,6 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
   if amtsync not finish, reject; else 
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
- 
-* If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
  ```
 // finish registration 
 
