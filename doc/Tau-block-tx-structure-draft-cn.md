@@ -49,9 +49,9 @@ Business model:= { 商业模式
 * myChains map[ChainID] config; // a  list of Chains to follow/mine by users, string is for potential config
 * myFileAMTroots map[AMTroot] filename; // a  list for imported and downloaded files trie
 
-* myPeers  map[`ChainID`]map[index] String; // known IPFS peers in the chain
-* myRelays map[`ChainID`]map[index] String; // known relays for the chain; 
-* myTXsPool    map[`ChainID`]map[index] String; // verified txs for adding to new state prediction
+* myPeers  map[`ChainID`][]String; // known IPFS peers in the chain
+* myRelays map[`ChainID`][]String; // known relays for the chain; setup a chainID called "trusted" with historically successful relays. 
+* myTXsPool    map[`ChainID`][]String; // verified txs for adding to new state prediction
 
 * myDownloadPool  []*struct { ChainID; FileAMT cbor.cid; count int; isPause boolean} // a slice of struct
 * mySeedersDB     []*struct { fileAMT; ChainID; seeder}   // one file can exist on many chains.
@@ -155,7 +155,7 @@ signature []byte //by genesis miner
 * mySafetyContractResultStateRootMiners[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
 * myChains.add(`ChainID`:"")
-* myPeers[`ChainID`][index].add(`Tminer);
+* myPeers[`ChainID`].add(`Tminer);
 
 for range { aws tx from config file}
 * myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay
@@ -178,15 +178,19 @@ nodes state switching: 节点工作状态微调
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID) 
 
-if H is odd number: 奇数
+{if H last number is 0,1,2
 
 to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else: 偶数
+else if 3,4,5
 to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
+else 6,7,8,9
+to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+}
 
 2. if the  mySafetyContractResultStateRootMiners[`ChainID`] == myPreviousSafetyContractResultStateRootMiners[`ChainID`]; 
 go to step (3); // 上两次连续出块是同一个地址，就要投票。 
@@ -202,15 +206,19 @@ goto (*) until the mutable range or any error; //
 
 5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID)
 
-if H is odd number: 奇数
+{if H last number is 0,1,2
 
 to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer 
+ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else: 偶数
+else if 3,4,5
 to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
+else 6,7,8,9
+to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+}
 
 goto step (3) until surveyed 2/3 of myPeers[`ChainID`][...]
 
@@ -282,7 +290,7 @@ Relay annoucement operation
 * stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * stateroot.hamt_update(RelayNounce , ++) 
 * stateroot.hamt_add(RelayNounceAddress, msg/relay multiaddress) 
-* myRelays [`ChainID][index].add({msg/relay multiaddress});
+* myRelays [`ChainID][ ].add({msg/relay multiaddress});
 
 
 ##### File creation and seeding transaction
@@ -292,7 +300,7 @@ File operation
 * stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * stateroot.hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
-* mySeedersDB[fileAMT][index].add(`ChainID``Tsender`IPFSaddr)
+* mySeedersDB[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
 * For file upload to chain
       * myFileAMTroots.add(fileAMTroot)
 * For file seeding from other peers
@@ -308,7 +316,7 @@ Put new generated states into  cbor block, * myContractResultStateRoots[`ChainID
 * mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
 
 * mySafetyContractResultStateRoots[`ChainID`] = SafetyContractResultStateRoot;
-* myPeers[`ChainID`][index].add(`Tminer);
+* myPeers[`ChainID`][ ].add(`Tminer);
 
 go to step (1) to get a new ChainID state prediction
 ```
@@ -317,19 +325,24 @@ go to step (1) to get a new ChainID state prediction
 
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
-      Pickup ONE random `chainID` in the myChains[index],
+      Pickup ONE random `chainID` in the myChains[ ],
 according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in minute base + chain ID)
 
-if H is odd number: 奇数
+{if H last number is 0,1,2
 
 to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else: 偶数
+else if 3,4,5
 to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
-Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * mySeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
+else 6,7,8,9
+to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+}
+
+Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * mySeedersDB[fileAMT][ChainID][seeder  ]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
