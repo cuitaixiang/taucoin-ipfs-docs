@@ -51,12 +51,13 @@ Business model:= { 商业模式
 * myPeers      map[`ChainID`][]String; // known IPFS peers in the chain
 * myTXsPool    map[`ChainID`][]String; // verified txs for adding to new state prediction
 
-* myRelays        [] * struct {ChainID; RelayAddr; date}; // known relays for the chain; setup a chainID called "trusted" with historically successful relays. Date is used for only selelct relays in the mutalble range. 
+* myRelays        [] * struct {ChainID; RelayAddr; date}; // known relays for the chain; setup a chainID called "successed" with historically successful relays. Date is used for only selelct relays in the mutalble range. 
 * myDownloadPool  [] * struct {ChainID; FileAMT cbor.cid; count int; isPause boolean} // a slice of struct
 * mySeedersDB     [] * struct {fileAMT; ChainID; seeder}   // one file can exist on many chains.
 
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
+
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
@@ -84,7 +85,7 @@ Business model:= { 商业模式
    * relay, msg is the contract relating to this tx, include the relay info
    * file, msg is the contract relating to this tx, include discription of the file or future file command
    
-- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay candidates in the daily basis, each node config own trusted relays. three of those sharing the time slots.   
+- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay candidates in the daily basis, each node config own successed relays. three of those sharing the time slots.   
    
 
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
@@ -147,8 +148,6 @@ signature []byte //by genesis miner
 * stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
 * stateroot.hamt_add(`Tminer`FileNounce, 0);
 * stateroot.hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
-* stateroot.hamt_add(other KVs); // initial chain address. optional, this is for tau and taut population
-
 
 * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
 * mySafetyContractResultStateRoots[`ChainID`] = null;
@@ -157,8 +156,7 @@ signature []byte //by genesis miner
 * myChains.add(`ChainID`:"")
 * myPeers[`ChainID`].add(`Tminer);
 
-for range {myRelays[TAU][date less then mutablerange])  // myRelays[TAU] will be populated when system starts in process E
-* myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay
+// no need to config relay, myRelays[TAU] will be populated when system starts in process E and community chains will use time slots to touch TAU relays. 
 
 ```
 ## A. One miner receives GraphSync request from a relay.  
@@ -188,7 +186,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -197,11 +195,11 @@ go to step (3); // 上两次连续出块是同一个地址，就要投票。
 else go to step (7); // it is educated working chain
 
 3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (5)
-
+   myRelays[successed].add{this Relay}
 4. traverse history for states roots collection until MutableRange.
 (*)  
 stateroot= y/contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
-y = graphsyncHAMT(stateroot)
+y = HamtGraphRelaySync(stateroot)
 goto (*) until the mutable range or any error; // 
 
 5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID)
@@ -216,7 +214,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -227,7 +225,7 @@ goto (9)
 // use  map[root string]Uint to count voting. 
 
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
-
+   if err= null, myRelays[successed].add{this Relay}
 8. if ok, then verify {
 if received ContractResultStateRoot/contractJSON shows a more difficult chain than SafetyContractResultStateRoot/contractJSON/`difficulty`, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
 goto (9)
@@ -247,7 +245,7 @@ timestamp;
 base target; // for POT calc
 cumulative difficulty; 
 generation signature; 
-`ChainIDminerAddress`IPFSsig; //IPFS signature on `ChainIDminerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+`minerAddress`IPFSsig; //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 msg = { // one block support one transaction only
 nounce;
 version;
@@ -290,7 +288,7 @@ Relay annoucement operation
 * stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * stateroot.hamt_update(RelayNounce , ++) 
 * stateroot.hamt_add(RelayNounceAddress, msg/relay multiaddress) 
-* myRelays [`ChainID][ ].add({msg/relay multiaddress});
+* myRelays [`ChainID`][ ].add({msg/relay multiaddress});
 
 
 ##### File creation and seeding transaction
@@ -338,7 +336,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -361,6 +359,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 // registration message handling 登记, this can also happen in other main func
 
  * myChains.add (TAU)
+ * myRelays[TAU].add{initial relays}
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
