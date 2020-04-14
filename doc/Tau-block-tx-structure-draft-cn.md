@@ -32,7 +32,7 @@ Business model:= { 商业模式
 
 ## Five core processes
 > Hamt trie.
-  * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+  * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
   * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
 > Amt trie.
   * C. File Downloader. (download files and logging download data)
@@ -111,7 +111,7 @@ Relay of a chain ID
 * MutableRange:  1 week
 * TXExpiry: transaction expirey 24 hours
 * VotingPercentage: voting cover percentage 67%
-* RelaySwitchTimeUnit: relay time base, 5 seconds, which is what peers comes to their scheduled relays. 
+* RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * WakeUpTime: sleeping mode wake up random range 10 minutes
 * SelfMiningTime: self mining qualify time 60 minutes. 
 * GenesisDefaultCoins: default coins 1,000,000
@@ -222,9 +222,8 @@ nounce;
 version;
 timestamp;
 txfee;
-msg;
+msg; // fileAMTroot is also in msg.  msg {optcode, code}
 `ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-fileAMTroot;
 // the File importing to AMT
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.amt(m,piece(m));
@@ -320,7 +319,15 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
  
-* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. * Infinite for loop B. Collect votings from chain peers to discover the chainid's safety state root. (single thread func). If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
+* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
+* Infinite for loop {单进程无限循环
+B. Collect votings from chain peers to discover the chainid's safety state root. 
+ * onMyDownloadQue not empty and run C process.(download files and logging download data)  // download is single process too. 
+}
+(single thread func). 
+
+
+If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
 
 ## App UI 界面
 
