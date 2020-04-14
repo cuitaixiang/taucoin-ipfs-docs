@@ -308,7 +308,9 @@ go to step (1)
 response to AMTgraphRelaySync（ relay, peer, `ChainID`,`fileAMTroot`, selector(piece N))
 If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
-## E. process manager - main func
+## E. process manager
+// registration message handinig 登记, this can also happen in other main func
+```
  * myChainsMap.add (TAU)
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
@@ -319,15 +321,15 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
  
-* Process manager, main(); according to resource config, decide how many each of above 4 process instance existing and manager DDOS. 
-* Infinite for loop {单进程无限循环
-B. Collect votings from chain peers to discover the chainid's safety state root. 
- * onMyDownloadQue not empty and run C process.(download files and logging download data)  // download is single process too. 
+* If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
+ ```
+// finish registration 
+
+* Infinite for loop {B进程无限循环
+
+call func B.  // if cell phone resource is big, you can load more "go func B()"; wait().
+
 }
-(single thread func). 
-
-
-If found a new relay added in to TAU, alert all nodes, whether added this to community chains relay annoucement, the alert comes with a testing tool to show whether the relay is valid. relay adding is a manual process to prevent spam. 
 
 ## App UI 界面
 
