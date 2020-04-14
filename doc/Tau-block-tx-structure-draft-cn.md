@@ -176,16 +176,16 @@ nodes state switching: 节点工作状态微调
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
 
-{if H last number is 0,1,2
+{if H last number is 0
 
 to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else if 3,4,5
+else if 1,2
 to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
-else 6,7,8,9
+else 3,4,5,6,7,8,9
 to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
@@ -204,16 +204,16 @@ goto (*) until the mutable range or any error; //
 
 5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID)
 
-{if H last number is 0,1,2
+{if H last number is 0
 
 to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else if 3,4,5
+else if 1,2
 to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
-else 6,7,8,9
+else 3,4,5,6,7,8,9
 to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
@@ -326,16 +326,16 @@ go to step (1) to get a new ChainID state prediction
       Pickup ONE random `chainID` in the myChains[ ],
 according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
 
-{if H last number is 0,1,2
+{if H last number is 0
 
 to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
-else if 3,4,5
+else if 1,2
 to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
-else 6,7,8,9
+else 3,4,5,6,7,8,9
 to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
