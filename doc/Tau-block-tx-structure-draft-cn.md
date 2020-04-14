@@ -39,10 +39,10 @@ Business model:= { 商业模式
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 > E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
 
-## Node local variables - stored in database, in each blockchain step, following variables will be populated by wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these consensus variables. 
-* mySafetyContractResultStateRoot[`ChainID`] cid; // this is constantly updated by voting process
-* mySafetyContractResultStateRootMiner[`ChainID`]
-* myPreviousSafetyContractResultStateRootMiner[`ChainID`]; // if current safety miner = previous miner then consider a new chain go to voting. 
+## Operation variables in database, in each transition, following variables will be populated from wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these states. 
+* mySafetyContractResultStateRoot[`ChainID`] cbor.cid;
+* mySafetyContractResultStateRootMiner[`ChainID`] string;
+* myPreviousSafetyContractResultStateRootMiner[`ChainID`] string; // if current safety miner = previous miner, then the miner is treated as disconnected or new, so go to voting. 
 
 * myContractResultStateRoot[`ChainID`] = cbor.cid; // after found safety, this is the new contract state
 * myChainsMap map[`ChainID`]string; // a  list of Chains to follow/mine by users, string is for potential config
@@ -82,8 +82,10 @@ Business model:= { 商业模式
    * wiring, msg is the contract relating to this tx
    * relay, msg is the multiaddress
    * file, msg is the discription of the file or file command
+- relay: each chain config relay on own chain by members, TAU mainchain provides relay candidates.    
+   
 ```
-## Wormhole - HAMT Hashed keys are wormhole inito contract history. 
+## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
 ```
 `ChainID`genesisAddress = TAUaddress
 // TX oriented 
@@ -106,16 +108,16 @@ Relay
 - Relay`ChainID`NounceAddress // recording the relay address
 ```
 ## Constants
-* mutable range = 1 week
-* transaction expirey 24 hours
-* voting cover percentage 67%
-* relay time base, 5 seconds, which is what peers comes to their scheduled relays. 
-* sleeping mode wake up random range 5 minutes
-* self mining qualify time 5 minutes. 
-* default coins 1,000,000
-* initial difficulty according to the block time.
+* MutableRange:  1 week
+* TXExpiry: transaction expirey 24 hours
+* VotingPercentage: voting cover percentage 67%
+* RelaySwitchTimeUnit: relay time base, 5 seconds, which is what peers comes to their scheduled relays. 
+* WakeUpTime: sleeping mode wake up random range 10 minutes
+* SelfMiningTime: self mining qualify time 60 minutes. 
+* GenesisDefaultCoins: default coins 1,000,000
+* initial difficulty according to the BlockTime.
 * block size = 1 transaction fixed
-* block time = default 5 minutes
+* BlockTimeDefault = default 5 minutes
 
 ## Community chain
 ### Genesis
@@ -127,7 +129,7 @@ ChainID := `Nickname`+`blocktime` + signature(random) // chainID include nicknam
 `ChainID`SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
 initial difficulty int64; // ???
-totalCoins int64; // default 1,000,000， 币数量
+totalCoins int64; // GenesisDefaultCoins， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
 msg;
@@ -167,12 +169,12 @@ This process is for multiple chain, multiple relay and mulitple peers.
 nodes state switching: 节点工作状态微调
 - on power charging: turn on wake lock; charging off: turn off wake lock.
 - on wifi data: start all process A-D; wifi off: stop all process A-D and turn off wake lock.
-- in the sleeping mode, random wake up between 1..5 minutes, if Wifi is off, then stop; else run for a cycle of all chains follow up, and check whether in power charging, yes to turn on wake lock. 
+- in the sleeping mode, random wake up between 1..WakeUpTime, if Wifi is off, then stop; else run for a cycle of all chains follow up, and check whether in power charging, yes to turn on wake lock. 
 
 - Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChainsMap,
-according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
+according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 2. if the  mySafetyContractResultStateRootMiner[`ChainID`] == myPreviousSafetyContractResultStateRootMiner[`ChainID`]; 
@@ -181,13 +183,13 @@ else go to step (7); // it is educated working chain
 
 3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to (5)
 
-4. traverse history for states roots collection until mutable range.
+4. traverse history for states roots collection until MutableRange.
 (*)  
 stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5. On the same chainID, according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
+5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeersList[`ChainID`][...]. 
 goto step (3) until surveyed 2/3 of myPeersList[`ChainID`][...]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: mySafetyContractResultStateRoot[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -195,9 +197,14 @@ goto (9)
 
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON));
 
-8. if ok, then verify: if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the mutable range. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
+8. if ok, then verify {
+if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
 goto (9)
-  if failed , if the safety state time stamp is longer than 5 minutes from now, then generate a new state on own previous safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9).  If safety time stamp is less than 5 minutes, go to step 1. 
+}
+  else { 
+  failed or err , if the (current time - safety state time ) is bigger than SelfMiningTime, then generate a new state on own  safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9)
+  }; 
+       else go to step 1. 
 
 9. generate new state 
 X = {
@@ -253,7 +260,6 @@ Relay annoucement operation
 * hamt_update(Relay`ChainID`Nounce , ++) 
 * hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
 * myRelaysList [`ChainID][index].add({msg/relay multiaddress});
-* if 
 
 
 ##### File creation and seeding transaction
@@ -287,7 +293,7 @@ for each file and count, using the chainID as the relay entry to contact seedrs.
 
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo, Pickup ONE random `chainID` in the myChainsMap[index],
-according to the global time in the base of 5 second, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
+according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelaysList[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadQue[`ChainID`]. Randomly select a seeder from the * myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
