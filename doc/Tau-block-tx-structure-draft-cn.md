@@ -40,23 +40,26 @@ Business model:= { 商业模式
 > F. Resource management: states key value on chain and before mutabale ranged will be pinned, seeded files will be pined, others are unpinned to garbage collection. 
 
 
-## Operation variables in database, in each transition, following variables will be populated from wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these states. 
+## Operation variables in database
+```
+in each transition, following variables will be populated from wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these states. 
+* myChains                                      map[ChainID] config; //Chains to follow, string is for potential config
+* myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
 * mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
 * mySafetyContractResultStateRootMiners         map[ChainID] address;
 * myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if current safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
-* myContractResultStateRoots                    map[ChainID] cbor.cid; // after found safety, this is the new contract state
-* myChains                                      map[ChainID] config; // a  list of Chains to follow/mine by users, string is for potential config
-* myFileAMTroots                                map[AMTroot] bool; // a  list for paused or downloaded files trie
 
+* myFileAMTroots       map[AMTroot]                   bool; // a  list for paused or downloaded files trie
+* myDownloadPool       map[`ChainID+FileAMT`]         isPause bool
+* myFileAMTSeeders     map[seederIPFSaddress]         `ChainID+FileAMT`  // one file can exist on many chains.
 * myTXsPool            map[TXJSON]                    ChainID
 * myPeers              map[`TAU+IPFSsignature(TAU)`]  ChainID  // simulate union
 * myRelays             map[`RelayAddr+timestamp`]     ChainID; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
-* myDownloadPool       map[`ChainID+FileAMT`]         isPause bool
-* myFileAMTSeeders     map[seederIPFSaddress]         `ChainID+FileAMT`  // one file can exist on many chains.
 
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
 
+```
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
