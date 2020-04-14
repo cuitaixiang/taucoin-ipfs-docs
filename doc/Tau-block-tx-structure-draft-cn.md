@@ -158,7 +158,7 @@ signature []byte //by genesis miner
 * myChains.add(`ChainID`:"")
 * myPeers[`ChainID`].add(`Tminer);
 
-for range { aws tx from config file}
+for range {myRelays[TAU][date less then mutablerange])  // myRelays[TAU] will be populated when system starts in process E
 * myTXsPool [`ChainID`].add = { relay annoucment tx } // relay annoucment service to add relay
 
 ```
@@ -181,7 +181,7 @@ according to the global time in the base of RelaySwitchTimeUnit, H = hash (time 
 
 {if H last number is 0,1,2
 
-to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
@@ -189,7 +189,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -209,7 +209,7 @@ goto (*) until the mutable range or any error; //
 
 {if H last number is 0,1,2
 
-to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
@@ -217,7 +217,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -331,7 +331,7 @@ according to the global time in the base of RelaySwitchTimeUnit, H= hash (time i
 
 {if H last number is 0,1,2
 
-to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
@@ -339,7 +339,7 @@ to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE rela
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
-to hash(myRelays[trusted][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[trusted][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
