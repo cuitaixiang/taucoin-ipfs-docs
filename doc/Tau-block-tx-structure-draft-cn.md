@@ -46,14 +46,13 @@ Business model:= { 商业模式
 * myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if current safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 * myContractResultStateRoots                    map[ChainID] cbor.cid; // after found safety, this is the new contract state
 * myChains                                      map[ChainID] config; // a  list of Chains to follow/mine by users, string is for potential config
-* myFileAMTroots                                map[AMTroot] filename; // a  list for imported and downloaded files trie
+* myFileAMTroots                                map[AMTroot] bool; // a  list for paused or downloaded files trie
 
-* myPeers      map[`ChainID`][]String; // known IPFS peers in the chain
-* myTXsPool    map[`ChainID`][]String; // verified txs for adding to new state prediction
-
-* myRelays        [] * struct {ChainID; RelayAddr; date}; // known relays for the chain; setup a chainID called "successed" with historically successful relays. Date is used for only selelct relays in the mutalble range. 
-* myDownloadPool  [] * struct {ChainID; FileAMT cbor.cid; count int; isPause boolean} // a slice of struct
-* mySeedersDB     [] * struct {fileAMT; ChainID; seeder}   // one file can exist on many chains.
+* myTXsPool            map[TXJSON]                    ChainID
+* myPeers              map[`TAU+IPFSsignature(TAU)`]  ChainID  // simulate union
+* myRelays             map[`RelayAddr+timestamp`]     ChainID; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
+* myDownloadPool       map[`ChainID+FileAMT`]         isPause bool
+* myFileAMTSeeders     map[seederIPFSaddress]         `ChainID+FileAMT`  // one file can exist on many chains.
 
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
@@ -85,7 +84,7 @@ Business model:= { 商业模式
    * relay, msg is the contract relating to this tx, include the relay info
    * file, msg is the contract relating to this tx, include discription of the file or future file command
    
-- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay candidates in the daily basis, each node config own successed relays. three of those sharing the time slots.   
+- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots.   
    
 
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
@@ -96,6 +95,7 @@ Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
 - `Tsender/receiver`TXnounce`Msg // for future command, such as "seeding all up to 1G" comment, no file attachment
+- `Tsender/receiver`IPFSAddr
 File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
@@ -147,6 +147,7 @@ signature []byte //by genesis miner
 * stateroot.hamt_add(`Tminer`TXNounce, 0);
 * stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
 * stateroot.hamt_add(`Tminer`FileNounce, 0);
+* stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
 * stateroot.hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 
 * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
@@ -154,7 +155,7 @@ signature []byte //by genesis miner
 * mySafetyContractResultStateRootMiners[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
 * myChains.add(`ChainID`:"")
-* myPeers[`ChainID`].add(`Tminer);
+* myPeers.add(`Tminer` and ipfs address);
 
 // no need to config relay, myRelays[TAU] will be populated when system starts in process E and community chains will use time slots to touch TAU relays. 
 
@@ -178,15 +179,15 @@ according to the global time in the base of RelaySwitchTimeUnit, H = hash (time 
 
 {if H div 10, remainder 余数 is 
 
-to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 1,2
-to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 3,4,5,6,7,8,9
-to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
@@ -206,21 +207,21 @@ goto (*) until the mutable range or any error; //
 
 {if H div 10, remainder 余数 is 
 
-to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 1,2
-to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 3,4,5,6,7,8,9
-to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
 goto step (3) until surveyed 2/3 of myPeers[`ChainID`][...]
 
-6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: mySafetyContractResultStateRoots[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
+6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot uptimestamp the CBC safety root: mySafetyContractResultStateRoots[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
 goto (9)
 // use  map[root string]Uint to count voting. 
 
@@ -263,49 +264,50 @@ tx sender signature; // this can generate `ChainID`senderAddress
 signature;  // this can generate `ChainID`minerAddress
 }  // finish X.
 
-* stateroot.hamt_update(contractJSON, X); 
+* stateroot.hamt_uptimestamp(contractJSON, X); 
 
 #### contract execute results
 ##### output coinbase tx
-* stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
-* stateroot.hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
+* stateroot.hamt_uptimestamp(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
+* stateroot.hamt_uptimestamp(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
 * stateroot.hamt_add(`Tminer`TXnounceMsg, contractJSON/msg); // recording the block tx pool
-
+* stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
-* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
-* stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* stateroot.hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
-* stateroot.hamt_update(`Treceiver`TXnounce,`Treceiver`TXnounce++);
+* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
+* stateroot.hamt_uptimestamp(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
+* stateroot.hamt_uptimestamp(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* stateroot.hamt_uptimestamp(`Treceiver`TXnounce,`Treceiver`TXnounce++);
 * stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * stateroot.hamt_add(`Treceiver`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-
+* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
 
 ##### output relay annoucement tx, both sender and receive increase power, this is good for new users to produce contract.
 Relay annoucement operation
-* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - txfee); 
-* stateroot.hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance - txfee); 
+* stateroot.hamt_uptimestamp(`Tsender`TXnounce,`Tsender`TXounce + 1);
 * stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_update(RelayNounce , ++) 
+* stateroot.hamt_uptimestamp(RelayNounce , ++) 
 * stateroot.hamt_add(RelayNounceAddress, msg/relay multiaddress) 
 * myRelays [`ChainID`][ ].add({msg/relay multiaddress});
-
+* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
 
 ##### File creation and seeding transaction
 File operation
-* stateroot.hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
+* stateroot.hamt_uptimestamp(`Tsender`FileNounce, `Tsender`FileNounce + 1);
 * stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
 * stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
 * stateroot.hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
-* mySeedersDB[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
+* myFileAMTSeeders[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
 * For file upload to chain
       * myFileAMTroots.add(fileAMTroot)
 * For file seeding from other peers
       *myDownloadPool.add(fileAMTroot)
 
 Account operation
-* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
+* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance-txfee);
 
 #### finish contract execution
 Put new generated states into  cbor block, * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
@@ -328,19 +330,19 @@ according to the global time in the base of RelaySwitchTimeUnit, H= hash (time i
 
 {if H div 10, remainder 余数 is 
 
-to hash(myRelays[`ChainID`][date less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 1,2
-to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 3,4,5,6,7,8,9
-to hash(myRelays[successed][date within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 
-Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * mySeedersDB[fileAMT][ChainID][seeder  ]. Randomly select a piece N from fileAMTroot.count
+Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
@@ -395,7 +397,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - share file to friend
 - share file to community chain
 - seeding files and unseeding
-- pin a file, no directory at now, sort by dates and size
+- pin a file, no directory at now, sort by timestamps and size
 - delete a file
 ### Forum 论坛
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
