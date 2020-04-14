@@ -51,9 +51,9 @@ in each transition, following variables will be populated from wormhole kv. Worm
 
 * myFileAMTroots       map[AMTroot]                   bool; // a  list for paused or downloaded files trie
 * myDownloadPool       map[`ChainID+FileAMT`]         isPause bool
-* myFileAMTSeeders     map[seederIPFSaddress]         `ChainID+FileAMT`  // one file can exist on many chains.
+* myFileAMTSeeders     map[`fileAMT+seederIPFSaddress`] ChainID  // one file can exist on many chains.
 * myTXsPool            map[TXJSON]                    ChainID
-* myPeers              map[`TAU+IPFSsignature(TAU)`]  ChainID  // simulate union
+* myPeers              map[`ChainID + TAUaddress`+ IPFSsignature(TAUaddr)]  bool           // simulate union
 * myRelays             map[`RelayAddr+timestamp`]     ChainID; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
 
 * mytotalFileAMTDownloadedData
