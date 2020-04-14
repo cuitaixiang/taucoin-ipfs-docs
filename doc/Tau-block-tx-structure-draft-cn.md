@@ -23,16 +23,16 @@ Business model:= { 商业模式
 }
 ```
 ## Two Tries
-* chain contract result hamt trie: `ChainID`ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
-> future state ->`ChainID`ContractJSON
+* chain contract result hamt trie: ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
+> future state ->ContractJSON
 
-> `ChainID`ContractJSON -> `ChainID`SafetyContractResultStateRoot
+> ContractJSON -> SafetyContractResultStateRoot
 
 * file AMT: the root for AMT trie for chopping and storing the file.
 
 ## Five core processes
 > Hamt trie.
-  * A. Response with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+  * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
   * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
 > Amt trie.
   * C. File Downloader. (download files and logging download data)
@@ -52,7 +52,7 @@ Business model:= { 商业模式
 * myRelaysList [`ChainID`][index] = String `relayaddre`; // a list of known relays for different chains; initially will be hard-coded to use AWS EC2 relays in the genesis.
 * myTXsPool [`ChainID`][`TXindex`] = String; // a list of verified txs for adding to new contract prediction
 * myDownloadQue map{fileAMT:completion count} // when complete, added to myFilesAMTlist
-* myDownloadQueSeedersDB[fileAMT][ChainID][seeder index]
+* myDownloadQueSeedersDB[fileAMT][ChainID][seeder index] // one file can exist on many chains.
 * mytotalFileAMTDownloaded data
 * mytotalFileAMTUploaded data
 
@@ -64,7 +64,7 @@ Business model:= { 商业模式
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
 - Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
 
-- HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the `ChainID`ContractResultStateRoot prediction on the chainID.
+- HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the ContractResultStateRoot prediction on the chainID.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. AMT is not chain specific, and it is rather relating to IPFS peers. 
 - In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. 
 
@@ -87,7 +87,7 @@ Business model:= { 商业模式
 ```
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
 ```
-`ChainID`genesisAddress = TAUaddress
+genesisAddress = TAUaddress
 // TX oriented 
 Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
@@ -99,13 +99,13 @@ File transactions
 - `Tsender`File`Nounce`Msg
 
 // entity oritened
-File
-- `FileAMTroot``ChainID`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-- `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+File seeding info in a chain
+- `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
+- `FileAMTroot``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 
-Relay
-- Relay`ChainID`Nounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
-- Relay`ChainID`NounceAddress // recording the relay address
+Relay of a chain ID 
+- RelayNounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
+- RelayNounceAddress // recording the relay address
 ```
 ## Constants
 * MutableRange:  1 week
@@ -124,9 +124,9 @@ Relay
 * with parameters: block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
-Y:= { // define the contract strut
-ChainID := `Nickname`+`blocktime` + signature(random) // chainID include nickname and time 5, these are critical information to pass down in the stateless mode.
-`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
+Y:= { 
+ChainID := `Nickname`+ `blocktime` + hash(signature(random)) // chainID is the only information to pass down in the stateless mode.
+SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
 initial difficulty int64; // ???
 totalCoins int64; // GenesisDefaultCoins， 币数量
@@ -137,15 +137,15 @@ signature []byte //by genesis miner
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
-* hamt_add(ChainID, `Nickname`+`blocktime` + signature(random));用创世矿工的TAU私钥签署 randomness
-* hamt_add(`ChainID`contractJSON, Y) 
-* hamt_add(`ChainID`SafetyContractResultRoot = null; // genesis is built from null.
-* hamt_add(`Tminer`Balance, 1,000,000); 
-* hamt_add(`Tminer`TXNounce, 0);
-* hamt_add(`Tminer`TXNounceMsg,msg);
-* hamt_add(`Tminer`FileNounce, 0);
-* hamt_add(`ChainID`genesisAddress, `Tminer`); // add genesis address wormhole
-* hamt_add(other KVs); // initial chain address. optional, this is for tau and taut population
+* stateroot.hamt_add(ChainID, `Nickname`+`blocktime` + hash.signature(random));用创世矿工的TAU私钥签署 randomness
+* stateroot.hamt_add(contractJSON, Y) 
+* stateroot.hamt_add(SafetyContractResultRoot = null; // genesis is built from null.
+* stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
+* stateroot.hamt_add(`Tminer`TXNounce, 0);
+* stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
+* stateroot.hamt_add(`Tminer`FileNounce, 0);
+* stateroot.hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
+* stateroot.hamt_add(other KVs); // initial chain address. optional, this is for tau and taut population
 
 
 * myContractResultStateRoot[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
@@ -160,7 +160,7 @@ for range { aws tx from config file}
 
 ```
 ## A. One miner receives GraphSync request from a relay.  
-Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "chainIDContractResultStateRoot" or null. 
+Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "ContractResultStateRoot[]" or null. 
 -  Receive the `ChainID` from a graphRelaySync call
 -  If `ChainID` exist in myChainsMap, return myContractResultStateRoot[`ChainID`] and blocks according to selector; else response null
 
@@ -181,11 +181,11 @@ ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means t
 go to step (3); // 上两次连续出块是同一个地址，就要投票。 
 else go to step (7); // it is educated working chain
 
-3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=`ChainID`contractJSON)); if err go to (5)
+3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (5)
 
 4. traverse history for states roots collection until MutableRange.
 (*)  
-stateroot= y/`ChainID`contractJSON/`ChainID`SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
+stateroot= y/contractJSON/SafetyContractResultStateRoot // recursive getting previous stateRoot to move into history
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
@@ -195,10 +195,10 @@ goto step (3) until surveyed 2/3 of myPeersList[`ChainID`][...]
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: mySafetyContractResultStateRoot[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
 goto (9)
 
-7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=`ChainID`contractJSON));
+7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
 
 8. if ok, then verify {
-if received `ChainID`ContractResultStateRoot/`ChainID`contractJSON shows a more difficult chain than `ChainID`SafetyContractResultStateRoot/`ChainID`contractJSON/`difficulty`, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
+if received ContractResultStateRoot/contractJSON shows a more difficult chain than SafetyContractResultStateRoot/contractJSON/`difficulty`, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
 goto (9)
 }
   else { 
@@ -208,8 +208,9 @@ goto (9)
 
 9. generate new state 
 X = {
-`ChainID`SafetyContractResultStateRoot; // type cbor.cid
-contractNumber;  hamt_get(`ChainID`SafetyContractResultStateRoot,`ChainID`contractJSON) / contractNumber +1;
+ChainID
+SafetyContractResultStateRoot; // type cbor.cid
+contractNumber;  hamt_get(SafetyContractResultStateRoot,contractJSON) / contractNumber +1;
 version; 
 timestamp; 
 base target; // for POT calc
@@ -234,52 +235,52 @@ tx sender signature; // this can generate `ChainID`senderAddress
 signature;  // this can generate `ChainID`minerAddress
 }  // finish X.
 
-* hamt_update(`ChainID`contractJSON, X); 
+* stateroot.hamt_update(contractJSON, X); 
 
 #### contract execute results
 ##### output coinbase tx
-* hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
-* hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
-* hamt_add(`Tminer`TXnounceMsg, `ChainID`contractJSON/msg); // recording the block tx pool
+* stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // update balance 
+* stateroot.hamt_update(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
+* stateroot.hamt_add(`Tminer`TXnounceMsg, contractJSON/msg); // recording the block tx pool
 
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 Account operation
-* hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
-* hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
-* hamt_update(`Treceiver`TXnounce,`Treceiver`TXnounce++);
-* hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* hamt_add(`Treceiver`TXnounceMsg, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
+* stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
+* stateroot.hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* stateroot.hamt_update(`Treceiver`TXnounce,`Treceiver`TXnounce++);
+* stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Treceiver`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 
 
 ##### output relay annoucement tx, both sender and receive increase power, this is good for new users to produce contract.
 Relay annoucement operation
-* hamt_update(`Tsender`Balance,`Tsender`Balance - txfee); 
-* hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
-* hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* hamt_update(Relay`ChainID`Nounce , ++) 
-* hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
+* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - txfee); 
+* stateroot.hamt_update(`Tsender`TXnounce,`Tsender`TXounce + 1);
+* stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_update(Relay`ChainID`Nounce , ++) 
+* stateroot.hamt_add(Relay`ChainID`NounceAddress, msg/relay multiaddress) 
 * myRelaysList [`ChainID][index].add({msg/relay multiaddress});
 
 
 ##### File creation and seeding transaction
 File operation
-* hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
-* hamt_add(`ChainID``Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_update(`Tsender`FileNounce, `Tsender`FileNounce + 1);
+* stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
-* hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* stateroot.hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 * myFilesAMTseedersDB[fileAMT][index].add(`ChainID``Tsender`IPFSaddr)
 * myFilesAMTlist[].add(amt.node = AMTgraphRelaySync(relay, peerID, fileAMTroot, selector))
 Account operation
-* hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
+* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance-txfee);
 
 10. Put new generated states into  cbor block, * myContractResultStateRoot[`ChainID`]=hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
 
 * mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
 * mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
 
-* mySafetyContractResultStateRoot[`ChainID`] = `ChainID`SafetyContractResultStateRoot;
+* mySafetyContractResultStateRoot[`ChainID`] = SafetyContractResultStateRoot;
 * myPeersList[`ChainID`][index].add(`Tminer);
 
 go to step (1) to get a new ChainID state prediction.
@@ -313,7 +314,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
- A.Response HAMT with predicted `ChainID`ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+ A.Response HAMT with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
  * on AMTGraphSyncMsg 
   if amtsync not finish, reject; else 
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
