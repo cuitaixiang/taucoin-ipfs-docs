@@ -176,8 +176,17 @@ nodes state switching: 节点工作状态微调
 - Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
-according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID) 
+
+if H is odd number: 奇数
+
+to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
+
+else: 偶数
+to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+
 
 2. if the  mySafetyContractResultStateRootMiners[`ChainID`] == myPreviousSafetyContractResultStateRootMiners[`ChainID`]; 
 go to step (3); // 上两次连续出块是同一个地址，就要投票。 
@@ -191,7 +200,18 @@ stateroot= y/contractJSON/SafetyContractResultStateRoot // recursive getting pre
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID)
+
+if H is odd number: 奇数
+
+to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+
+else: 偶数
+to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+
+
 goto step (3) until surveyed 2/3 of myPeers[`ChainID`][...]
 
 6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot update the CBC safety root: mySafetyContractResultStateRoots[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
@@ -298,7 +318,18 @@ go to step (1) to get a new ChainID state prediction
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
       Pickup ONE random `chainID` in the myChains[index],
-according to the global time in the base of RelaySwitchTimeUnit, hash (time in minute base + chain ID) to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * mySeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
+according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in minute base + chain ID)
+
+if H is odd number: 奇数
+
+to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
+
+else: 偶数
+to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+ONE Chain + ONE Relay + ONE peer 
+
+Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * mySeedersDB[fileAMT][ChainID][seeder index]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
