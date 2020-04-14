@@ -1,5 +1,5 @@
 # TAU - File sharing on blockchains
-```
+
 User experienses:= { 用户体验
 - Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
    - Data dashboard: if (download - upload) > 1G, start ads. "seeding to increase free data"
@@ -20,7 +20,7 @@ Business model:= { 商业模式
 - TAUT is tau-torrent, a file sharing service by tau dev
 - TAU is a relay annoucement service by tau dev. 
 }
-```
+
 ## Two Tries
 * chain contract result hamt trie: ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
 > future state ->ContractJSON
