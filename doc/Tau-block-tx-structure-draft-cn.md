@@ -48,13 +48,13 @@ in each transition, following variables will be populated from wormhole kv. Worm
 * mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
 * mySafetyContractResultStateRootMiners         map[ChainID] address;
 * myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if current safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
-
+* myTXsPool            map[TXJSON] ChainID
 * myFileAMTroots       map[AMTroot]                   string ; // a  list for imported or downloaded files trie
-* myDownloadPool       map[`ChainID+FileAMT`]         isPause string // when fileAMT downloaded, remove fileAMT from the pool
-* myFileAMTSeeders     map[`fileAMT+seederIPFSaddress`] ChainID  // one file can exist on many chains.
-* myTXsPool            map[TXJSON]                    ChainID
-* myPeers              map[`ChainID + TAUaddress`]    IPFSsignature(TAUaddr)]   // simulate union
-* myRelays             map[`RelayAddr+timestamp`]     ChainID; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
+
+* myDownloadPool       map[ChainID]map[FileAMT]isPause string // when fileAMT downloaded, remove fileAMT from the pool
+* myFileAMTSeeders     map[fileAMT]map[seederIPFSaddress] ChainID  // one file can exist on many chains.
+* myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)]   // simulate union
+* myRelays             map[ChainID]map[Relays]timestamp; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
 
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
