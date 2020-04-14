@@ -76,7 +76,7 @@ Business model:= { 商业模式
 - Address system: 
 - TAU private key: the base for all community chain address generation;
 - TAU Chain ID = "0"
-- ChainID := `Nickname`+`blocktime` + signature(random) // chainID include genesis address, block size 1, time 60 seconds; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
+- ChainID := `Nickname`+`blocktime` + signature(random) // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
 - TX types and msg: the contract content for coin base, wiring and file tx
@@ -115,7 +115,7 @@ Relay of a chain ID
 * TXExpiry: transaction expirey 24 hours
 * VotingPercentage: voting cover percentage 67%
 * RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
-* WakeUpTime: sleeping mode wake up random range 1 minutes
+* WakeUpTime: sleeping mode wake up random range 5 minutes
 * SelfMiningTime: self mining qualify time 60 minutes. 
 * GenesisDefaultCoins: default coins 1,000,000
 * initial difficulty according to the BlockTime.
@@ -177,7 +177,7 @@ nodes state switching: 节点工作状态微调
 - Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
-according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID) 
+according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
 
 {if H last number is 0,1,2
 
@@ -205,7 +205,7 @@ stateroot= y/contractJSON/SafetyContractResultStateRoot // recursive getting pre
 y = graphsyncHAMT(stateroot)
 goto (*) until the mutable range or any error; // 
 
-5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in minute base + chain ID)
+5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID)
 
 {if H last number is 0,1,2
 
@@ -327,7 +327,7 @@ go to step (1) to get a new ChainID state prediction
 ```
 1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
       Pickup ONE random `chainID` in the myChains[ ],
-according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in minute base + chain ID)
+according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
 
 {if H last number is 0,1,2
 
