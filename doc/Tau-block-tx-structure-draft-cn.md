@@ -41,20 +41,20 @@ Business model:= { 商业模式
 
 
 ## Operation variables in database, in each transition, following variables will be populated from wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these states. 
-* mySafetyContractResultStateRoots  map[ChainID] cbor.cid;
-* mySafetyContractResultStateRootMiners  map[ChainID] address;
+* mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
+* mySafetyContractResultStateRootMiners         map[ChainID] address;
 * myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if current safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
+* myContractResultStateRoots                    map[ChainID] cbor.cid; // after found safety, this is the new contract state
+* myChains                                      map[ChainID] config; // a  list of Chains to follow/mine by users, string is for potential config
+* myFileAMTroots                                map[AMTroot] filename; // a  list for imported and downloaded files trie
 
-* myContractResultStateRoots map[ChainID] cbor.cid; // after found safety, this is the new contract state
-* myChains map[ChainID] config; // a  list of Chains to follow/mine by users, string is for potential config
-* myFileAMTroots map[AMTroot] filename; // a  list for imported and downloaded files trie
-
-* myPeers  map[`ChainID`][]String; // known IPFS peers in the chain
-* myRelays map[`ChainID`][]String; // known relays for the chain; setup a chainID called "trusted" with historically successful relays. 
+* myPeers      map[`ChainID`][]String; // known IPFS peers in the chain
 * myTXsPool    map[`ChainID`][]String; // verified txs for adding to new state prediction
 
-* myDownloadPool  []*struct { ChainID; FileAMT cbor.cid; count int; isPause boolean} // a slice of struct
-* mySeedersDB     []*struct { fileAMT; ChainID; seeder}   // one file can exist on many chains.
+* myRelays        [] * struct {ChainID; RelayAddr; date}; // known relays for the chain; setup a chainID called "trusted" with historically successful relays. Date is used for only selelct relays in the mutalble range. 
+* myDownloadPool  [] * struct {ChainID; FileAMT cbor.cid; count int; isPause boolean} // a slice of struct
+* mySeedersDB     [] * struct {fileAMT; ChainID; seeder}   // one file can exist on many chains.
+
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
 
@@ -79,12 +79,13 @@ Business model:= { 商业模式
 - ChainID := `Nickname`+`blocktime` + signature(random) // chainID include genesis address, block size 1, time 60 seconds; // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
 - Community chains peer address format : `chainID` + `TAU address`; 
 
-- msg: the contract content for coin base, wiring and file tx
-   * coin base, msg is the txpool attached
+- TX types and msg: the contract content for coin base, wiring and file tx
+   * coin base, msg is the only transaction attached
    * wiring, msg is the contract relating to this tx
-   * relay, msg is the multiaddress
-   * file, msg is the discription of the file or file command
-- relay: each chain config relay on own chain by members, TAU mainchain provides relay candidates.    
+   * relay, msg is the contract relating to this tx, include the relay info
+   * file, msg is the contract relating to this tx, include discription of the file or future file command
+   
+- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay candidates in the daily basis, each node config own trusted relays. three of those sharing the time slots.   
    
 ```
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
@@ -184,7 +185,7 @@ to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
-to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
@@ -212,7 +213,7 @@ to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
-to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
@@ -334,7 +335,7 @@ to hash(myRelays[`ChainID`][] )find the closest ONE relays. Randomly request ONE
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 3,4,5
-to hash(myRelays[TAUchain][] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain][date within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 6,7,8,9
