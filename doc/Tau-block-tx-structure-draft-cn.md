@@ -59,7 +59,6 @@ Business model:= { 商业模式
 * mytotalFileAMTUploadedData
 
 ## Concept explain
-```
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
 - Block size is 1, only one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
@@ -87,9 +86,9 @@ Business model:= { 商业模式
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay candidates in the daily basis, each node config own trusted relays. three of those sharing the time slots.   
    
-```
+
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
-```
+
 genesisAddress = TAUaddress
 // TX oriented 
 Wiring transactions
@@ -109,7 +108,7 @@ File seeding info in a chain
 Relay of a chain ID 
 - RelayNounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
 - RelayNounceAddress // recording the relay address
-```
+
 ## Constants
 * MutableRange:  1 week
 * TXExpiry: transaction expirey 24 hours
@@ -360,7 +359,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 ## E. process manager
 // registration message handling 登记, this can also happen in other main func
-```
+
  * myChains.add (TAU)
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
@@ -370,7 +369,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
   if amtsync not finish, reject; else 
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
  * onMyDownloadQue. not empty and C process not in running, then launch C. File Downloader. (download files and logging download data)  // download is single process too. 
- ```
+
 // finish registration 
 
 #### call func B.  // B is an infinite loop; 
@@ -380,12 +379,12 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 ## App UI 界面
 
-```
+
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
 2. Send coins to friends.  // get their video previews and 2% automatically on the followed friends.  
 3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. 
-```
+
 * Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"
 
 ### Community 社区
