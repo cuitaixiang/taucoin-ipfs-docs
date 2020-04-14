@@ -287,7 +287,7 @@ go to step (1) to get a new ChainID state prediction.
 ## C. File Downloader - nonconcurrency design // ipfs layer
 * For saving mobile phone resources, we adopt non-concurrrency execution. 
 Starting from a downloaded que; 
-* [ChainID]myDownloadQue map[FileAMT cbor.cid:count int] 
+* myDownloadQue [ChainID]strut[FileAMT cbor.cid;count int;status]  // status: downloading, pause
 
 for each file and count, using the chainID as the relay entry to contact seedrs. 
 
