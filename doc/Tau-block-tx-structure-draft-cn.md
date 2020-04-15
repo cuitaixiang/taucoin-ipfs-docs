@@ -25,7 +25,7 @@ Business model:= { 商业模式
 
 * file AMT: the AMT trie for storing the file.
 
-## Five core processes
+## Six core processes
 > On Hamt trie.
   * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
   * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
@@ -34,7 +34,7 @@ Business model:= { 商业模式
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 > E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
 
-> F. Resource management: states key value on chain and before mutabale ranged will be pinned, seeded files will be pined, others are unpinned to garbage collection. 
+> F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
 
 ## Operation variables in database
 in each transition, following variables will be populated from execution and run-time. 
@@ -140,6 +140,7 @@ Relay
 // build genesis block
 Y:= { 
 ChainID := `Nickname`+ `blocktime` + hash(signature(random)) // chainID is the only information to pass down in the stateless mode.
+Timestamp;
 SafetyContractResultRoot = null; // genesis is built from null.
 contractNumber:=0 int32;
 initial difficulty int64; // ???
