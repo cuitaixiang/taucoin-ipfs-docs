@@ -97,10 +97,16 @@ Wiring and coinbase transactions: every other types of tx include a wiring tx co
 - `Tsender`Balance
 - `Tsender`TXnounce`Msg
 - `Tsender`IPFSAddr
+
 - `Treceiver`TXnounce
 - `Treceiver`Balance
 - `Treceiver`TXnounce`Msg
 - `Treceiver`IPFSAddr
+
+- `Tminer`TXnounce
+- `Tminer`Balance
+- `Tminer`TXnounce`Msg
+- `Tminer`IPFSAddr
 
 File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
@@ -299,11 +305,11 @@ Relay annoucement operation
 ##### File creation and seeding transaction
 File operation
 * stateroot.hamt_uptimestamp(`Tsender`FileNounce, `Tsender`FileNounce + 1);
-* stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`ChainID``Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
 * stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
-* hamt_upate(`fileAMTroot``ChainID`SeedingNounce, `fileAMTroot``ChainID`SeedingNounce+1);
-* stateroot.hamt_add  (`fileAMTroot``ChainID`Seeding`Nounce`IPFSpeer, `ChainID``Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* stateroot.hamt_upate(`fileAMTroot``SeedingNounce, `fileAMTroot`SeedingNounce+1);
+* stateroot.hamt_add  (`fileAMTroot`Seeding`Nounce`IPFSpeer, `Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
 * For file upload to chain
       * myFileAMTroots.add(fileAMTroot)
