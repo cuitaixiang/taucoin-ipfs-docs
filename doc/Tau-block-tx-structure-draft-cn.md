@@ -45,12 +45,12 @@ in each transition, following variables will be populated from execution and run
 * myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
       if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 
-* myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)] 
-* myRelays             map[ChainID]map[Relays]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
+* myPeers              map[ChainID]map[TAUaddress]IPFSAddr
+* myRelays             map[ChainID]map[RelaysMultipleAddr]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
 * myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
 * myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
-* myFileAMTSeeders     map[FileAMTroot]map[seederIPFSaddress]timestampInRelaySwitchTimeUnit 
+* myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
 * myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
    
 * mytotalFileAMTDownloadedData
@@ -167,6 +167,7 @@ signature []byte //by genesis miner
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
 * myChains.add(`ChainID`:"")
 * myPeers.add(`Tminer` and ipfs address);
+* myRelays.add
 
 // no need to config relay, myRelays[TAU] will be populated when system starts in process E and community chains will use time slots to touch TAU relays. 
 
@@ -372,7 +373,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 // registration message handling 登记, this can also happen in other main func
 
  * myChains.add (TAU)
- * myRelays[TAU].add{initial relays}
+ * myRelays[TAU].add{initial relays} //populate relays. 
  * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
