@@ -39,22 +39,23 @@ Business model:= { 商业模式
 ## Operation variables in database
 in each transition, following variables will be populated from execution and run-time. 
 ```
-* myChains                                      map[ChainID] config; 
-   * Chains to follow, string is for planned config info
+* myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
+
 * myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
 * mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
-   * State root and safety root
+   
 * mySafetyContractResultStateRootMiners         map[ChainID] address;
-* myPreviousSafetyContractResultStateRootMiners map[ChainID] address; 
-   * Safety miner and previous safety miner; if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
+* myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
+      if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
+
 * myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)] 
 * myRelays             map[ChainID]map[Relays]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
 * myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
 * myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
-   * these vars are under ChainID for relay time slot allocation
+
 * myFileAMTSeeders     map[FileAMTroot]map[seederIPFSaddress]timestampInRelaySwitchTimeUnit 
 * myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
-   * under files concept
+   
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
 ```
