@@ -93,24 +93,23 @@ in each transition, following variables will be populated from wormhole kv. Worm
 
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
 
-genesisAddress = TAUaddress
-// TX oriented 
 Wiring transactions
 - `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender/receiver`Balance
 - `Tsender/receiver`TXnounce`Msg // for future command, such as "seeding all up to 1G" comment, no file attachment
 - `Tsender/receiver`IPFSAddr
+
 File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
 - `Tsender`File`Nounce`Msg
 
-// entity oritened
-File seeding info in a chain
+
+File seeding
 - `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
 - `FileAMTroot``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 
-Relay of a chain ID 
+Relay
 - RelayNounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
 - RelayNounceAddress // recording the relay address
 
@@ -152,7 +151,6 @@ signature []byte //by genesis miner
 * stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
 * stateroot.hamt_add(`Tminer`FileNounce, 0);
 * stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
-* stateroot.hamt_add(genesisAddress, `Tminer`); // add genesis address wormhole
 
 * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
 * mySafetyContractResultStateRoots[`ChainID`] = null;
