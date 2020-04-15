@@ -36,10 +36,10 @@ Business model:= { 商业模式
 
 > F. Resource management: states key value on chain and before mutabale ranged will be pinned, seeded files will be pined, others are unpinned to garbage collection. 
 
-
 ## Operation variables in database
 in each transition, following variables will be populated from execution and run-time. 
 * myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
+>
 
 * myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
 * mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
