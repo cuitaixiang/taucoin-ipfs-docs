@@ -2,38 +2,34 @@
 
 User experienses:= { 用户体验
 - Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
-   - Data dashboard: if (download - upload) > 1G, start ads. "seeding to increase free data"
-- File/video imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and videos. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
-
-- For all videos, we will support a `hopping player` to only play the downloaded pieces. Video download options: download 1%, 5%, 25% or full through the count value.
-
-- TAU provides basic annoucement service include free public relays and genesis. 
-- Community chain can use own chain for relay recommendation. 
-
+   - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
+- File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
+- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. Video download options: download 1%, 5%, 25% or full through the config.
+- TAU provides basic relay services.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
+- User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
 }
 
 Business model:= { 商业模式
-- Tau foundation will develop TAU App and provide free public relays (TAU dev private key signed), in return for admob/mopub ads income to cover AWS data cost. Any one can config relay on own chain. 
-- Individual nodes will see ads to keep using data for free, the more data upload, the less ads to see. In app, show a stats of uploaded data, download data. When users getting data from community signed relay, the TAU app will not counting community relay download. 
-- TAU coin price will rise when cross-chain communications in demand. 
+- Tau foundation will develop TAU App and provide free public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can contribute relays on both TAU and own chain. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads. In app, show a stats of uploaded data, download data. 
 - TAUT is tau-torrent, a file sharing service by tau dev
 - TAU is a relay annoucement service by tau dev. 
 }
 
 ## Two Tries
-* chain contract result hamt trie: ContractResultStateRoot is the chain state hamt root; contract and results are connected in each state transition. 
-> future state ->ContractJSON
+* contract results are in hamt trie: ContractResultStateRoot is the chain state root; contract and results are connected in each state transition. 
+> future state includes ContractJSON
 
-> ContractJSON -> SafetyContractResultStateRoot
+> ContractJSON includes SafetyContractResultStateRoot
 
-* file AMT: the root for AMT trie for chopping and storing the file.
+* file AMT: the AMT trie for storing the file.
 
 ## Five core processes
-> Hamt trie.
+> On Hamt trie.
   * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
   * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
-> Amt trie.
+> On Amt trie.
   * C. File Downloader. (download files and logging download data)
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 > E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
@@ -42,29 +38,31 @@ Business model:= { 商业模式
 
 
 ## Operation variables in database
-```
-in each transition, following variables will be populated from wormhole kv. Wormhole kv is a state consensus, local db variables is for program to operate on these states. 
-* myChains                                      map[ChainID] config; //Chains to follow, string is for potential config
+in each transition, following variables will be populated from execution and run-time. 
+* myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
+
 * myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
 * mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
-* mySafetyContractResultStateRootMiners         map[ChainID] address;
-* myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if current safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
-* myTXsPool            map[TXJSON] ChainID
-* myFileAMTroots       map[AMTroot]                   string ; // a  list for imported or downloaded files trie
 
-* myDownloadPool       map[ChainID]map[FileAMT]config string // when fileAMT downloaded, remove fileAMT from the pool
-* myFileAMTSeeders     map[fileAMT]map[seederIPFSaddress] ChainID  // one file can exist on many chains.
-* myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)]   // simulate union
-* myRelays             map[ChainID]map[Relays]timestamp; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
+* mySafetyContractResultStateRootMiners         map[ChainID] address;
+* myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
+
+* myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)] 
+* myRelays             map[ChainID]map[Relays]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
+* myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
+* myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
+
+* myFileAMTSeeders     map[FileAMTroot]map[seederIPFSaddress]timestampInRelaySwitchTimeUnit 
+* myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
 
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
 
-```
+
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
-- Block size is 1, only one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
+- Block size is 1, one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
 - Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
@@ -88,30 +86,33 @@ in each transition, following variables will be populated from wormhole kv. Worm
    * relay, msg is the contract relating to this tx, include the relay info
    * file, msg is the contract relating to this tx, include discription of the file or future file command
    
-- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots.   
+- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
    
 
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
 
-Wiring transactions
-- `Tsender/receiver`TXnounce; //  balance and POT power for each address 总交易计数
-- `Tsender/receiver`Balance
-- `Tsender/receiver`TXnounce`Msg // for future command, such as "seeding all up to 1G" comment, no file attachment
-- `Tsender/receiver`IPFSAddr
+Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
+- `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
+- `Tsender`Balance
+- `Tsender`TXnounce`Msg
+- `Tsender`IPFSAddr
+- `Treceiver`TXnounce
+- `Treceiver`Balance
+- `Treceiver`TXnounce`Msg
+- `Treceiver`IPFSAddr
 
 File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
 - `Tsender`File`Nounce`Msg
 
-
 File seeding
 - `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-- `FileAMTroot``Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+- `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
 
 Relay
-- RelayNounce  // recording the relays counter, these relays are own chain annouced relays. The TAU relays are in the levelDb. Relay pool are the combination of TAU relays and own chain relays. 
-- RelayNounceAddress // recording the relay address
+- RelayNounce
+- RelayNounceAddress
 
 ## Constants
 * MutableRange:  1 week
@@ -291,7 +292,7 @@ Relay annoucement operation
 * stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
 * stateroot.hamt_uptimestamp(RelayNounce , ++) 
 * stateroot.hamt_add(RelayNounceAddress, msg/relay multiaddress) 
-* myRelays [`ChainID`][ ].add({msg/relay multiaddress});
+* myRelays [`ChainID`][ ].add({msg/relay multiaddress}); 
 * stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
 
 ##### File creation and seeding transaction
@@ -408,14 +409,5 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - coins mining config
 
 # To do 
-- [ ] TAU Chain
-- [ ] file operation commands
-
-```
-File operation command:
-//  rootCreate: create hamt node for the file, return the root IPLD cid and number of blocks, set rootNounce = 1
-//  - cat file| rootCreate -compress -chunk size -type file/video/voice -video_preview
-//  e.g  cat starwar.mp4 | rootCreate -type video -video_preview; // return root hash and size of the preview
-//  rootSeeding: graphRelaySync hamt node to local, and provide turn on seeding or off, set rootNounce ++
-//  - rootSeeding fileRoot -seeding on/off
-```
+- [ ] file operation commands planning
+- [ ] resource management process
