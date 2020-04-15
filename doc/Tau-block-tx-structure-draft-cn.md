@@ -146,6 +146,8 @@ totalCoins int64; // GenesisDefaultCoins， 币数量
 `Tminer`TXnoucne:=0;
 `Tminer`FileNounce:=0;
 msg;
+`minerAddress`IPFSsig; //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+msg = { // one block support one transaction only
 signature []byte //by genesis miner
 }
 // build genesis state
