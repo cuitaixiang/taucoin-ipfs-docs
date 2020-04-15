@@ -37,6 +37,7 @@ Business model:= { 商业模式
   * C. File Downloader. (download files and logging download data)
   * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
 > E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
+
 > F. Resource management: states key value on chain and before mutabale ranged will be pinned, seeded files will be pined, others are unpinned to garbage collection. 
 
 
