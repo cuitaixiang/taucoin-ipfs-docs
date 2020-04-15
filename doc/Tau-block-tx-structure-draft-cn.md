@@ -52,7 +52,7 @@ in each transition, following variables will be populated from wormhole kv. Worm
 * myTXsPool            map[TXJSON] ChainID
 * myFileAMTroots       map[AMTroot]                   string ; // a  list for imported or downloaded files trie
 
-* myDownloadPool       map[ChainID]map[FileAMT]isPause string // when fileAMT downloaded, remove fileAMT from the pool
+* myDownloadPool       map[ChainID]map[FileAMT]config string // when fileAMT downloaded, remove fileAMT from the pool
 * myFileAMTSeeders     map[fileAMT]map[seederIPFSaddress] ChainID  // one file can exist on many chains.
 * myPeers              map[ChainID]map[TAUaddress]IPFSsignature(TAUaddr)]   // simulate union
 * myRelays             map[ChainID]map[Relays]timestamp; // known relays for the chain; setup a chainID called "successed" with historically successful relays. timestamp is used for only selelct relays in the mutalble range. 
