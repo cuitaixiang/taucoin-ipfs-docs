@@ -38,6 +38,7 @@ Business model:= { 商业模式
 
 ## Operation variables in database
 in each transition, following variables will be populated from execution and run-time. 
+```
 * myChains                                      map[ChainID] config; 
    * Chains to follow, string is for planned config info
 * myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
@@ -56,7 +57,7 @@ in each transition, following variables will be populated from execution and run
    * under files concept
 * mytotalFileAMTDownloadedData
 * mytotalFileAMTUploadedData
-
+```
 
 
 ## Concept explain
