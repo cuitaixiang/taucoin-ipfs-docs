@@ -18,12 +18,10 @@ Business model:= { 商业模式
 }
 
 ## Two Tries
-* contract results are in hamt trie: ContractResultStateRoot is the chain state root; contract and results are connected in each state transition. <br/> <br/>
-future state includes ContractJSON <br/> <br/>
-ContractJSON includes SafetyContractResultStateRoot
-
+* contract results are in hamt trie: ContractResultStateRoot is the chain state root; contract and results are connected in each state transition. 
+   * future state includes ContractJSON 
+   * ContractJSON includes SafetyContractResultStateRoot
 * file AMT: the AMT trie for storing the file.
-
 ## Six core processes
 On Hamt trie.
 * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
