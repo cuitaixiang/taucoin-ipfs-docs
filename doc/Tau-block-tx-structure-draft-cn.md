@@ -26,15 +26,15 @@ Business model:= { 商业模式
 * file AMT: the AMT trie for storing the file.
 
 ## Six core processes
-> On Hamt trie.
-  * A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
-  * B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)
-> On Amt trie.
-  * C. File Downloader. (download files and logging download data)
-  * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
-> E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
-
-> F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
+On Hamt trie.
+* A. Response with predicted ContractResultStateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
+* B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)<br/> <br/>
+On Amt trie.
+* C. File Downloader. (download files and logging download data)
+* D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
+On Environment
+* E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
+* F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
 
 ## Operation variables in database
 in each transition, following variables will be populated from execution and run-time. 
@@ -66,26 +66,26 @@ in each transition, following variables will be populated from execution and run
 - Block size is 1, one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
-- Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.
+- Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.<br/> <br/>
 
 - HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the ContractResultStateRoot prediction on the chainID.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. AMT is not chain specific, and it is rather relating to IPFS peers. 
-- In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. 
+- In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. <br/> <br/>
 
 - File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
-- Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. We use E. process manager to create top level concurrency. For mobile device,concurrency is hard to manage due to memory restraint.
+- Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. We use E. process manager to create top level concurrency. For mobile device,concurrency is hard to manage due to memory restraint.<br/> <br/>
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
 - TAU Chain ID = "0"
 - ChainID := `Nickname`+`blocktime` + signature(random) // in stateless environment, chain config info needs to be embedded into chainname, otherwise, might be lost. 
-- Community chains peer address format : `chainID` + `TAU address`; 
+- Community chains peer address format : `chainID` + `TAU address`; <br/> <br/>
 
 - TX types and msg: the contract content for coin base, wiring and file tx
    * coin base, msg is the only transaction attached
    * wiring, msg is the contract relating to this tx
    * relay, msg is the contract relating to this tx, include the relay info
-   * file, msg is the contract relating to this tx, include discription of the file or future file command
+   * file, msg is the contract relating to this tx, include discription of the file or future file command<br/> <br/>
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
    
@@ -96,26 +96,26 @@ Wiring and coinbase transactions: every other types of tx include a wiring tx co
 - `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
 - `Tsender`Balance
 - `Tsender`TXnounce`Msg
-- `Tsender`IPFSAddr
+- `Tsender`IPFSAddr<br/> <br/>
 
 - `Treceiver`TXnounce
 - `Treceiver`Balance
 - `Treceiver`TXnounce`Msg
-- `Treceiver`IPFSAddr
+- `Treceiver`IPFSAddr<br/> <br/>
 
 - `Tminer`TXnounce
 - `Tminer`Balance
 - `Tminer`TXnounce`Msg
-- `Tminer`IPFSAddr
+- `Tminer`IPFSAddr<br/> <br/>
 
 File transactions
 - `Tsender`FileNounce // file command counting 文件交易计数
 - `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-- `Tsender`File`Nounce`Msg
+- `Tsender`File`Nounce`Msg<br/> <br/>
 
 File seeding
 - `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-- `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. 
+- `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. <br/> <br/>
 
 Relay
 - RelayNounce
@@ -181,7 +181,7 @@ This process is for multiple chain, multiple relay and mulitple peers.
 nodes state switching: 节点工作状态微调
 - on power charging: turn on wake lock; charging off: turn off wake lock.
 - on wifi data: start all process A-D; wifi off: stop all process A-D and turn off wake lock.
-- in the sleeping mode, random wake up between 1..WakeUpTime, if Wifi is off, then stop; else run for a cycle of all chains follow up, and check whether in power charging, yes to turn on wake lock. 
+- in the sleeping mode, random wake up between 1..WakeUpTime, if Wifi is off, then stop; else run for a cycle of all chains follow up, and check whether in power charging, yes to turn on wake lock. <br/> <br/>
 
 - Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
 ```
@@ -395,9 +395,9 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 // 建立区块链，发币邀请，上传
 1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
 2. Send coins to friends.  // get their video previews and 2% automatically on the followed friends.  
-3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. 
+3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. <br/> <br/>
 
-* Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"
+* Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"<br/> <br/>
 
 ### Community 社区
 - follow chain, first layer
