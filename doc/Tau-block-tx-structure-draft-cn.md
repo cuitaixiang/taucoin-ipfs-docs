@@ -226,7 +226,7 @@ goto (9)
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
    if err= null, myRelays[successed].add{this Relay}
 8. if ok, then verify {
-if received ContractResultStateRoot/contractJSON shows a more difficult chain than SafetyContractResultStateRoot/contractJSON/`difficulty`, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
+if received ContractResultStateRoot/contractJSON shows a more difficult chain than SafetyContractResultStateRoot/contractJSON/`difficulty` and future root/contract/json/ safetyroot timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
 goto (9)
 }
   else { 
