@@ -34,30 +34,31 @@ On Environment
 * E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
 * F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
 
-## Operation variables in database
+## Persistence variables in database
 in each transition, following variables will be populated from execution and run-time. 
 ```
-* myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
+1. myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
 
-* myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
-* mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
+2. myContractResultStateRoots                    map[ChainID] cbor.cid; // the new contract state
+3. mySafetyContractResultStateRoots              map[ChainID] cbor.cid;
    
-* mySafetyContractResultStateRootMiners         map[ChainID] address;
-* myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
+4. mySafetyContractResultStateRootMiners         map[ChainID] address;
+5. myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
       if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 
-* myPeers              map[ChainID]map[TAUaddress]IPFSAddr
-* myRelays             map[ChainID]map[RelaysMultipleAddr]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
-* myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
-* myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
+6. myPeers              map[ChainID]map[TAUaddress]IPFSAddr
+7. myRelays             map[ChainID]map[RelaysMultipleAddr]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
+8. myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
+9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
-* myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
-* myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
+10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
+11. myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
    
-* mytotalFileAMTDownloadedData
-* mytotalFileAMTUploadedData
+12. mytotalFileAMTDownloadedData
+13. mytotalFileAMTUploadedData
 ```
-
+## Temporary Variables
+* currentChainID
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
@@ -92,34 +93,40 @@ in each transition, following variables will be populated from execution and run
 ## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
 
 Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
-- `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
-- `Tsender`Balance
-- `Tsender`TXnounce`Msg
-- `Tsender`IPFSAddr<br/> <br/>
+```
+1. `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
+2. `Tsender`Balance
+3. `Tsender`TXnounce`Msg
+4. `Tsender`IPFSAddr<br/> <br/>
 
-- `Treceiver`TXnounce
-- `Treceiver`Balance
-- `Treceiver`TXnounce`Msg
-- `Treceiver`IPFSAddr<br/> <br/>
+1. `Treceiver`TXnounce
+2. `Treceiver`Balance
+3. `Treceiver`TXnounce`Msg
+4. `Treceiver`IPFSAddr<br/> <br/>
 
-- `Tminer`TXnounce
-- `Tminer`Balance
-- `Tminer`TXnounce`Msg
-- `Tminer`IPFSAddr<br/> <br/>
-
+1. `Tminer`TXnounce
+2. `Tminer`Balance
+3. `Tminer`TXnounce`Msg
+4. `Tminer`IPFSAddr<br/> <br/>
+```
 File transactions
-- `Tsender`FileNounce // file command counting 文件交易计数
-- `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-- `Tsender`File`Nounce`Msg<br/> <br/>
-
+```
+5. `Tsender`FileNounce // file command counting 文件交易计数
+6. `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
+7. `Tsender`File`Nounce`Msg<br/> <br/>
 File seeding
-- `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-- `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. <br/> <br/>
-
+8. `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
+9. `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. <br/> <br/>
+```
 Relay
-- RelayNounce
-- RelayNounceAddress
-
+```
+10. RelayNounce
+11. RelayNounceAddress
+```
+Environment
+```
+12. contractJSON
+```
 ## Constants
 * MutableRange:  1 week
 * TXExpiry: transaction expirey 24 hours
@@ -142,7 +149,7 @@ Y:= {
 2. timestampinRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber:=0 int32;
 4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampinRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
-5. . SafetyContractResultRoot = null; // genesis is built from null.
+5. SafetyContractResultRoot = null; // genesis is built from null.
 6. basetarget;
 7. cummulative difficulty int64; // ???
 8. generation signature;
@@ -155,20 +162,21 @@ Y:= {
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
-* stateroot.hamt_add(ChainID, `Nickname`+`blocktime` + hash.signature(random));用创世矿工的TAU私钥签署 randomness
+
 * stateroot.hamt_add(contractJSON, Y) 
-* stateroot.hamt_add(SafetyContractResultRoot = null; // genesis is built from null.
 * stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
 * stateroot.hamt_add(`Tminer`TXNounce, 0);
 * stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
 * stateroot.hamt_add(`Tminer`FileNounce, 0);
 * stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
 
+* currentChainID = ChainID
+* myChains[`ChainID`]=""
 * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
 * mySafetyContractResultStateRoots[`ChainID`] = null;
 * mySafetyContractResultStateRootMiners[`ChainID`] = Tminer;
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
-* myChains.add(`ChainID`:"")
+
 * myPeers.add(`Tminer` and ipfs address);
 * myRelays.add
 
@@ -192,19 +200,7 @@ nodes state switching: 节点工作状态微调
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
 
-{if H div 10, remainder 余数 is 
-
-to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
-
-else if 1,2
-to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer 
-
-else 3,4,5,6,7,8,9
-to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer 
-}
+call func PickupRelayAndPeer(H)
 
 2. if the  mySafetyContractResultStateRootMiners[`ChainID`] == myPreviousSafetyContractResultStateRootMiners[`ChainID`]; 
 go to step (3); // 上两次连续出块是同一个地址，就要投票。 
@@ -220,19 +216,7 @@ goto (*) until the mutable range or any error; //
 
 5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID)
 
-{if H div 10, remainder 余数 is 
-
-to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
-
-else if 1,2
-to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer 
-
-else 3,4,5,6,7,8,9
-to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
-ONE Chain + ONE Relay + ONE peer 
-}
+call func PickupRelayAndPeer(H)
 
 goto step (3) until surveyed 2/3 of myPeers[`ChainID`][...]
 
@@ -253,30 +237,27 @@ goto (9)
 
 9. generate new state 
 X = {
-ChainID
-SafetyContractResultStateRoot; // type cbor.cid
-contractNumber;  hamt_get(SafetyContractResultStateRoot,contractJSON) / contractNumber +1;
-version; 
-timestamp; 
-base target; // for POT calc
-cumulative difficulty; 
-generation signature; 
-`minerAddress`IPFSsig; //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-msg = { // one block support one transaction only
-nounce;
-version;
-timestamp;
-txfee;
-msg; // fileAMTroot is also in msg.  msg {optcode, code}
-`ChainIDsenderAddress`IPFSsig; //IPFS signature on `ChainIDsenderAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+1. version;
+2. timestampinRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
+3. contractNumber; // hamt_get(SafetyContractResultStateRoot,contractJSON) / contractNumber +1;
+4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampinRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
+5. SafetyContractResultRoot; //  type cbor.cid
+6. basetarget;
+7. cummulative difficulty int64; 
+8. generation signature;
+9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
+10. TXnoucne ++;
+11. FileNounce;
+12. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+13. msg; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+14. signature; //by genesis miner to derive the TAUaddress
+
 // the File importing to AMT
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
 // 2. newNode.amt(1,piece(1)); loop to newNode.amt(m,piece(m));
 // 3. FileAMTroot=AMT.put(cbor)
 // 4. return FileAMTroot to here for fileAMTroot. 
-tx sender signature; // this can generate `ChainID`senderAddress
-}
-signature;  // this can generate `ChainID`minerAddress
+
 }  // finish X.
 
 * stateroot.hamt_uptimestamp(contractJSON, X); 
@@ -335,14 +316,8 @@ Put new generated states into  cbor block, * myContractResultStateRoots[`ChainID
 
 go to step (1) to get a new ChainID state prediction
 ```
-## C. File Downloader - nonconcurrency design // ipfs layer
-* For saving mobile phone resources, we adopt non-concurrrency execution. The entire download pool is one big file to randomly retrieve.
-
+func PickupRelayAndPeer(H)
 ```
-1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
-      Pickup ONE random `chainID` in the myChains[ ],
-according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
-
 {if H div 10, remainder 余数 is 
 
 to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
@@ -356,7 +331,16 @@ else 3,4,5,6,7,8,9
 to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
+```
+## C. File Downloader - nonconcurrency design // ipfs layer
+* For saving mobile phone resources, we adopt non-concurrrency execution. The entire download pool is one big file to randomly retrieve.
 
+```
+1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
+      Pickup ONE random `chainID` in the myChains[ ],
+according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
+
+call func PickupRelayAndPeer(H)
 Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. Randomly select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
@@ -391,7 +375,6 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 #### call func B.  // B is an infinite loop; 
 
 * if cell phone resource is enough, load more goroutine "go func B()"; waitGroup().
-
 
 ## App UI 界面
 
