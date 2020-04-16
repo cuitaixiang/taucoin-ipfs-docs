@@ -138,18 +138,20 @@ Relay
 ```
 // build genesis block
 Y:= { 
-ChainID := `Nickname`+ `blocktime` + hash(signature(random)) // chainID is the only information to pass down in the stateless mode.
-Timestamp;
-SafetyContractResultRoot = null; // genesis is built from null.
-contractNumber:=0 int32;
-initial difficulty int64; // ???
-totalCoins int64; // GenesisDefaultCoins， 币数量
-`Tminer`TXnoucne:=0;
-`Tminer`FileNounce:=0;
-msg;
-`minerAddress`IPFSsig; //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-msg = { // one block support one transaction only
-signature []byte //by genesis miner
+1. version;
+2. timestampinRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
+3. contractNumber:=0 int32;
+4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampinRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
+5. . SafetyContractResultRoot = null; // genesis is built from null.
+6. basetarget;
+7. cummulative difficulty int64; // ???
+8. generation signature;
+9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
+10. TXnoucne:=0;
+11. FileNounce:=0;
+12. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+13. msg; // "hello world"
+14. signature; //by genesis miner to derive the TAUaddress
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
