@@ -407,5 +407,4 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - [ ] resource management process
 - [ ] graphyRelaySync: two step via relay
 - [ ] hamtGraphsync: multiple steps to get kv on the selector
-- [ ] seeder's successful collection 
 - [ ] change ipfs block to 1m.  ipld blocksize. 
