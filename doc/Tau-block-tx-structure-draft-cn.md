@@ -95,37 +95,34 @@ in each transition, following variables will be populated from execution and run
 
 Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
 ```
-1. `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
+1. `Tsender`nounce; //  balance and POT power for each address 总交易计数
 2. `Tsender`Balance
-3. `Tsender`TXnounce`Msg
+3. `Tsender`nounce`TXJSON
 
 
-1. `Treceiver`TXnounce
+1. `Treceiver`nounce
 2. `Treceiver`Balance
-3. `Treceiver`TXnounce`Msg
+3. `Treceiver`nounce`TXJSON
 
-
-1. `Tminer`TXnounce
+coinbase and genesis
+1. `Tminer`nounce
 2. `Tminer`Balance
-3. `Tminer`TXnounce`Msg
+3. `Tminer`nounce`TXJSON
 
 ```
 File transactions
 ```
-4. `Tsender`FileNounce // file command counting 文件交易计数
-5. `Tsender`File`Nounce`Msg<br/> <br/>
-File seeding
-6. `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-7. `FileAMTroot`Seeding`Nounce`TXJSON;  // flexibly include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
+4. `fileAMTroot`seederNounce // file's the total number of registerred seeders, first seeder is the creation.
+5. `fileAMTroot`seeder`Nounce`TXJSON;  // info include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
 ```
 Relay
 ```
-8. RelayNounce
-9. RelayNounceMsg // include multiaddress and other info in the msg
+6. RelayNounce
+7. Relay`Nounce`TXJSON // include multiaddress and other info in the msg
 ```
 Environment
 ```
-10. contractJSON
+8. contractJSON
 ```
 ## Constants
 * 1 MutableRange:  1 week
@@ -155,21 +152,18 @@ Y:= {
 7. cummulative difficulty int64; // ???
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. TXnoucne:=0;
-11. FileNounce:=0;
-12. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-13. msg; // "hello world"
-14. signature; //by genesis miner to derive the TAUaddress
+10. nounce:=0;
+11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+12. msg; // "hello world"
+13. signature; //by genesis miner to derive the TAUaddress
 }
 // build genesis state
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
 
 * stateroot.hamt_add(contractJSON, Y) 
 * stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
-* stateroot.hamt_add(`Tminer`TXNounce, 0);
-* stateroot.hamt_add(`Tminer`TXNounceMsg,msg);
-* stateroot.hamt_add(`Tminer`FileNounce, 0);
-* stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
+* stateroot.hamt_add(`Tminer`nounce, 0);
+* stateroot.hamt_add(`Tminer`nounceTXJSON,null);
 
 * currentChainID = ChainID
 * myChains[`ChainID`]=""
@@ -247,11 +241,10 @@ X = {
 7. cummulative difficulty int64; 
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. TXnoucne ++;
-11. FileNounce;
-12. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-13. msg = TXJSON; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
-14. signature; //by genesis miner to derive the TAUaddress
+10. nounce ++;
+11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+12. msg = TXJSON; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+13. signature; //by genesis miner to derive the TAUaddress
 
 // the File importing to AMT
 // 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
@@ -265,53 +258,40 @@ X = {
 
 #### contract execute results
 ##### output coinbase tx
-* stateroot.hamt_uptimestamp(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
-* stateroot.hamt_uptimestamp(`Tminer`TXnounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
-* stateroot.hamt_add(`Tminer`TXnounceMsg, contractJSON/msg); // recording the block tx pool
-* stateroot.hamt_add(`Tminer`IPFSaddress, Qm..);
+* stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
+* stateroot.hamt_update(`Tminer`nounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
+* stateroot.hamt_add(`Tminer`nounceTXJSON, contractJSON/TXJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
-Account operation
-* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
-* stateroot.hamt_uptimestamp(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* stateroot.hamt_uptimestamp(`Tsender`TXnounce,`Tsender`TXounce + 1);
-* stateroot.hamt_uptimestamp(`Treceiver`TXnounce,`Treceiver`TXnounce++);
-* stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Treceiver`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
+General Account operation
+* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
+* stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
+* stateroot.hamt_update(`Tsender`nounce,`Tsender`TXounce + 1);
+* stateroot.hamt_update(`Treceiver`nounce,`Treceiver`nounce++);
+* stateroot.hamt_add(`Tsender`nounceTXJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Treceiver`nounceTXJSON, msg); // when user follow tsender, can traver its files.
 
-##### output relay annoucement tx, both sender and receive increase power, this is good for new users to produce contract.
 Relay annoucement operation
-* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance - txfee); 
-* stateroot.hamt_uptimestamp(`Tsender`TXnounce,`Tsender`TXounce + 1);
-* stateroot.hamt_add(`Tsender`TXnounceMsg, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_uptimestamp(RelayNounce , ++) 
-* stateroot.hamt_add(RelayNounceAddress, msg/relay multiaddress) 
-* myRelays [`ChainID`][ ].add({msg/relay multiaddress}); 
-* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
+* stateroot.hamt_update(RelayNounce , ++) 
+* stateroot.hamt_add(RelayNounceAddress, msg) 
 
-##### File creation and seeding transaction
-File operation
-* stateroot.hamt_uptimestamp(`Tsender`FileNounce, `Tsender`FileNounce + 1);
-* stateroot.hamt_add(`Tsender`File`Nounce`fileAMTroot, fileAMTroot); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Tsender`File`Nounce`fileMsg, contractJSON/tx/msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Tsender`IPFSaddress, Qm..);
+* myRelays [`ChainID`][ ].add({msg/relay multiaddress}); 
+
+File and seeding operation
 * stateroot.hamt_upate(`fileAMTroot``SeedingNounce, `fileAMTroot`SeedingNounce+1);
 * stateroot.hamt_add  (`fileAMTroot`Seeding`Nounce`IPFSpeer, `Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
 * For file upload to chain
       * myFileAMTroots.add(fileAMTroot)
 * For file seeding from other peers
       *myDownloadPool.add(fileAMTroot)
 
-Account operation
-* stateroot.hamt_uptimestamp(`Tsender`Balance,`Tsender`Balance-txfee);
 
 #### finish contract execution
 Put new generated states into  cbor block, * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // this is the  return to requestor for future state prediction, it is a block.cid. 
 
 * mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
 * mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
-
 * mySafetyContractResultStateRoots[`ChainID`] = SafetyContractResultStateRoot;
 * myPeers[`ChainID`][ ].add(`Tminer);
 
