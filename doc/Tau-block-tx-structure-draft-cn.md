@@ -3,6 +3,7 @@
 User experienses:= { 用户体验
 - Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
+   - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding on the download files. 
 - TAU provides basic relay services.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
@@ -137,6 +138,7 @@ Environment
 * 8 initial difficulty according to the BlockTime.
 * 9 block size = 1 transaction fixed
 * 10 BlockTimeDefault = default 5 minutes
+* 11 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
 ## Community chain
 ### Genesis
