@@ -128,16 +128,16 @@ Environment
 12. contractJSON
 ```
 ## Constants
-* MutableRange:  1 week
-* TXExpiry: transaction expirey 24 hours
-* VotingPercentage: voting cover percentage 67%
-* RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
-* WakeUpTime: sleeping mode wake up random range 5 minutes
-* SelfMiningTime: self mining qualify time 60 minutes. 
-* GenesisDefaultCoins: default coins 1,000,000
-* initial difficulty according to the BlockTime.
-* block size = 1 transaction fixed
-* BlockTimeDefault = default 5 minutes
+* 1 MutableRange:  1 week
+* 2 TXExpiry: transaction expirey 24 hours
+* 3 VotingPercentage: voting cover percentage 67%
+* 4 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
+* 5 WakeUpTime: sleeping mode wake up random range 5 minutes
+* 6 SelfMiningTime: self mining qualify time 60 minutes. 
+* 7 GenesisDefaultCoins: default coins 1,000,000
+* 8 initial difficulty according to the BlockTime.
+* 9 block size = 1 transaction fixed
+* 10 BlockTimeDefault = default 5 minutes
 
 ## Community chain
 ### Genesis
