@@ -166,6 +166,7 @@ Y:= {
 * stateroot.hamt_add(`Tminer`nounceTXJSON,null);
 
 * currentChainID = ChainID
+Adjust all persistant variable defined. 
 * myChains[`ChainID`]=""
 * myContractResultStateRoots[`ChainID`]=hamt_node.hamt_put(cbor); // for responding to voting.
 * mySafetyContractResultStateRoots[`ChainID`] = null;
@@ -173,7 +174,7 @@ Y:= {
 * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
 
 * myPeers.add(`Tminer` and ipfs address);
-* myRelays.add
+* myRelays.add; add download and upload, add tx pool...
 
 // no need to config relay, myRelays[TAU] will be populated when system starts in process E and community chains will use time slots to touch TAU relays. 
 
@@ -294,6 +295,10 @@ Put new generated states into  cbor block, * myContractResultStateRoots[`ChainID
 * mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
 * mySafetyContractResultStateRoots[`ChainID`] = SafetyContractResultStateRoot;
 * myPeers[`ChainID`][ ].add(`Tminer);
+
+Adjust all persistant variable defined. 
+* myPeers.add(`Tminer` and ipfs address);
+* myRelays.add; add download and upload, add tx pool...
 
 go to step (1) to get a new ChainID state prediction
 ```
