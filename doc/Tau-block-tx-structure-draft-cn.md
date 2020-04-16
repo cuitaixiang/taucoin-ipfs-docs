@@ -340,7 +340,7 @@ ONE Chain + ONE Relay + ONE peer
 according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
 
 call func PickupRelayAndPeer(H)
-Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. Randomly select a piece N from fileAMTroot.count
+Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. use pieceSelection select a piece N from fileAMTroot.count
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
@@ -396,10 +396,17 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
    - app can auto download files and videos according to config include percentage.
    - for files only 100% download and accept uplimited for config; for videos, percentage is supported with uplimit. 
    ```
-   - func pieceSelection(downloadPercentage, file total pieces) p is the piece number; 
-      for (n=1; n++; p<total pieces) 
-         { p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
+   - func pieceSelection(downloadPercentage 1%-100%, file total pieces) p is the piece number selection; 
+      for (n=1; n++; (n/downloadPercentage + remainder余数(SeederTAUAddr/100))<=total pieces) 
+         {  
+         p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
+         return p;
       }
+     example: assume remainder is 0 
+     total piece is 1000; download percentage 10%
+     n : 1 .. 1000 * 10% = 1..100
+     p = 1/0.1 .. n/0.1 = 10, 20, 30, .. 1000
+      
    ```
 - import files
 - share file to friend
