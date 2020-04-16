@@ -3,11 +3,6 @@
 User experienses:= { 用户体验
 - Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
-- File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
-- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. Video download options: download 1%, 5%, 25% or full through the config. 自动seeding的片的位置是确定的，所以可以增加seeders. 由于此，把map中的value 部分大多变成 config, 留下余地。
-- Apps autodownload and autoseed
-   - app can auto download files and videos according to config.
-   - app can auto seed files pieces according to (downloaded/total piece) x 100 = j; only download t+j,2j,..,nj. so other downloaders will know which piece do you have. t is a remainder of (hash of your address/100)
 - TAU provides basic relay services.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
@@ -394,7 +389,17 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - follow chain, first layer
 - follow members, second layer
 - member messages & file, third layer, support import
-### Files, this is where watching the ads 文件
+### Files
+- File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
+- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. 
+- Apps autodownload and autoseed; autoseed is an transaction. 
+   - app can auto download files and videos according to config include percentage.
+   - for files only 100% download and accept uplimited for config; for videos, percentage is supported with uplimit. 
+   - func pieceSelection(downloadPercentage, file total pieces) p is the piece number; 
+      for (n=1; n++; p<total pieces) 
+         { p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
+      }
+
 - import files
 - share file to friend
 - share file to community chain
