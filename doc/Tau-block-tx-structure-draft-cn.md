@@ -4,7 +4,10 @@ User experienses:= { 用户体验
 - Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
-- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. Video download options: download 1%, 5%, 25% or full through the config.
+- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. Video download options: download 1%, 5%, 25% or full through the config. 自动seeding的片的位置是确定的，所以可以增加seeders. 由于此，把map中的value 部分大多变成 config, 留下余地。
+- Apps autodownload and autoseed
+   - app can auto download files and videos according to config.
+   - app can auto seed files pieces according to (downloaded/total piece) x 100 = j; only download t+j,2j,..,nj. so other downloaders will know which piece do you have. t is a remainder of (hash of your address/100)
 - TAU provides basic relay services.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
@@ -31,7 +34,7 @@ On Amt trie.
 * C. File Downloader. (download files and logging download data)
 * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
 On Environment
-* E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. 
+* E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
 * F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
 
 ## Persistence variables in database
@@ -46,19 +49,21 @@ in each transition, following variables will be populated from execution and run
 5. myPreviousSafetyContractResultStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
       if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 
-6. myPeers              map[ChainID]map[TAUaddress]IPFSAddr
+6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
-8. myTXsPool            map[ChainID]map[TXJSON]timestampInRelaySwitchTimeUnit
+8. myTXsPool            map[ChainID]map[TXJSON]config; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
-10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
-11. myFileAMTroots       map[FileAMTroot]filename ; // a  list for imported or downloaded files trie
+10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]config;// include timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
+11. myFileAMTroots       map[FileAMTroot]config;// include filename ; // a  list for imported or downloaded files trie
    
 12. mytotalFileAMTDownloadedData
 13. mytotalFileAMTUploadedData
+
 ```
 ## Temporary Variables
 * currentChainID
+* currentAccountDB map[ChainID]map[TAU]map[blance | power | tx | file]value
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
@@ -116,7 +121,7 @@ File transactions
 7. `Tsender`File`Nounce`Msg<br/> <br/>
 File seeding
 8. `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-9. `FileAMTroot`Seeding`Nounce`IPFSPeer // the seeding peer id for the file. <br/> <br/>
+9. `FileAMTroot`Seeding`Nounce`TXJSON;  // flexibly include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
 ```
 Relay
 ```
@@ -249,7 +254,7 @@ X = {
 10. TXnoucne ++;
 11. FileNounce;
 12. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-13. msg; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+13. msg = TXJSON; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 14. signature; //by genesis miner to derive the TAUaddress
 
 // the File importing to AMT
@@ -406,3 +411,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 # To do 
 - [ ] file operation commands planning
 - [ ] resource management process
+- [ ] graphyRelaySync: two step via relay
+- [ ] hamtGraphsync: multiple steps to get kv on the selector
+- [ ] seeder's successful collection 
+- [ ] change ipfs block to 1m.  ipld blocksize. 
