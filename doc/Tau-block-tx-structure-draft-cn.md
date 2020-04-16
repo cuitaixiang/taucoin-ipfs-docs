@@ -395,11 +395,12 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - Apps autodownload and autoseed; autoseed is an transaction. 
    - app can auto download files and videos according to config include percentage.
    - for files only 100% download and accept uplimited for config; for videos, percentage is supported with uplimit. 
+   ```
    - func pieceSelection(downloadPercentage, file total pieces) p is the piece number; 
       for (n=1; n++; p<total pieces) 
          { p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
       }
-
+   ```
 - import files
 - share file to friend
 - share file to community chain
