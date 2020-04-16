@@ -50,7 +50,7 @@ in each transition, following variables will be populated from execution and run
       if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
-7. myRelays             map[ChainID]map[RelaysMultipleAddr]timestampInRelaySwitchTimeUnit; // timestamp is to selelct relays in the mutable ranges. 
+7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
 8. myTXsPool            map[ChainID]map[TXJSON]config; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
@@ -76,7 +76,7 @@ in each transition, following variables will be populated from execution and run
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. AMT is not chain specific, and it is rather relating to IPFS peers. 
 - In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. <br/> <br/>
 
-- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible through wormhole. 文件操作
+- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible Hamt. 文件操作
 - Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. We use E. process manager to create top level concurrency. For mobile device,concurrency is hard to manage due to memory restraint.<br/> <br/>
 
 - Address system: 
@@ -95,42 +95,41 @@ in each transition, following variables will be populated from execution and run
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
    
 
-## "Wormhole" - HAMT Hashed keys are states inito contract chain history. 
+## HAMT Hashed keys are states for contract chain history. 
 
 Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
 ```
 1. `Tsender`TXnounce; //  balance and POT power for each address 总交易计数
 2. `Tsender`Balance
 3. `Tsender`TXnounce`Msg
-4. `Tsender`IPFSAddr<br/> <br/>
+
 
 1. `Treceiver`TXnounce
 2. `Treceiver`Balance
 3. `Treceiver`TXnounce`Msg
-4. `Treceiver`IPFSAddr<br/> <br/>
+
 
 1. `Tminer`TXnounce
 2. `Tminer`Balance
 3. `Tminer`TXnounce`Msg
-4. `Tminer`IPFSAddr<br/> <br/>
+
 ```
 File transactions
 ```
-5. `Tsender`FileNounce // file command counting 文件交易计数
-6. `Tsender`File`Nounce`FileAMTroot // when user follow a chain address, they can traverse its files through changing nounce. 
-7. `Tsender`File`Nounce`Msg<br/> <br/>
+4. `Tsender`FileNounce // file command counting 文件交易计数
+5. `Tsender`File`Nounce`Msg<br/> <br/>
 File seeding
-8. `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
-9. `FileAMTroot`Seeding`Nounce`TXJSON;  // flexibly include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
+6. `FileAMTroot`SeedingNounce // for each file, this is the total number of registerred seeders, first seeding is the creation.
+7. `FileAMTroot`Seeding`Nounce`TXJSON;  // flexibly include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
 ```
 Relay
 ```
-10. RelayNounce
-11. RelayNounceAddress
+8. RelayNounce
+9. RelayNounceMsg // include multiaddress and other info in the msg
 ```
 Environment
 ```
-12. contractJSON
+10. contractJSON
 ```
 ## Constants
 * 1 MutableRange:  1 week
