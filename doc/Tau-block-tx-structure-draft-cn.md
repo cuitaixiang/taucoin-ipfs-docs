@@ -111,14 +111,14 @@ Receiver transactions: stateless blockchain requires adddress to claim income. W
 1. `TAUaddress`IncomeNonce; 
 2. `TAUaddress``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
 3. `TAUaddress``IncomeNonce`JSONs = `ContractNumber`
-4. `TAUaddress`UTXOhistory = `UTXOContractNumber` +","+ `TAUaddress``IncomeNonce`UTXOhistory
+4. `TAUaddress`UTXOhistory = `UTXOContractNumber` +","+ `TAUaddress`UTXOhistory
 // e.g value = "8909,5768", due to previous receiving state missing; 避免双收风险，同一个contract number 只能收一次。
 
 Block miner: coinbase and genesis
 1. `TAUaddress`IncomeNonce
 2. `TAUaddress``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
 3. `TAUaddress``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
-4. `TAUaddress`UTXOhistory = `ContractNumber` + "," + `TAUaddress``IncomeNonce`UTXOhistory
+4. `TAUaddress`UTXOhistory = `ContractNumber` + "," + `TAUaddress`UTXOhistory
 ```
 History
 ```
