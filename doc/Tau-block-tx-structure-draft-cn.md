@@ -122,7 +122,7 @@ Relay
 Environment
 ```
 8. ContractNumber
-9. `ContractNumber`JSON
+9. Contract`Number`JSON
 ```
 ## Constants
 * 1 MutableRange:  1 week
