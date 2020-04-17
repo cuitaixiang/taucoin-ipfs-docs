@@ -93,27 +93,31 @@ in each transition, following variables will be populated from execution and run
 
 ## HAMT Hashed keys are states for contract chain history. 
 stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
+Sender transactions: 
 ```
-Transaction Sender
-1. `Tsender`Nonce; //  nonce and POT power is consensus. 
-2. `Tsender``Nonce`leastBalance; // leastBalance is the low end of the balance without not full consensus. 
-3. `Tsender``Nonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `Tsender`SenderNonce; //  nonce and POT power is consensus. 
+2. `Tsender``SenderNonce`TotalSpend;  
+3. `Tsender``SenderNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
-Block miner: coinbase and genesis
-1. `Tminer`Nonce
-2. `Tminer``Nonce`leastBalance
-3. `Tminer``Nonce`JSON = `ContractNumber`  // e.g value = "8909"
-
-```
 File transactions
-```
 4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
 5. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909"<br/> <br/>
-```
+
 Relay
+4. RelayNonce
+5. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 ```
-6. RelayNonce
-7. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
+Receiver transaction: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
+```
+1. `Treiver`ReceiverNonce; //  nonce and POT power is consensus. 
+2. `Treiver``ReceiverNonce`TotalINcome; // leastBalance is the low end of the balance without not full consensus. 
+3. `Treiver``ReceiverNonce`JSON = `ContractNumber`  // e.g value = "8909"
+
+Block miner: coinbase and genesis
+1. `Tminer`ReceiverNonce
+2. `Tminer``ReceiverNonce`TotalIncome
+3. `Tminer``ReceiverNonceNonce`JSON = `ContractNumber`  // e.g value = "8909"
+
 ```
 Environment
 ```
@@ -141,13 +145,13 @@ Y:= {
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber:=0 int32;
-4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
+4. ChainID := `Nickname`+`block txs`+`blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
 5. SafetyContractResultRoot = null; // genesis is built from null.
 6. basetarget;
 7. cummulative difficulty int64; // ???
 8. generation signature;
-9. amount = -1,000,000; // GenesisDefaultCoins 币数量
-10. Nonce:=0;
+9. amount = 1,000,000; // GenesisDefaultCoins 币数量
+10. ReceiverNonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg; // "hello world"
 13. signature; //by genesis miner to derive the TAUaddress
@@ -236,8 +240,8 @@ X = {
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
-9. amount = -`total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
-10. Nonce ++;
+9. amount = `total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
+10. ReceiverNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg = TXsJSON; // 保障未来扩展，一个区块还是带两笔交易；"hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
