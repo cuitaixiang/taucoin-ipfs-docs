@@ -116,8 +116,8 @@ File transactions
 ```
 Relay
 ```
-6. `Relay`Nonce
-7. `Relay``Nonce`TXJSON // include multiaddress and other info in the msg
+6. RelayNonce
+7. Relay`Nonce`TXJSON // include multiaddress and other info in the msg
 ```
 Environment
 ```
