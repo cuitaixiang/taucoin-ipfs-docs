@@ -121,8 +121,8 @@ Block miner: coinbase and genesis
 ```
 History
 ```
-8. ContractNumber; // e.g value = "8909"
-9. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
+6. ContractNumber; // e.g value = "8909"
+7. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
 ```
 ## Constants
 * 1 MutableRange:  1 week
