@@ -94,48 +94,43 @@ in each transition, following variables will be populated from execution and run
 ## HAMT Hashed keys are states for contract chain history. 
 stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
 ```
-1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
-2. `Tsender``Nonce`Balance
-3. `Tsender``Nonce`JSON = Contract`Number`  // e.g value = "8909"
+Transaction Sender
+1. `Tsender`Nonce; //  nonce and POT power is consensus. 
+2. `Tsender``Nonce`leastBalance; // leastBalance is the low end of the balance without not full consensus. 
+3. `Tsender``Nonce`JSON = `ContractNumber`  // e.g value = "8909"
 
-
-1. `Treceiver`Nonce
-2. `Treceiver``Nonce`Balance
-3. `Treceiver``Nonce`JSON = Contract`Number`  // e.g value = "8909"
-
-coinbase and genesis
+Block miner: coinbase and genesis
 1. `Tminer`Nonce
-2. `Tminer``Nonce`Balance
-3. `Tminer``Nonce`JSON = Contract`Number`  // e.g value = "8909"
+2. `Tminer``Nonce`leastBalance
+3. `Tminer``Nonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 ```
 File transactions
 ```
 4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
-5. `fileAMTroot`seeder`Nonce`JSON;  // Contract`Number`  // e.g value = "8909" <br/> <br/>
+5. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909"<br/> <br/>
 ```
 Relay
 ```
 6. RelayNonce
-7. Relay`Nonce`JSON; // Contract`Number`JSON  // e.g value = "Contract8909JSON"
+7. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 ```
 Environment
 ```
-8. ContractNumber
-9. Contract`Number`JSON // e.g value = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
+8. ContractNumber; // e.g value = "8909"
+9. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
 ```
 ## Constants
 * 1 MutableRange:  1 week
-* 2 TXExpiry: transaction expirey 24 hours
-* 3 VotingPercentage: voting cover percentage 67%
-* 4 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
-* 5 WakeUpTime: sleeping mode wake up random range 5 minutes
-* 6 SelfMiningTime: self mining qualify time 60 minutes. 
-* 7 GenesisDefaultCoins: default coins 1,000,000
-* 8 initial difficulty according to the BlockTime.
-* 9 block size = 1 transaction fixed
-* 10 BlockTimeDefault = default 5 minutes
-* 11 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
+* 2 VotingPercentage: voting cover percentage 67%
+* 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
+* 4 WakeUpTime: sleeping mode wake up random range 5 minutes
+* 5 SelfMiningTime: self mining qualify time 60 minutes. 
+* 6 GenesisDefaultCoins: default coins 1,000,000
+* 7 initial difficulty according to the BlockTime.
+* 8 block size = 2 transactions in version 1 of software
+* 9 BlockTimeDefault = default 5 minutes
+* 10 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
 ## Community chain
 ### Genesis
@@ -144,15 +139,15 @@ Environment
 // build genesis block
 Y:= { 
 1. version;
-2. timestampinRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
+2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber:=0 int32;
-4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampinRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
+4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
 5. SafetyContractResultRoot = null; // genesis is built from null.
 6. basetarget;
 7. cummulative difficulty int64; // ???
 8. generation signature;
-9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. MinerNonce:=0;
+9. amount = -1,000,000; // GenesisDefaultCoins 币数量
+10. Nonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg; // "hello world"
 13. signature; //by genesis miner to derive the TAUaddress
@@ -161,7 +156,7 @@ Y:= {
 * X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
 
 * stateroot.hamt_add(contractJSON, Y) 
-* stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
+* stateroot.hamt_add(`Tminer`leastBalance, 1,000,000); 
 * stateroot.hamt_add(`Tminer`Nonce, 0);
 * stateroot.hamt_add(`Tminer`NonceTXsJSON,null);
 
@@ -234,15 +229,15 @@ goto (9)
 9. generate new state 
 X = {
 1. version;
-2. timestampinRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
+2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber; // hamt_get(SafetyContractResultStateRoot,contractJSON) / contractNumber +1;
-4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampinRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
+4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
 5. SafetyContractResultRoot; //  type cbor.cid
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
-9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. MinerNonce ++;
+9. amount = -`total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
+10. Nonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg = TXsJSON; // 保障未来扩展，一个区块还是带两笔交易；"hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
@@ -259,17 +254,15 @@ X = {
 
 #### contract execute results
 ##### output coinbase tx
-* stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
-* stateroot.hamt_update(`Tminer`Nonce,`Tminer`TXounce + 1); // for the coinbase tx Nonce increase
+* stateroot.hamt_update(`Tminer`leastBalance,`Tminer`leastBalance - amount); // uptimestamp balance 
+* stateroot.hamt_update(`Tminer`Nonce,`Tminer`Nonce + 1); // for the coinbase tx Nonce increase
 * stateroot.hamt_add(`Tminer`NonceTXsJSON, contractJSON/TXsJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 General Account operation
-* stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
-* stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* stateroot.hamt_update(`Tsender`Nonce,`Tsender`TXounce + 1);
-* stateroot.hamt_update(`Treceiver`Nonce,`Treceiver`Nonce++);
+* stateroot.hamt_update(`Tsender`leastBalance,`Tsender`leastBalance - amount - txfee); 
+* stateroot.hamt_update(`Ttxreceiver`leastBalance,`Ttxreceiver`leastBalance + amount);
+* stateroot.hamt_update(`Tsender`Nonce,`Tsender`Nonce + 1);
 * stateroot.hamt_add(`Tsender`NonceTXsJSON, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Treceiver`NonceTXsJSON, msg); // when user follow tsender, can traver its files.
 
 Relay annoucement operation
 * stateroot.hamt_update(RelayNonce , ++) 
