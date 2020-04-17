@@ -72,7 +72,7 @@ in each transition, following variables will be populated from execution and run
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. AMT is not chain specific, and it is rather relating to IPFS peers. 
 - In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. <br/> <br/>
 
-- File operation transaction, FileAMTRoot creation and seeding, related nounce and seeders accessible Hamt. 文件操作
+- File operation transaction, FileAMTRoot creation and seeding, related Nonce and seeders accessible Hamt. 文件操作
 - Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. We use E. process manager to create top level concurrency. For mobile device,concurrency is hard to manage due to memory restraint.<br/> <br/>
 
 - Address system: 
@@ -95,30 +95,30 @@ in each transition, following variables will be populated from execution and run
 
 Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
 ```
-1. `Tsender`nounce; //  balance and POT power for each address 总交易计数
+1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
 2. `Tsender`Balance
-3. `Tsender`nounce`TXJSON
+3. `Tsender`Nonce`TXJSON
 
 
-1. `Treceiver`nounce
+1. `Treceiver`Nonce
 2. `Treceiver`Balance
-3. `Treceiver`nounce`TXJSON
+3. `Treceiver`Nonce`TXJSON
 
 coinbase and genesis
-1. `Tminer`nounce
+1. `Tminer`Nonce
 2. `Tminer`Balance
-3. `Tminer`nounce`TXJSON
+3. `Tminer`Nonce`TXJSON
 
 ```
 File transactions
 ```
-4. `fileAMTroot`seederNounce // file's the total number of registerred seeders, first seeder is the creation.
-5. `fileAMTroot`seeder`Nounce`TXJSON;  // info include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
+4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
+5. `fileAMTroot`seeder`Nonce`TXJSON;  // info include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
 ```
 Relay
 ```
-6. RelayNounce
-7. Relay`Nounce`TXJSON // include multiaddress and other info in the msg
+6. RelayNonce
+7. Relay`Nonce`TXJSON // include multiaddress and other info in the msg
 ```
 Environment
 ```
@@ -152,7 +152,7 @@ Y:= {
 7. cummulative difficulty int64; // ???
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. nounce:=0;
+10. Nonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg; // "hello world"
 13. signature; //by genesis miner to derive the TAUaddress
@@ -162,8 +162,8 @@ Y:= {
 
 * stateroot.hamt_add(contractJSON, Y) 
 * stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
-* stateroot.hamt_add(`Tminer`nounce, 0);
-* stateroot.hamt_add(`Tminer`nounceTXJSON,null);
+* stateroot.hamt_add(`Tminer`Nonce, 0);
+* stateroot.hamt_add(`Tminer`NonceTXJSON,null);
 
 * currentChainID = ChainID
 Adjust all persistant variable defined. 
@@ -242,9 +242,9 @@ X = {
 7. cummulative difficulty int64; 
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. nounce ++;
+10. Nonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg = TXJSON; // "hello world"  { for file tx, set file nounce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+12. msg = TXJSON; // "hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
 
 // the File importing to AMT
@@ -260,26 +260,26 @@ X = {
 #### contract execute results
 ##### output coinbase tx
 * stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
-* stateroot.hamt_update(`Tminer`nounce,`Tminer`TXounce + 1); // for the coinbase tx nounce increase
-* stateroot.hamt_add(`Tminer`nounceTXJSON, contractJSON/TXJSON); // recording the block tx pool
+* stateroot.hamt_update(`Tminer`Nonce,`Tminer`TXounce + 1); // for the coinbase tx Nonce increase
+* stateroot.hamt_add(`Tminer`NonceTXJSON, contractJSON/TXJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 General Account operation
 * stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
 * stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
-* stateroot.hamt_update(`Tsender`nounce,`Tsender`TXounce + 1);
-* stateroot.hamt_update(`Treceiver`nounce,`Treceiver`nounce++);
-* stateroot.hamt_add(`Tsender`nounceTXJSON, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Treceiver`nounceTXJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_update(`Tsender`Nonce,`Tsender`TXounce + 1);
+* stateroot.hamt_update(`Treceiver`Nonce,`Treceiver`Nonce++);
+* stateroot.hamt_add(`Tsender`NonceTXJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Treceiver`NonceTXJSON, msg); // when user follow tsender, can traver its files.
 
 Relay annoucement operation
-* stateroot.hamt_update(RelayNounce , ++) 
-* stateroot.hamt_add(RelayNounceAddress, msg) 
+* stateroot.hamt_update(RelayNonce , ++) 
+* stateroot.hamt_add(RelayNonceAddress, msg) 
 
 * myRelays [`ChainID`][ ].add({msg/relay multiaddress}); 
 
 File and seeding operation
-* stateroot.hamt_upate(`fileAMTroot``SeedingNounce, `fileAMTroot`SeedingNounce+1);
-* stateroot.hamt_add  (`fileAMTroot`Seeding`Nounce`IPFSpeer, `Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* stateroot.hamt_upate(`fileAMTroot``SeedingNonce, `fileAMTroot`SeedingNonce+1);
+* stateroot.hamt_add  (`fileAMTroot`Seeding`Nonce`IPFSpeer, `Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
 * For file upload to chain
@@ -332,7 +332,7 @@ ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece.
 
 2. If the piece is in local, go to step (1); 
 else 
-- AMTgraphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nounce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
+- AMTgraphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nonce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
 if success, myDownloadPool[`ChainID`][`fileAMTroot`]++; until myDownloadPool[`ChainID`][`fileAMTroot`] = fileAMTroot.count; remove this fileAMT from myDownloadPool[`ChainID`]; add to myFileAMTroots
 go to step (1)
 }
