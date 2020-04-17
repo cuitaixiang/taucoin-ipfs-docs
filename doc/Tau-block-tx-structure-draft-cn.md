@@ -110,12 +110,12 @@ Relay
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
 1. `Treiver`IncomeNonce; 
-2. `Treiver``IncomeNonce`TotalINcome; // leastBalance is the low end of the balance without not full consensus. 
+2. `Treiver``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
 3. `Treiver``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 Block miner: coinbase and genesis
 1. `Tminer`IncomeNonce
-2. `Tminer``IncomeNonce`TotalIncome
+2. `Tminer``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
 3. `Tminer``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 ```
