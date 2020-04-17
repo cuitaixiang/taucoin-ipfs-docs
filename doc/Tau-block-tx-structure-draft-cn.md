@@ -92,7 +92,7 @@ in each transition, following variables will be populated from execution and run
    
 
 ## HAMT Hashed keys are states for contract chain history. 
-stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
+stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
 Sender transactions: 
 ```
 1. `Tsender`SenderNonce; //  nonce and POT power is consensus. 
@@ -101,7 +101,7 @@ Sender transactions:
 
 File transactions
 4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
-5. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909"<br/> <br/>
+5. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 
 Relay
 4. RelayNonce
