@@ -93,7 +93,7 @@ in each transition, following variables will be populated from execution and run
 
 ## HAMT Hashed keys are states for contract chain history. 
 stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
-Sender transactions: 
+Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
 1. `Tsender`SpendNonce;  // POT power = senderNounce + receiverNounce
 2. `Tsender``SpendNonce`TotalSpend;  
@@ -109,9 +109,9 @@ Relay
 ```
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
-1. `Treiver`IncomeNonce; 
-2. `Treiver``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
-3. `Treiver``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `Treceiver`IncomeNonce; 
+2. `Treceiver``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
+3. `Treceiver``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 Block miner: coinbase and genesis
 1. `Tminer`IncomeNonce
