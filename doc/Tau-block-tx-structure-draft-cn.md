@@ -95,9 +95,9 @@ in each transition, following variables will be populated from execution and run
 stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
 Sender transactions: 
 ```
-1. `Tsender`SenderNonce; //  nonce and POT power is consensus. 
-2. `Tsender``SenderNonce`TotalSpend;  
-3. `Tsender``SenderNonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `Tsender`SpendNonce;  // POT power = senderNounce + receiverNounce
+2. `Tsender``SpendNonce`TotalSpend;  
+3. `Tsender``SpendNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 File transactions
 4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
@@ -107,19 +107,19 @@ Relay
 4. RelayNonce
 5. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 ```
-Receiver transaction: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
+Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
-1. `Treiver`ReceiverNonce; //  nonce and POT power is consensus. 
-2. `Treiver``ReceiverNonce`TotalINcome; // leastBalance is the low end of the balance without not full consensus. 
-3. `Treiver``ReceiverNonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `Treiver`IncomeNonce; 
+2. `Treiver``IncomeNonce`TotalINcome; // leastBalance is the low end of the balance without not full consensus. 
+3. `Treiver``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 Block miner: coinbase and genesis
-1. `Tminer`ReceiverNonce
-2. `Tminer``ReceiverNonce`TotalIncome
-3. `Tminer``ReceiverNonceNonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `Tminer`IncomeNonce
+2. `Tminer``IncomeNonce`TotalIncome
+3. `Tminer``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
 
 ```
-Environment
+History
 ```
 8. ContractNumber; // e.g value = "8909"
 9. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
@@ -151,7 +151,7 @@ Y:= {
 7. cummulative difficulty int64; // ???
 8. generation signature;
 9. amount = 1,000,000; // GenesisDefaultCoins 币数量
-10. ReceiverNonce:=0;
+10. IncomeNonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg; // "hello world"
 13. signature; //by genesis miner to derive the TAUaddress
@@ -241,7 +241,7 @@ X = {
 7. cummulative difficulty int64; 
 8. generation signature;
 9. amount = `total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
-10. ReceiverNonce ++;
+10. IncomeNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg = TXsJSON; // 保障未来扩展，一个区块还是带两笔交易；"hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
