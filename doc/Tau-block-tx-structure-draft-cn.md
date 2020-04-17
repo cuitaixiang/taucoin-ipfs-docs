@@ -31,7 +31,7 @@ On Amt trie.
 * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
 On Environment
 * E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
-* F. Resource management: When safty root time pass the mutable range, the safety blocks will be pinned. All seeded files will be pinned. Others are unpinned subject to GC.
+* F. Resource management: first. pin everything of self created and syced blocks, 2nd, When safty root time pass the mutable range, unpin states root out of finality.  All seeded files will be pinned, while unseeded AMTroots are not pinned.
 
 ## Persistence variables in database
 in each transition, following variables will be populated from execution and run-time. 
@@ -47,7 +47,7 @@ in each transition, following variables will be populated from execution and run
 
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
-8. myTXsPool            map [chainid] map [hash(txjson)] TXsJSON; // include timestampInRelaySwitchTimeUnit
+8. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
 10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]config;// include timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
@@ -63,7 +63,7 @@ in each transition, following variables will be populated from execution and run
 
 ## Concept explain
 - Single thread principle for mobile phone, we do not put wait time in thread, but only support one thread for each functions. The more chain mining, the lower speed on each chain. 
-- Block size is 1, one tx included in each block. encouraginig increase the frequency, which is reducing the block time.
+- **Block size is 1**, one tx included in each block. This is important to prevent complex double income issue. 
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
 - Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
 - Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.<br/> <br/>
@@ -92,7 +92,7 @@ in each transition, following variables will be populated from execution and run
    
 
 ## HAMT Hashed keys are states for contract chain history. 
-stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
+stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
 Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
 1. `Tsender`SpendNonce;  // POT power = senderNounce + receiverNounce
@@ -111,7 +111,8 @@ Receiver transactions: stateless blockchain requires adddress to claim income. W
 ```
 1. `Treceiver`IncomeNonce; 
 2. `Treceiver``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
-3. `Treceiver``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
+3. `Treceiver``IncomeNonce`JSONs = `ContractNumber` + `,`+``Treceiver``IncomeNonce-1`JSONs  // e.g value = "8909,5768"
+// due to previous receiving state missing; 避免双收风险，同一个JSON只能收一次。
 
 Block miner: coinbase and genesis
 1. `Tminer`IncomeNonce
@@ -162,7 +163,7 @@ Y:= {
 * stateroot.hamt_add(contractJSON, Y) 
 * stateroot.hamt_add(`Tminer`leastBalance, 1,000,000); 
 * stateroot.hamt_add(`Tminer`Nonce, 0);
-* stateroot.hamt_add(`Tminer`NonceTXsJSON,null);
+* stateroot.hamt_add(`Tminer`NonceTXJSON,null);
 
 * currentChainID = ChainID
 Adjust all persistant variable defined. 
@@ -243,30 +244,22 @@ X = {
 9. amount = `total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
 10. IncomeNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg = TXsJSON; // 保障未来扩展，一个区块还是带两笔交易；"hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+12. msg = TXJSON; // 一个区块一笔交易 fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
-
-// the File importing to AMT
-// 1. tgz then use ipfs block standard size e.g. 250k to chop the data to m pieceis
-// 2. newNode.amt(1,piece(1)); loop to newNode.amt(m,piece(m));
-// 3. FileAMTroot=AMT.put(cbor)
-// 4. return FileAMTroot to here for fileAMTroot. 
-
 }  // finish X.
-
 * stateroot.hamt_uptimestamp(contractJSON, X); 
 
 #### contract execute results
 ##### output coinbase tx
 * stateroot.hamt_update(`Tminer`leastBalance,`Tminer`leastBalance - amount); // uptimestamp balance 
 * stateroot.hamt_update(`Tminer`Nonce,`Tminer`Nonce + 1); // for the coinbase tx Nonce increase
-* stateroot.hamt_add(`Tminer`NonceTXsJSON, contractJSON/TXsJSON); // recording the block tx pool
+* stateroot.hamt_add(`Tminer`NonceTXJSON, contractJSON/TXJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 General Account operation
 * stateroot.hamt_update(`Tsender`leastBalance,`Tsender`leastBalance - amount - txfee); 
 * stateroot.hamt_update(`Ttxreceiver`leastBalance,`Ttxreceiver`leastBalance + amount);
 * stateroot.hamt_update(`Tsender`Nonce,`Tsender`Nonce + 1);
-* stateroot.hamt_add(`Tsender`NonceTXsJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Tsender`NonceTXJSON, msg); // when user follow tsender, can traver its files.
 
 Relay annoucement operation
 * stateroot.hamt_update(RelayNonce , ++) 
@@ -386,10 +379,10 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
          p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
          return p;
       }
-     example: assume remainder is 0 
+     example: assume remainder is 3 
      total piece is 1000; download percentage 10%
      n : 1 .. 1000 * 10% = 1..100
-     p = 1/0.1 .. n/0.1 = 10, 20, 30, .. 1000
+     p = 1/0.1 .. n/0.1 = 13, 23, 33, .. 993
       
    ```
 - import files
