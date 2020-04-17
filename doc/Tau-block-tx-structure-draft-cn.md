@@ -47,7 +47,7 @@ in each transition, following variables will be populated from execution and run
 
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
-8. myTXsPool            map [chainid] map [hash(txjson)] TXJSON; // include timestampInRelaySwitchTimeUnit
+8. myTXsPool            map [chainid] map [hash(txjson)] TXsJSON; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
 10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]config;// include timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
@@ -92,7 +92,7 @@ in each transition, following variables will be populated from execution and run
    
 
 ## HAMT Hashed keys are states for contract chain history. 
-stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
+stateless blockchain, 就是8个K-V的状态链， TXsJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
 ```
 1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
 2. `Tsender``Nonce`Balance
@@ -163,7 +163,7 @@ Y:= {
 * stateroot.hamt_add(contractJSON, Y) 
 * stateroot.hamt_add(`Tminer`Balance, 1,000,000); 
 * stateroot.hamt_add(`Tminer`Nonce, 0);
-* stateroot.hamt_add(`Tminer`NonceTXJSON,null);
+* stateroot.hamt_add(`Tminer`NonceTXsJSON,null);
 
 * currentChainID = ChainID
 Adjust all persistant variable defined. 
@@ -244,7 +244,7 @@ X = {
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
 10. MinerNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg = TXJSON; // "hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
+12. msg = TXsJSON; // 保障未来扩展，一个区块还是带两笔交易；"hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
 
 // the File importing to AMT
@@ -261,15 +261,15 @@ X = {
 ##### output coinbase tx
 * stateroot.hamt_update(`Tminer`Balance,`Tminer`Balance + amount); // uptimestamp balance 
 * stateroot.hamt_update(`Tminer`Nonce,`Tminer`TXounce + 1); // for the coinbase tx Nonce increase
-* stateroot.hamt_add(`Tminer`NonceTXJSON, contractJSON/TXJSON); // recording the block tx pool
+* stateroot.hamt_add(`Tminer`NonceTXsJSON, contractJSON/TXsJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 General Account operation
 * stateroot.hamt_update(`Tsender`Balance,`Tsender`Balance - amount - txfee); 
 * stateroot.hamt_update(`Ttxreceiver`Balance,`Ttxreceiver`Balance + amount);
 * stateroot.hamt_update(`Tsender`Nonce,`Tsender`TXounce + 1);
 * stateroot.hamt_update(`Treceiver`Nonce,`Treceiver`Nonce++);
-* stateroot.hamt_add(`Tsender`NonceTXJSON, msg); // when user follow tsender, can traver its files.
-* stateroot.hamt_add(`Treceiver`NonceTXJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Tsender`NonceTXsJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_add(`Treceiver`NonceTXsJSON, msg); // when user follow tsender, can traver its files.
 
 Relay annoucement operation
 * stateroot.hamt_update(RelayNonce , ++) 
