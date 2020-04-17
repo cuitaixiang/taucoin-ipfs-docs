@@ -96,17 +96,17 @@ stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是�
 ```
 1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
 2. `Tsender``Nonce`Balance
-3. `Tsender``Nonce`TXJSON
+3. `Tsender``Nonce`TXJSON = TXJSON
 
 
 1. `Treceiver`Nonce
 2. `Treceiver``Nonce`Balance
-3. `Treceiver``Nonce`TXJSON
+3. `Treceiver``Nonce`TXJSON = TXJSON
 
 coinbase and genesis
 1. `Tminer`Nonce
 2. `Tminer``Nonce`Balance
-3. `Tminer``Nonce`contractJSON
+3. `Tminer``Nonce`TXJSON = Contract`Number`JSON
 
 ```
 File transactions
