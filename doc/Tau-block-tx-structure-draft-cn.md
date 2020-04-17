@@ -96,33 +96,33 @@ stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是�
 ```
 1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
 2. `Tsender``Nonce`Balance
-3. `Tsender``Nonce`TXJSON = TXJSON
+3. `Tsender``Nonce`JSON = Contract`Number`  // e.g value = "8909"
 
 
 1. `Treceiver`Nonce
 2. `Treceiver``Nonce`Balance
-3. `Treceiver``Nonce`TXJSON = TXJSON
+3. `Treceiver``Nonce`JSON = Contract`Number`  // e.g value = "8909"
 
 coinbase and genesis
 1. `Tminer`Nonce
 2. `Tminer``Nonce`Balance
-3. `Tminer``Nonce`TXJSON = Contract`Number`JSON
+3. `Tminer``Nonce`JSON = Contract`Number`  // e.g value = "8909"
 
 ```
 File transactions
 ```
 4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
-5. `fileAMTroot`seeder`Nonce`TXJSON;  // info include TAUaddr, IPFS addr, config as how to seed the file. <br/> <br/>
+5. `fileAMTroot`seeder`Nonce`JSON;  // Contract`Number`  // e.g value = "8909" <br/> <br/>
 ```
 Relay
 ```
 6. RelayNonce
-7. Relay`Nonce`TXJSON // include multiaddress and other info in the msg
+7. Relay`Nonce`JSON; // Contract`Number`JSON  // e.g value = "Contract8909JSON"
 ```
 Environment
 ```
 8. ContractNumber
-9. Contract`Number`JSON
+9. Contract`Number`JSON // e.g value = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
 ```
 ## Constants
 * 1 MutableRange:  1 week
