@@ -92,38 +92,38 @@ in each transition, following variables will be populated from execution and run
    
 
 ## HAMT Hashed keys are states for contract chain history. 
-stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。<br/> <br/>
 Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
-1. `Tsender`SpendNonce;  // POT power = senderNounce + receiverNounce
-2. `Tsender``SpendNonce`TotalSpend;  
-3. `Tsender``SpendNonce`JSON = `ContractNumber`  // e.g value = "8909"
+1. `TAUaddress`SpendNonce;  // POT power = senderNounce + receiverNounce
+2. `TAUaddress``SpendNonce`TotalSpend;  
+3. `TAUaddress``SpendNonce`JSONs = `ContractNumber` // refUTXO contract number, reference UTXO for receiver to spend. 
 
 File transactions
-4. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
-5. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
+5. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
+6. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909" 
 
 Relay
-4. RelayNonce
-5. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
+5. RelayNonce
+6. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 ```
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
-1. `Treceiver`IncomeNonce; 
-2. `Treceiver``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
-3. `Treceiver``IncomeNonce`JSONs = `ContractNumber` + `,`+``Treceiver``IncomeNonce-1`JSONs  // e.g value = "8909,5768"
-// due to previous receiving state missing; 避免双收风险，同一个JSON只能收一次。
+1. `TAUaddress`IncomeNonce; 
+2. `TAUaddress``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
+3. `TAUaddress``IncomeNonce`JSONs = `ContractNumber`
+4. `TAUaddress`refUTXOhistory = `rUTXOContractNumber` +","+ `TAUaddress``IncomeNonce`UTXOhistory
+// e.g value = "8909,5768", due to previous receiving state missing; 避免双收风险，同一个JSON只能收一次。
 
 Block miner: coinbase and genesis
-1. `Tminer`IncomeNonce
-2. `Tminer``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
-3. `Tminer``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
-
+1. `TAUaddress`IncomeNonce
+2. `TAUaddress``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
+3. `TAUaddress``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
+4. `TAUaddress`refUTXOhistory = `rUTXOContractNumber` +","+ `TAUaddress``IncomeNonce`UTXOhistory
 ```
 History
 ```
-6. ContractNumber; // e.g value = "8909"
-7. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
+7. ContractNumber; // e.g value = "8909"
+8. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
 ```
 ## Constants
 * 1 MutableRange:  1 week
@@ -256,10 +256,10 @@ X = {
 * stateroot.hamt_add(`Tminer`NonceTXJSON, contractJSON/TXJSON); // recording the block tx pool
 ##### output Coins Wiring tx, both sender and receive increase power, this is good for new users to produce contract.
 General Account operation
-* stateroot.hamt_update(`Tsender`leastBalance,`Tsender`leastBalance - amount - txfee); 
+* stateroot.hamt_update(`TAUaddress`leastBalance,`TAUaddress`leastBalance - amount - txfee); 
 * stateroot.hamt_update(`Ttxreceiver`leastBalance,`Ttxreceiver`leastBalance + amount);
-* stateroot.hamt_update(`Tsender`Nonce,`Tsender`Nonce + 1);
-* stateroot.hamt_add(`Tsender`NonceTXJSON, msg); // when user follow tsender, can traver its files.
+* stateroot.hamt_update(`TAUaddress`Nonce,`TAUaddress`Nonce + 1);
+* stateroot.hamt_add(`TAUaddress`NonceTXJSON, msg); // when user follow tsender, can traver its files.
 
 Relay annoucement operation
 * stateroot.hamt_update(RelayNonce , ++) 
@@ -269,9 +269,9 @@ Relay annoucement operation
 
 File and seeding operation
 * stateroot.hamt_upate(`fileAMTroot``SeedingNonce, `fileAMTroot`SeedingNonce+1);
-* stateroot.hamt_add  (`fileAMTroot`Seeding`Nonce`IPFSpeer, `Tsender`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
+* stateroot.hamt_add  (`fileAMTroot`Seeding`Nonce`IPFSpeer, `TAUaddress`IPFSaddr) // seeding peer ipfs id, the first seeder is the creator of the file.
 
-* myFileAMTSeeders[fileAMT][ ].add(`ChainID``Tsender`IPFSaddr)
+* myFileAMTSeeders[fileAMT][ ].add(`ChainID``TAUaddress`IPFSaddr)
 * For file upload to chain
       * myFileAMTroots.add(fileAMTroot)
 * For file seeding from other peers
