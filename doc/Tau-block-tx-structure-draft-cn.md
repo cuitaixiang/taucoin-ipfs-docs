@@ -118,7 +118,7 @@ Block miner: coinbase and genesis
 1. `TAUaddress`IncomeNonce
 2. `TAUaddress``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
 3. `TAUaddress``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
-4. `TAUaddress``IncomeNonce`UTXOhistory = `ContractNumber` + "," + `TAUaddress``IncomeNonce-1`UTXOhistory
+4. `TAUaddress``IncomeNonce`UTXOhistory = `reference ContractNumber a,` +`reference ContractNumber b,`+ ..+ `reference ContractNumber z,` + `TAUaddress``IncomeNonce-1`UTXOhistory // once receiving tx can receive multiple senders UTXOs. 
 ```
 History
 ```
