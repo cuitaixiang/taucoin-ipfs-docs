@@ -92,8 +92,7 @@ in each transition, following variables will be populated from execution and run
    
 
 ## HAMT Hashed keys are states for contract chain history. 
-
-Wiring and coinbase transactions: every other types of tx include a wiring tx content. 
+stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
 ```
 1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
 2. `Tsender`Balance
@@ -107,7 +106,7 @@ Wiring and coinbase transactions: every other types of tx include a wiring tx co
 coinbase and genesis
 1. `Tminer`Nonce
 2. `Tminer`Balance
-3. `Tminer`Nonce`TXJSON
+3. `Tminer``Nonce`contractJSON
 
 ```
 File transactions
@@ -118,7 +117,7 @@ File transactions
 Relay
 ```
 6. RelayNonce
-7. Relay`Nonce`TXJSON // include multiaddress and other info in the msg
+7. `Relay``Nonce`TXJSON // include multiaddress and other info in the msg
 ```
 Environment
 ```
