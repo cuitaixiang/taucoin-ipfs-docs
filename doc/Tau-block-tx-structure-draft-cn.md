@@ -121,7 +121,8 @@ Relay
 ```
 Environment
 ```
-8. contractJSON
+8. ContractNumber
+9. `ContractNumber`JSON
 ```
 ## Constants
 * 1 MutableRange:  1 week
@@ -151,7 +152,7 @@ Y:= {
 7. cummulative difficulty int64; // ???
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. Nonce:=0;
+10. MinerNonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg; // "hello world"
 13. signature; //by genesis miner to derive the TAUaddress
@@ -241,7 +242,7 @@ X = {
 7. cummulative difficulty int64; 
 8. generation signature;
 9. txfee = 1,000,000; // GenesisDefaultCoins 币数量
-10. Nonce ++;
+10. MinerNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 12. msg = TXJSON; // "hello world"  { for file tx, set file Nonce} // fileAMTroot is also in msg.  msg {optcode, TXcode}
 13. signature; //by genesis miner to derive the TAUaddress
