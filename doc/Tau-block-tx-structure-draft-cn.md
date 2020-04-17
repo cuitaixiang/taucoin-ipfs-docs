@@ -95,17 +95,17 @@ in each transition, following variables will be populated from execution and run
 stateless blockchain, 就是8个K-V的状态链， TXJSON和contractJSON都是灵活的。就是从四个角度去看问题：合约，节点，文件，中继。每个角度都可以把历史遍历出来。
 ```
 1. `Tsender`Nonce; //  balance and POT power for each address 总交易计数
-2. `Tsender`Balance
+2. `Tsender``Nonce`Balance
 3. `Tsender``Nonce`TXJSON
 
 
 1. `Treceiver`Nonce
-2. `Treceiver`Balance
+2. `Treceiver``Nonce`Balance
 3. `Treceiver``Nonce`TXJSON
 
 coinbase and genesis
 1. `Tminer`Nonce
-2. `Tminer`Balance
+2. `Tminer``Nonce`Balance
 3. `Tminer``Nonce`contractJSON
 
 ```
