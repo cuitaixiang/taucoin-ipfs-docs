@@ -47,7 +47,7 @@ in each transition, following variables will be populated from execution and run
 
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
-8. myTXsPool            map[ChainID]map[TXJSON]config; // include timestampInRelaySwitchTimeUnit
+8. myTXsPool            map [chainid] map [hash(txjson)] TXJSON; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 
 10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]config;// include timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
