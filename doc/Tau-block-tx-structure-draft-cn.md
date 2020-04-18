@@ -156,7 +156,7 @@ Y:= {
 9. amount = 1,000,000; // GenesisDefaultCoins 币数量
 10. IncomeNonce:=0;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg; // "hello world"
+12. msg; // "contact information and profile"
 13. signature; //by genesis miner to derive the TAUaddress
 }
 // build genesis state
@@ -242,7 +242,7 @@ X = {
 9. amount = `total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
 10. IncomeNonce ++;
 11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg = TXJSON; // 一个区块一笔交易 msg {optcode, TXcode}; type of txs: send, receive, file, relay in TXJSON
+12. msg = TXJSON; //profile info and msg {optcode, TXcode, msg with profile like telegram}; type of txs: send, receive, file, relay in TXJSON
 13. signature; //by genesis miner to derive the TAUaddress
 }  // finish X.
 
