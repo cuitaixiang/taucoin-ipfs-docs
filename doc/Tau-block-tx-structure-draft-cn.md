@@ -76,27 +76,30 @@ in each transition, following variables will be populated from execution and run
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- TAU Chain ID = "0"
 - ChainID := `Nickname`+`blocktime` + signature(timestamp) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
 
-- TX types and msg: the contract content for coin base, wiring and file tx
+- TX types
    * coin base, msg is the only transaction attached
-   * sending, msg is the contract relating to this tx
-   * receiving, 
+   * send, msg is the contract relating to this tx
+   * receive, 
    * relay, msg is the contract relating to this tx, include the relay info
    * file, msg is the contract relating to this tx, include discription of the file or future file command
-   * founders claim on TAU or other chains for bootstrap a chain <br/> <br/>
+   * founders claim for bootstrap a new chain <br/> <br/>
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
    
-
 ## HAMT Hashed keys are states for contract chain history. 
+History
+```
+1. ContractNumber; // e.g value = "8909"
+2. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
+```
 Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
-1. `TAUaddress`SpendNonce;  // POT power = senderNounce + receiverNounce
-2. `TAUaddress``SpendNonce`TotalSpend;  
-3. `TAUaddress``SpendNonce`JSONs = `ContractNumber` 
+3. `TAUaddress`SpendNonce;  // POT power = senderNounce + receiverNounce
+4. `TAUaddress``SpendNonce`TotalSpend;  
+5. `TAUaddress``SpendNonce`JSONs = `ContractNumber` 
       // referenceable UTXO contract number for receiver to spend. 
 
 FileSeeding/RelayRegister/ChainFoundersClaim transactions are not in state key value, 
@@ -105,10 +108,10 @@ because nonce consensus is hard in shared keys. Peers has to traverse history to
 ```
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
-1. `TAUaddress`IncomeNonce; 
-2. `TAUaddress``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
-3. `TAUaddress``IncomeNonce`JSONs = `ContractNumber`
-4. `TAUaddress``IncomeNonce`UTXOhistory =  compress(
+3. `TAUaddress`IncomeNonce; 
+4. `TAUaddress``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
+5. `TAUaddress``IncomeNonce`JSONs = `ContractNumber`
+6. `TAUaddress``IncomeNonce`UTXOhistory =  compress(
     `referenceable ContractNumber a,` +`referenceable ContractNumber b,`+ ..+ `referenceable ContractNumber z,` + 
     `TAUaddress``IncomeNonce-1`UTXOhistory) //
 // e.g value = "8909,5768", due to previous receiving state missing; 避免双收风险，同一个contract number 只能收一次。
@@ -122,11 +125,7 @@ Block miner: coinbase and genesis
          `TAUaddress``IncomeNonce-1`UTXOhistory) 
 // once receiving tx can receive multiple senders UTXOs. 
 ```
-History
-```
-7. ContractNumber; // e.g value = "8909"
-8. Contract`Number`JSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
-```
+
 ## Constants
 * 1 MutableRange:  1 week
 * 2 VotingPercentage: voting cover percentage 67%
@@ -159,16 +158,21 @@ Y:= {
 13. signature; //by genesis miner to derive the TAUaddress
 }
 // build genesis state
-* X := hamt_node := null new.hamt_node(); // execute once per chain, for future all is put.
-
-* populate all related HAMT Key-values.  hamt_node.hamt_put(cbor)
-
+G := cid new.hamt_node(); // execute once per chain, for future all is put.
+* populate all related HAMT Key-values.  
+G.hamt_add(`TAUaddress`IncomeNonce, 0);
+G.hamt_add(`TAUaddress``IncomeNonce`TotalIncome, 1,000,000); 
+G.hamt_add(`TAUaddress``IncomeNonce`JSON = "0";
+G.hamt_add(`TAUaddress``IncomeNonce`UTXOhistory, compress(0));
+G.hamt_add(ContractNumber,"0");
+G.hamt_add(Contract0JSON,Y);
+G.hamt_put(cbor)
 * populate all database variables. 
       * mySafetyContractResultStateRoots[`ChainID`] = null;
       * mySafetyContractResultStateRootMiners[`ChainID`] = Tminer;
       * mypreviousSafetyContractResultStateRootMiner[`ChainID`] = null;
       * ...
-// no need to config relay, myRelays[TAU]map[bootstrap relays]config will be populated when system starts in process E and community chains will use time slots to touch TAU relays. 
+// no need to config relay and peers, myRelays and myPeers will be populated when system starts in process E and community chains will use time slots to touch TAU relays and peers. 
 
 ```
 ## A. One miner receives GraphSync request from a relay.  
@@ -239,21 +243,29 @@ X = {
 12. msg = TXJSON; // 一个区块一笔交易 msg {optcode, TXcode}; type of txs: send, receive, file, relay in TXJSON
 13. signature; //by genesis miner to derive the TAUaddress
 }  // finish X.
-* stateroot.hamt_uptimestamp(contractJSON, X); 
 
 #### contract execute populate HAMT key values
-##### coinbase tx
+G := hamt(SafetyContractResultRoot);
 
+* populate all related HAMT Key-values in the example of sending transaction. 
 ##### send, receive, file, relay output.
-Send or Receive Account operation
+G.hamt_add(`Tsenderaddress`SpendNonce, ++);  // POT power = senderNounce + receiverNounce
+G.hamt_add(`Tsenderaddress``SpendNonce`TotalSpend, + amount);  
+G.hamt_add(`Tsenderaddress``SpendNonce`JSONs, `3`);  
 
-Relay annoucement operation
+##### coinbase tx
+G.hamt_add(`Tmineraddress`IncomeNonce, ++);
+G.hamt_add(`Tmineraddress``IncomeNonce`TotalIncome, TXfee); 
+G.hamt_add(`Tmineraddress``IncomeNonce`JSON = `3`;
+G.hamt_add(`Tmineraddress``IncomeNonce`UTXOhistory, compress(`3`+","+`Tmineraddress``IncomeNonce`UTXOhistory));
+G.hamt_add(ContractNumber,`3`);
+G.hamt_add(Contract0JSON,X);
 
-File and seeding operation
-    // seeding peer ipfs id, the first seeder is the creator of the file.
+#### finish contract execution
+G.hamt_put(cbor)
 
-#### finish contract execution hamt_node.hamt_put(cbor)
-Populate all database veriables. 
+* populate all database variables. 
+
 * myContractResultStateRoots[`ChainID`]
 * mypreviousSafttyContractResultStateRootMiner[`ChainID`] = mySaftyContractResultStateRootMiner[`ChainID`];
 * mySafttyContractResultStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
