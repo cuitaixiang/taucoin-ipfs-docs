@@ -8,6 +8,7 @@ User experienses:= { 用户体验
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X size of the overall video. 
+- Users can auto join and receive airdrop portion according to randomness. airdrop config: amount and time. each piece is amount. config into chainID.  Nickname-10000-3000-5-sig(timestamp). each airdrop portion is 10000/3000, reference genesis contract number, you can receive it, one each address. 
 }
 
 Business model:= { 商业模式
