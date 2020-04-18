@@ -139,9 +139,8 @@ History
 * 5 SelfMiningTime: self mining qualify time 60 minutes. 
 * 6 GenesisDefaultCoins: default coins 1,000,000
 * 7 initial difficulty according to the BlockTime.
-* 8 block size = 2 transactions in version 1 of software
-* 9 BlockTimeDefault = default 5 minutes
-* 10 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
+* 8 BlockTimeDefault = default 5 minutes
+* 9 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
 ## Community chain
 ### Genesis
