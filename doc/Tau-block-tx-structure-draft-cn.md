@@ -88,6 +88,7 @@ in each transition, following variables will be populated from execution and run
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
+- POT use power as square root the nounce. 
    
 ## HAMT Hashed keys are states for contract chain history. 
 History
