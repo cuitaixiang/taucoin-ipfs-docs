@@ -84,7 +84,8 @@ in each transition, following variables will be populated from execution and run
    * sending, msg is the contract relating to this tx
    * receiving, 
    * relay, msg is the contract relating to this tx, include the relay info
-   * file, msg is the contract relating to this tx, include discription of the file or future file command<br/> <br/>
+   * file, msg is the contract relating to this tx, include discription of the file or future file command
+   * founders claim on TAU or other chains for bootstrap a chain <br/> <br/>
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
@@ -98,13 +99,9 @@ Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, sp
 3. `TAUaddress``SpendNonce`JSONs = `ContractNumber` 
       // referenceable UTXO contract number for receiver to spend. 
 
-File transactions
-5. `fileAMTroot`seederNonce // file's the total number of registerred seeders, first seeder is the creation.
-6. `fileAMTroot`seeder`Nonce`JSON= `ContractNumber`  // e.g value = "8909" 
+FileSeeding/RelayRegister/ChainFoundersClaim transactions are not in state key value, 
+because nonce consensus is hard in shared keys. Peers has to traverse history to get those, more relay on leveldb. 
 
-Relay
-5. RelayNonce
-6. Relay`Nonce`JSON= `ContractNumber`  // e.g value = "8909"
 ```
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
