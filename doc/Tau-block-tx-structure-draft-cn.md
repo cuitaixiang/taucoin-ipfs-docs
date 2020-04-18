@@ -1,9 +1,9 @@
 # TAU - File sharing on blockchains
 
 User experienses:= { 用户体验
-- Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability)
+- Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability) // auto seeding  is a collection of seeding of a file, no support to automatic seeding future files, which cause spam on network. 
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
-   - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding on the download files. 
+   - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding tx triggered on the download results. 
 - TAU provides basic relay services.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and successed history, in the weight of 2:1:7
