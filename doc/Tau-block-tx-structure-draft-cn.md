@@ -99,6 +99,7 @@ in each transition, following variables will be populated from execution and run
      - No need to do two phase waiting on relay. 
    
 ## AMT are states for contract chain history. decentral and stateless. one root one cborblock.
+verifcation is provide witness from mutalbe ragne to curernt all blocks. 
 Contract
 ```
 1. ContractJSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
@@ -139,8 +140,8 @@ Four types of root:
 * 4 WakeUpTime: sleeping mode wake up random range 5 minutes
 * 5 GenesisDefaultCoins: default coins 1,000,000
 * 6 initial difficulty according to the BlockTime.
-* 7 DefaultBlockTime :  5 minutes;  
-* 8 MaxBlockTime: 60 minutes, when no body mining, you have to generate blocks. 
+* 7 BlockTime :  5 minutes;  
+* 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
 * 9 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
 ## Community chain
