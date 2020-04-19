@@ -98,7 +98,7 @@ in each transition, following variables will be populated from execution and run
      - No need to check local KV availabity
      - No need to do two phase waiting on relay. 
    
-## HAMT Hashed keys are states for contract chain history. decentral and stateless. one root one cborblock.
+## AMT are states for contract chain history. decentral and stateless. one root one cborblock.
 Contract
 ```
 1. ContractJSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
