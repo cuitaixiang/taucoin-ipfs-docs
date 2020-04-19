@@ -93,46 +93,44 @@ in each transition, following variables will be populated from execution and run
 - POT use power as square root the nounce. 
 - Stateless for blockchain scope, statefull for address scope. TAU technology is a pure stateless in blockchain level. There is no full nodes. However, TAU implement statefull for each address data, which means each address has to store own state information. Each node will pin: states chain passed mutable range and all blocks with own address transactions; along with these info, the underline blocks will contain other peers info as well. 
 
-- graphSync ->  RootSyncOnRelay( relay_multiAddr, peerIPFSAddr, ChainID, root ); // root could be null
+- graphSync ->  RootSyncViaRelay ( relay_multiAddr, peerIPFSAddr, ChainID, root ); // root could be null
      - No need to back and forth locate cid for KV.
      - No need to check local KV availabity
      - No need to do two phase waiting on relay. 
    
-## HAMT Hashed keys are states for contract chain history. decentral and stateless.
+## HAMT Hashed keys are states for contract chain history. decentral and stateless. one root one cborblock.
 Contract
 ```
 1. ContractJSON // e.g Contract8909JSON = {"version", "safetystateroot", "contract number = 8909", ...,"signature"}
 ```
 Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
-3. `TAUaddress`SpendNonce ++;  // POT power = senderNounce + receiverNounce
-4. `TAUaddress``SpendNonce`TotalSpend += amount;  
-5. `TAUaddress``SpendNonce-1`ContractResultStateRoot . // miner will switch hamt root to verify history k-v, tx sender will monitor blockchain for stateroot confirm
-      // referenceable UTXO root for receiver to spend. 
+2. `TAUaddress`SpendNonce ++;  // POT power = senderNounce + receiverNounce; Ta..xSpendNounce = 9++ = 10
+3. `TAUaddress``SpendNonce`TotalSpend += amount;  // Ta..xSpend10TotalSpend = 9++ = 1000+100= 1100
+4. `TAUaddress`PreviousSpendContractResultStateRoot . // miner will switch hamt root to verify history k-v, tx sender will monitor blockchain for stateroot confirm.  Ta..xPreviousSpendContractResultStateRoot = some cid. 
 
 FileSeeding/RelayRegister/ChainFoundersClaim transactions are not in state key value, 
 because nonce consensus is hard in shared keys. Peers has to traverse history to get those, more relay on leveldb. 
-
 ```
 Receiver transactions: stateless blockchain requires adddress to claim income. Wiring Tx is two steps to full completion.
 ```
-3. `TAUaddress`IncomeNonce; 
-4. `TAUaddress``IncomeNonce`TotalINcome; // Income = sender's amount - transaction fee
-5. `TAUaddress``IncomeNonce`StateRoot =  `ContractResultStateRoot`
-6. `TAUaddress``IncomeNonce`UTXOrootHistory =  compress(
-    `referenceable ContractNumber a,` +`referenceable ContractNumber b,`+ ..+ `referenceable ContractNumber z,` + 
-    `TAUaddress``IncomeNonce-1`UTXOhistory) //
-// e.g value = "8909,5768", due to previous receiving state missing; 避免双收风险，同一个contract number 只能收一次。
+2. `TAUaddress`IncomeNonce ++; 
+3. `TAUaddress``IncomeNonce`TotalINcome  += amount; // Income = sender's amount - transaction fee
+4. `TAUaddress`PreviousIncomeContractResultStateRoot; 
+5. `TAUaddress``IncomeNonce`UTXOContractResultStateRoot;  // point to a spend contract state root
 
 Block miner: coinbase and genesis
-1. `TAUaddress`IncomeNonce
-2. `TAUaddress``IncomeNonce`TotalIncome; // form total tx fee or genesis coins issue
-3. `TAUaddress``IncomeNonce`JSON = `ContractNumber`  // e.g value = "8909"
-4. `TAUaddress``IncomeNonce`UTXOhistory =compress(
-     `referenceable ContractNumber a,` +`referenceable ContractNumber b,`+ ..+ `referenceable ContractNumber z,` + 
-         `TAUaddress``IncomeNonce-1`UTXOhistory) 
-// once receiving tx can receive multiple senders UTXOs. 
+2. same as receiver tx 2 
+3. same as receiver tx 3  // form total tx fee or genesis coins issue
+4. same as receiver tx 4
+
 ```
+Four types of root:
+- ContractJSON/safetystateroot: link to previous state
+- PreviousSpendContractResultStateRoot: link to address's previous spend root
+- PreviousIncomeContractResultStateRoot: link to address's previous income root
+- UTXOContractResultStateRoot: line to address income associated UTXO
+
 
 ## Constants
 * 1 MutableRange:  1 week
