@@ -91,6 +91,7 @@ in each transition, following variables will be populated from execution and run
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
+- Stateless for blockchain scope, statefull for address scope. TAU technology is a pure stateless in blockchain level. There is no full nodes. However, TAU implement statefull for each address data, which means each address has to store own state information. Each node will pin: states chain passed mutable range and all blocks with own address transactions; along with these info, the underline blocks will contain other peers info as well. 
    
 ## HAMT Hashed keys are states for contract chain history. 
 History
@@ -100,9 +101,9 @@ History
 ```
 Sender transactions: stateless wiring tx include **TWO** parts asynchorisely, spend and income.
 ```
-3. `TAUaddress`SpendNonce;  // POT power = senderNounce + receiverNounce
-4. `TAUaddress``SpendNonce`TotalSpend;  
-5. `TAUaddress``SpendNonce`JSONs = `ContractNumber` 
+3. `TAUaddress`SpendNonce= TAUaddressPrivateKeyEncrypt(`TAUaddress`SpendNonce++);  // POT power = senderNounce + receiverNounce
+4. `TAUaddress``SpendNonce`TotalSpend= TAUaddressPrivateKeyEncrypt(`TAUaddress``SpendNonce`TotalSpend+amount);  
+5. `TAUaddress``SpendNonce`StateRoot = TAUaddressPrivateKeyEncrypt( `ContractResultStateRoot` ).
       // referenceable UTXO contract number for receiver to spend. 
 
 FileSeeding/RelayRegister/ChainFoundersClaim transactions are not in state key value, 
