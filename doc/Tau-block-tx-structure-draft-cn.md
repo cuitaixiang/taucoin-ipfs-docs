@@ -1,10 +1,11 @@
 # TAU - File sharing on blockchains
 
-User experienses:= { 用户体验
-- Core: 1. create sharing blockchain 2. send coins to friends.  3. seeding a file (with create new chain ability) // auto seeding  is a collection of seeding of a file, no support to automatic seeding future files, which cause spam on network. 
+User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
+- Core: 1. Create blockchain 2. Send coins.  3. Upload files
+- // auto seeding  is a collection of seeding of a file, no support to automatic seeding future files, which cause spam on network. 
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
    - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding tx triggered on the download results. 
-- TAU provides basic relay services.
+- TAU provides global relay services and chain annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X size of the overall video. 
@@ -347,10 +348,14 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 
 // 建立区块链，发币邀请，上传
-1. Own a blockchain with 1 million coins to build a community for video and files sharing. 
-2. Send coins to friends.  // get their video previews and 2% automatically on the followed friends.  
-3. Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. <br/> <br/>
-
+* 1. Create Blockchain: Own a blockchain with 1 million coins to build a community for video and files sharing. 
+     * 一键建立区块链：默认配置5分钟区块时间，自动给名字，自动给创世币数量，提供一个change人口和create创建入口。
+     * 自动起名字提供一个默认名字字典
+* 2. Send Coins:  to friends.  // get their video previews and 2% automatically on the followed friends.  
+* 3. Upload Files: Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. <br/> <br/>
+     * 1. File import
+     * 2. Choose Chain or Create Blockchain
+     * 3. Publish
 * Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"<br/> <br/>
 
 ### Community 社区
