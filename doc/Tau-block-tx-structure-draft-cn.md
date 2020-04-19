@@ -133,10 +133,10 @@ Block miner: coinbase and genesis
 * 2 VotingPercentage: voting cover percentage 67%
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 5 minutes
-* 5 SelfMiningTime: self mining qualify time 60 minutes. 
-* 6 GenesisDefaultCoins: default coins 1,000,000
-* 7 initial difficulty according to the BlockTime.
-* 8 BlockTimeDefault = default 5 minutes
+* 5 GenesisDefaultCoins: default coins 1,000,000
+* 6 initial difficulty according to the BlockTime.
+* 7 DefaultBlockTime :  5 minutes;  
+* 8 MaxBlockTime: 60 minutes, when no body mining, you have to generate blocks. 
 * 9 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
 ## Community chain
@@ -225,7 +225,7 @@ if received ContractResultStateRoot/contractJSON shows a more difficult chain th
 goto (9)
 }
   else { 
-  failed or err , if the (current time - safety state time ) is bigger than SelfMiningTime, then generate a new state on own  safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9)
+  failed or err , if the (current time - safety state time ) is bigger than MaxBlockTime, then generate a new state on own  safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9)
   }; 
        else go to step 1. 
 
