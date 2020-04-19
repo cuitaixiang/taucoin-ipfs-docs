@@ -92,6 +92,11 @@ in each transition, following variables will be populated from execution and run
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
 - Stateless for blockchain scope, statefull for address scope. TAU technology is a pure stateless in blockchain level. There is no full nodes. However, TAU implement statefull for each address data, which means each address has to store own state information. Each node will pin: states chain passed mutable range and all blocks with own address transactions; along with these info, the underline blocks will contain other peers info as well. 
+
+- graphSync ->  RootSyncOnRelay( relay_multiAddr, peerIPFSAddr, ChainID, root ); // root could be null
+     - No need to back and forth locate cid for KV.
+     - No need to check local KV availabity
+     - No need to do two phase waiting on relay. 
    
 ## HAMT Hashed keys are states for contract chain history. decentral and stateless.
 Contract
