@@ -2,15 +2,18 @@
 
 User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - Core: 1. Create blockchain 2. Send coins.  3. Upload files
-- // auto seeding  is a collection of seeding of a file, no support to automatic seeding future files, which cause spam on network. 
    - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
    - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding tx triggered on the download results. 
 - TAU provides global relay services and chain annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X size of the overall video. 
-- Using the new chain annoucement info, app will survey the chains for files and display to users. when user choose to join then random become stable. stable vs random 8/2. 
+
 - following a chain and mining/seedinig a chain is diffferent mode. 
+- For a chain: random, watch and mining
+- 4G: Watching chains for both randomed and followed. pick up any nodes to read chains info. 
+- wifi: single process Mining/tx/seeding
+- wifi + power plug: multiple processes on mining
 }
 
 Business model:= { 商业模式
@@ -20,16 +23,11 @@ Business model:= { 商业模式
 - TAU is a relay annoucement service by tau dev. 
 }
 
-## Two Tries
-* State Key-value pairs are in HAMT trie: StateRoot is the state root; contract and results are connected in each state transition. 
-   * future state includes ContractNumberJSON 
-   * ContractNumberJSON includes SafetyStateRoot
-* file AMT: the AMT trie for storing the file.
 
 ## Six core processes
 On Hamt trie.
 * A. Response with predicted StateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
-* B. Collect votings from chain peers to discover the ChainID's safety state root. (single thread func)<br/> <br/>
+* B. Collect votings from chain peers to discover the ChainID's  state root. (single thread func)<br/> <br/>
 On Amt trie.
 * C. File Downloader. (download files and logging download data)
 * D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
@@ -43,10 +41,9 @@ in each transition, following variables will be populated from execution and run
 1. myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
 
 2. myStateRoots                    map[ChainID] cbor.cid; // the new contract state
-3. mySafetyStateRoots              map[ChainID] cbor.cid;
 
 4. myMutableRange       map[ChainID]string
-5. myPruneRange
+5. myPruneRange         map[ChainID]string
    
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
@@ -66,10 +63,9 @@ in each transition, following variables will be populated from execution and run
 
 ## Concept explain
 - Single thread function for full chains voting and full pool download. To increase performance, run concurrency on top level. 
-- **Block size is 1**, one tx included in each block. This is important to prevent complex double income issue. 
+- **Block size is 1, 5 minutes a block **
 - Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
-- Safety is the CBC Casper concept of the safe and agreed history by BFT group. The future contract result state is a CBC prediction. TAU uses this concept to describe the prediction and safety as well, but our scope are all peers than BFT group.
-- Mutable range is defined as "one week" for now, beyond mutalble range, it is considered finality.<br/> <br/>
+<br/> <br/>
 
 - HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the StateRoot prediction on the chainID.
 - AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. 
@@ -103,14 +99,14 @@ in each transition, following variables will be populated from execution and run
 StateJSON  = { 
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
-3. StateNumber:=0 int32;
-4. SafetyStateRoot = null; // genesis is built from null. cid.  node.link.
+3. StateNumber;
+4. PreviousStateRoot; // genesis is built from null. cid.  node.link.
 5. basetarget;
-6. cummulative difficulty int64; // ???
+6. cummulative difficulty;
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
-// CRITICAL STATE, mostly fungible state, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
+// CRITICAL STATE, mostly fungible states, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
 12. `TAUaddress`Balance = new balance;
@@ -121,16 +117,17 @@ StateJSON  = {
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
 
 ```
-* for each node verification only happens after mutable range. 
-* for every income new state root, half for voting; half for verification. 
-* each node only save prune range to mutable range information. prune range is 1 year, mutable range 1 week. 
+* voting purpose is to find mutable range point, no longer . 
+* for chain choose, verification start from mutable range point by voting. 
+* for every income new state root, half used for voting; half for verification. In voting, there is no verification only counting the roots. 
+* each node only save from PruneRange to MutableRange. 
 
 ## Constants
 * 1 MutableRange:  1 week
 * 2 PruneRange: 1 year
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 5 minutes
-* 5 GenesisDefaultCoins: default coins 1,000,000
+* 5 GenesisCoins: default coins 1,000,000. Integer, no decimals. 
 * 6 initial difficulty according to the BlockTime.
 * 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
@@ -138,7 +135,7 @@ StateJSON  = {
 
 ## Community chain
 ### Genesis
-* with parameters: block time, chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
+* with parameters: chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
 ```
 // build genesis block
 
@@ -146,7 +143,7 @@ StateJSON  = {
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. StateNumber:=0 int32;
-4. SafetyStateRoot = null; // genesis is built from null.
+4. PreviousStateRoot = null; // genesis is built from null.
 5. basetarget;
 6. cummulative difficulty int64; // ???
 7. generation signature;
@@ -155,18 +152,10 @@ StateJSON  = {
 // CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = 1,000,000; // GenesisDefaultCoins 币数量
-12. `Tminer`Nonce = 1 
+12. `Tminer`Nonce = 0
 13. signature; //by genesis miner to derive the TAUaddress
 }
-// build genesis state
-G := cid new.amt_node(); // execute once per chain, for future all is put.
-G.hamt_add(StateJSON);
-G.hamt_put(cbor); // every new state is a block writen to disk. 
-* populate all database variables. 
-      * mySafetyStateRoots[`ChainID`] = null;
-      * mySafetyStateRootMiners[`ChainID`] = Tminer;
-      * mypreviousSafetyStateRootMiner[`ChainID`] = null;
-      * ...
+
 // no need to config relay and peers, myRelays and myPeers will be populated when system starts in process E and community chains will use time slots to touch TAU relays and peers. 
 
 ```
@@ -186,39 +175,27 @@ nodes state switching: 节点工作状态微调
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
-
-call func PickupRelayAndPeer(H)
-
-2. if the  mySafetyStateRootMiners[`ChainID`] == myPreviousSafetyStateRootMiners[`ChainID`]; 
-go to step (3); // 上两次连续出块是同一个地址，就要投票。 
+- call func PickupRelayAndPeer(H)
+- if the  RelaySwitchTimeUnit is odd number go voting; 
+go to step (3); // 时间戳单数就投票 
 else go to step (7); // it is educated working chain
 
-3. HamtGraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (5)
+3. GraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (5)
    myRelays[successed].add{this Relay}
-4. traverse history for states roots collection until MutableRange.
-(*)  
-stateroot= y/contractJSON/SafetyStateRoot // recursive getting previous stateRoot to move into history
-y = HamtGraphRelaySync(stateroot)
-goto (*) until the mutable range or any error; // 
+4. traverse history for states roots collection to get MutableRange.
 
-5. On the same chainID, according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID)
-
-call func PickupRelayAndPeer(H)
-
-goto step (3) until surveyed 2/3 of myPeers[`ChainID`][...]
-
-6. accounting the voting rule, pick up the highest weight among the roots even only one vote, then use own safetyroot uptimestamp the CBC safety root: mySafetyStateRoots[`ChainID`] = voted SAFETY), 统计方法是所有的root的计权重，选最高。
-goto (9)
+6. accounting the voting rule, pick up the mutable range root, 统计方法是所有的root的计权重，选最高，时间范围是从prune to mutable range。
+goto (1)
 // use  map[root string]Uint to count voting. 
 
 7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
    if err= null, myRelays[successed].add{this Relay}
 8. if ok, then verify {
-if received StateRoot/contractJSON shows a more difficult chain than SafetyStateRoot/contractJSON/`difficulty` and future root/contract/json/ safetyroot timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions until the MutableRange. in the verify process, it needs to add all db variables, hamt and amt trie to local. for some Key value, it will need `graphRelaySync` to get data from peerID_A;
+if received StateRoot/contractJSON shows a more difficult chain than PreviousStateRoot/contractJSON/`difficulty` and future root/contract/json/ root timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions from the MutableRange. in the verify process,it will need `graphRelaySync` to get data from peerID_A;
 goto (9)
 }
   else { 
-  failed or err , if the (current time - safety state time ) is bigger than MaxBlockTime, then generate a new state on own  safety root, this will cause safety miner = previous safety miner to trigger voting, go to (9)
+  failed or err , if the (current time -  state time ) is bigger than MaxBlockTime, then generate a new state on own   root, this will cause  miner = previous  miner to trigger voting, go to (9)
   }; 
        else go to step 1. 
 
@@ -226,9 +203,9 @@ goto (9)
 X = {
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
-3. contractNumber; // hamt_get(SafetyStateRoot,contractJSON) / contractNumber +1;
+3. contractNumber; // hamt_get(PreviousStateRoot,contractJSON) / contractNumber +1;
 4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
-5. SafetyStateRoot; //  type cbor.cid
+5. PreviousStateRoot; //  type cbor.cid
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
@@ -240,7 +217,7 @@ X = {
 }  // finish X.
 
 #### contract execute populate HAMT key values
-G := hamt(SafetyStateRoot);
+G := hamt(PreviousStateRoot);
 
 * populate all related HAMT Key-values in the example of sending transaction. 
 ##### send, receive, file, relay output.
@@ -264,7 +241,7 @@ G.hamt_put(cbor)
 * myStateRoots[`ChainID`]
 * mypreviousSafttyStateRootMiner[`ChainID`] = mySaftyStateRootMiner[`ChainID`];
 * mySafttyStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
-* mySafetyStateRoots[`ChainID`] = SafetyStateRoot;
+* myPreviousStateRoots[`ChainID`] = PreviousStateRoot;
 * myPeers[`ChainID`][ ].add(`Tminer);
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``TAUaddress`IPFSaddr)
 * For file upload to chain
