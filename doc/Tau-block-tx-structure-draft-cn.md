@@ -10,6 +10,7 @@ User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X size of the overall video. 
 - Using the new chain annoucement info, app will survey the chains for files and display to users. when user choose to join then random become stable. stable vs random 8/2. 
+- following a chain and mining a chain is diffferent mode. 
 }
 
 Business model:= { 商业模式
