@@ -7,7 +7,9 @@ User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - TAU provides global relay services and chain annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
-- User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X size of the overall video. 
+- User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X/total size of the overall video. 
+- provide a hopping players
+- auto seeding is off chain function, downloader will randomless picking up pieces. 
 
 - following a chain and mining/seedinig a chain is diffferent mode. 
 - For a chain: random, watch and mining
@@ -49,9 +51,6 @@ in each transition, following variables will be populated from execution and run
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
 8. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
 9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
-
-10. myFileAMTSeeders     map[FileAMTroot]map[TAUaddress]config;// include timestampInRelaySwitchTimeUnit // IPFSaddress from myPeers[chainid][TAUaddress]
-11. myFileAMTroots       map[FileAMTroot]config;// include filename ; // a  list for imported or downloaded files trie
    
 12. mytotalFileAMTDownloadedData
 13. mytotalFileAMTUploadedData
@@ -333,23 +332,10 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - member messages & file, third layer, support import
 ### Files
 - File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
-- Video will be only chopped and kept original compression format to support portion play. We will support a `hopping player` to play the downloaded pieces. 
-- Apps autodownload and autoseed; autoseed is an transaction. 
+- Video will be only chopped and kept original compression format to support portion play. 
+- Apps autodownload and autoseed; autoseed is not a tx. 
    - app can auto download files and videos according to config include percentage.
    - for files only 100% download and accept uplimited for config; for videos, percentage is supported with uplimit. 
-   ```
-   - func pieceSelection(downloadPercentage 1%-100%, file total pieces) p is the piece number selection; 
-      for (n=1; n++; (n/downloadPercentage + remainder余数(SeederTAUAddr/100))<=total pieces) 
-         {  
-         p= INT( remainder余数(SeederTAUAddr/100) + n/downloadPercentage )
-         return p;
-      }
-     example: assume remainder is 3 
-     total piece is 1000; download percentage 10%
-     n : 1 .. 1000 * 10% = 1..100
-     p = 1/0.1 .. n/0.1 = 13, 23, 33, .. 993
-      
-   ```
 - import files
 - share file to friend
 - share file to community chain
