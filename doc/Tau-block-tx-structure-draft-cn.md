@@ -77,7 +77,7 @@ in each transition, following variables will be populated from execution and run
 
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- ChainID := `Nickname`+`blocktime` + signature(timestamp) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
+- ChainID := `Nickname` + signature(timestamp) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
 
 - TX types
    * coin base, msg is the only transaction attached
@@ -97,7 +97,7 @@ in each transition, following variables will be populated from execution and run
      - No need to check local KV availabity
      - No need to do two phase waiting on relay. 
    
-## IPLD stores state chain
+## IPLD stores state chain - one year state chain
 ```
 StateJSON  = { 
 1. version;
@@ -110,12 +110,11 @@ StateJSON  = {
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
 // CRITICAL STATE, mostly fungible state, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
-10. ChainID := `Nickname`+`blocktime`+ hash(signature(timestampInRelaySwitchTimeUnit))
+10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
-11. `Tminer`Nonce = ++; // increase nonce when receive
 12. `TAUaddress`Balance = new balance;
 13. `TAUaddress`Nonce = new nounce; for both sender and receiver
-14. UTXOreferenceRoot; // if it is a receiving, then point to utxo. 
+14. `TAUreceiver`Balance
 15. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
@@ -132,7 +131,7 @@ StateJSON  = {
 * 4 WakeUpTime: sleeping mode wake up random range 5 minutes
 * 5 GenesisDefaultCoins: default coins 1,000,000
 * 6 initial difficulty according to the BlockTime.
-* 7 BlockTime :  5 minutes;  
+* 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
 * 9 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
 
@@ -153,7 +152,7 @@ StateJSON  = {
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
 // CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
-10. ChainID := `Nickname`+`blocktime`+ hash(signature(timestampInRelaySwitchTimeUnit))
+10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = 1,000,000; // GenesisDefaultCoins 币数量
 12. `Tminer`Nonce = 1 
 13. signature; //by genesis miner to derive the TAUaddress
