@@ -112,14 +112,13 @@ StateJSON  = {
 // CRITICAL STATE, mostly fungible state, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+`blocktime`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
-12. `Tsender`Balance = new balance;
-13. `Tsender`Nonce = new nounce;
-14. `Treceiver`Balance = new balance
+11. `Tminer`Nonce = ++; // increase nonce when receive
+12. `TAUaddress`Balance = new balance;
+13. `TAUaddress`Nonce = new nounce; for both sender and receiver
+14. UTXOreferenceRoot; // if it is a receiving, then point to utxo. 
 15. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
-
-https://github.com/ipfs/go-graphsync/blob/master/testutil/testchain.go
 
 ```
 * for each node verification only happens after mutable range. 
