@@ -43,11 +43,10 @@ in each transition, following variables will be populated from execution and run
 
 2. myStateRoots                    map[ChainID] cbor.cid; // the new contract state
 3. mySafetyStateRoots              map[ChainID] cbor.cid;
-   
-4. mySafetyStateRootMiners         map[ChainID] address;
-5. myPreviousSafetyStateRootMiners map[ChainID] address; // Safety miner and previous safety miner; 
-      if  safety miner = previous safety miner, then the miner is treated as disconnected or new, so go to voting. 
 
+4. myMutableRange       map[ChainID]string
+5. myPruneRange
+   
 6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
 7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
 8. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
@@ -98,19 +97,19 @@ in each transition, following variables will be populated from execution and run
      - No need to check local KV availabity
      - No need to do two phase waiting on relay. 
    
-## AMT trie stores state chain
+## IPLD stores state chain
 ```
 StateJSON  = { 
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. StateNumber:=0 int32;
-4. SafetyStateRoot = null; // genesis is built from null.
+4. SafetyStateRoot = null; // genesis is built from null. cid.  node.link.
 5. basetarget;
 6. cummulative difficulty int64; // ???
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
-// CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
+// CRITICAL STATE, mostly fungible state, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+`blocktime`+ hash(signature(timestampInRelaySwitchTimeUnit))
 11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
 12. `Tsender`Balance = new balance;
@@ -123,11 +122,13 @@ StateJSON  = {
 https://github.com/ipfs/go-graphsync/blob/master/testutil/testchain.go
 
 ```
-
+* for each node verification only happens after mutable range. 
+* for every income new state root, half for voting; half for verification. 
+* each node only save prune range to mutable range information. prune range is 1 year, mutable range 1 week. 
 
 ## Constants
 * 1 MutableRange:  1 week
-* 2 VotingPercentage: voting cover percentage 67%
+* 2 PruneRange: 1 year
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 5 minutes
 * 5 GenesisDefaultCoins: default coins 1,000,000
