@@ -10,11 +10,12 @@ User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X/total size of the overall video. 
 - auto seeding is off chain function, downloader will randomless picking up pieces. 
 
-- following a chain and mining/seedinig a chain is diffferent mode. 
-- For a chain: random, watch and mining
-- 4G: Watching chains for both randomed and followed. pick up any nodes to read chains info. 
-- wifi: single process Mining/tx/seeding
-- wifi + power plug: multiple processes on mining
+
+- chain: random walk on all chains, follow a chain, mining a chain
+   - 4G: Watching chains for both randomed and followed. pick up any nodes to read chains info. only take in data, do not provide
+   - wifi: single process Mining/tx
+   - wifi + power plug: multiple processes on mining
+   - an overall pause button
 }
 
 Business model:= { 商业模式
@@ -77,10 +78,9 @@ in each transition, following variables will be populated from execution and run
 - TX types
    * coin base, msg is the only transaction attached
    * send, msg is the contract relating to this tx
-   * receive, 
    * relay, msg is the contract relating to this tx, include the relay info
-   * file, msg is the contract relating to this tx, include discription of the file or future file command
-   * founders claim for bootstrap a new chain <br/> <br/>
+   * file, msg is the contract relating to this tx 
+   * new chain annoucement tx on tau or others<br/> <br/>
    
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
@@ -92,7 +92,7 @@ in each transition, following variables will be populated from execution and run
      - No need to check local KV availabity
      - No need to do two phase waiting on relay. 
    
-## IPLD stores state chain - one year state chain
+## IPLD stores state chain - one year state chain. Limited time statefull.
 ```
 StateJSON  = { 
 1. version;
@@ -109,7 +109,7 @@ StateJSON  = {
 11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
 12. `TAUaddress`Balance = new balance;
 13. `TAUaddress`Nonce = new nounce; for both sender and receiver
-14. `TAUreceiver`Balance
+14. `TAUreceiver`Balance = new balance;
 15. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
