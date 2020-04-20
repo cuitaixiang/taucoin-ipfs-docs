@@ -10,39 +10,39 @@ User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X/total size of the overall video. 
 - auto seeding is off chain function, downloader will randomless picking up pieces. 
 
-
 - chain: random walk on all chains, follow a chain, mining a chain
-   - 4G: Watching chains for both randomed and followed. pick up any nodes to read chains info. only take in data, do not provide
-   - wifi: single process Mining/tx
-   - wifi + power plug: multiple processes on mining
-   - an overall pause button
+   - on telcom data: Watching chains for both randomed and followed. pick up any nodes to read chains info. only take in data, do not provide data, support manual download, do not support auto download and auto seeding; with on/off ; // disregard electricity or not. ( mining, auto download, auto seeding, all OFF)
+   
+   - wifi:  Mining (including upload files on chain) on/off, auto download file(on/off with config) and  seeding on/off (seeding total or not). config buttons on all these
+   - wifi + power plug: multiple processes allowed. 
+   - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules. <br/> <br/>
+
 }
 
 Business model:= { 商业模式
-- Tau foundation will develop TAU App and provide free public relays, in return for admob/mopub ads income to cover AWS data cost. Any one can contribute relays on both TAU and own chain. 
+- Tau foundation will develop TAU App and provide free public relays, in return for admob/mopub ads income to cover relay data cost. Any one can contribute relays on both TAU and own chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads. In app, show a stats of uploaded data, download data. 
-- TAUT is tau-torrent, a file sharing service by tau dev
+- TAUT is tau-torrent, a file sharing service by tau dev. 
 - TAU is a relay annoucement service by tau dev. 
 }
 
 
 ## Six core processes
-On Hamt trie.
-* A. Response with predicted StateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. a call-back registerred in libp2p. 
-* B. Collect votings from chain peers to discover the ChainID's  state root. (single thread func)<br/> <br/>
-On Amt trie.
+
+* A. Response with predicted StateRoot. One instatnce per connection to prevent ddos. 
+* B. Collect votings from chain peers. (single thread func)<br/> <br/>
 * C. File Downloader. (download files and logging download data)
-* D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
+* D. Reponse to file downloader request. (logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
 On Environment
 * E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
-* F. Resource management: 1. pin everything of self created and syced blocks, 2, When safty root time pass the mutable range, unpin states root out of finality.  All seeded files will be pinned, while unseeded AMTroots are not pinned.
+* F. Resource management: TBD. 
 
 ## Persistence variables in database
 in each transition, following variables will be populated from execution and run-time. 
 ```
-1. myChains                                      map[ChainID] config; //Chains to follow, string is for planned config info
+1. myChains             map[ChainID] config; //Chains to follow or mining, string is for planned config info
 
-2. myStateRoots                    map[ChainID] cbor.cid; // the new contract state
+2. myStateRoots         map[ChainID] cbor.cid; // the new contract state
 
 4. myMutableRange       map[ChainID]string
 5. myPruneRange         map[ChainID]string
@@ -56,21 +56,10 @@ in each transition, following variables will be populated from execution and run
 13. mytotalFileAMTUploadedData
 
 ```
-## Temporary Variables
-* currentChainID
-* currentAccountDB map[ChainID]map[TAUaddress]map[Total Balance | POT power | ...] value
 
 ## Concept explain
-- Single thread function for full chains voting and full pool download. To increase performance, run concurrency on top level. 
-- **Block size is 1, 5 minutes a block **
-- Miner is what nodes call itself, and sender is what nodes call other peers. In TAU POT, all miners predict a future state; 
-<br/> <br/>
-
-- HamtGraphRelaySync(relay multiaddress, remotePeerIPFS addr, chainID, cbor.cid, selector); // replaced the IPFS relay circuit. When cbor.cid is null, it means asking peer for the StateRoot prediction on the chainID.
-- AMTgraphRelaySync(relay multiaddress, remote ipfs peer, cbor.cid, selector); cid can not be null. 
-- In both GraphRelaySync, it needs to test wether the target KV holding cbor.cid are already in local or not. <br/> <br/>
-- Whoever provides state root, it has to include all witness data. Principle of traverse, once in a "ChainID+relay+peer" communication, we will not incur another recursive process to a new peer to get supporting evidence. If some Key-values are missing to prevent validation, just abort process to go next randomness. <br/> <br/>
-
+- Single thread function for chains voting and pool download. To increase performance, run concurrency on top level E. 
+- **Block size is fixed 1, 5 minutes a block **
 - Address system: 
 - TAU private key: the base for all community chain address generation;
 - ChainID := `Nickname` + signature(timestamp) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
@@ -85,12 +74,6 @@ in each transition, following variables will be populated from execution and run
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
-- Stateless for blockchain scope, statefull for address scope. TAU technology is a pure stateless in blockchain level. There is no full nodes. However, TAU implement statefull for each address data, which means each address has to store own state information. Each node will pin: states chain passed mutable range and all blocks with own address transactions; along with these info, the underline blocks will contain other peers info as well. 
-
-- graphSync ->  RootSyncViaRelay ( relay_multiAddr, peerIPFSAddr, ChainID, root ); // root could be null
-     - No need to back and forth locate cid for KV.
-     - No need to check local KV availabity
-     - No need to do two phase waiting on relay. 
    
 ## IPLD stores state chain - one year state chain. Limited time statefull.
 ```
@@ -124,7 +107,7 @@ StateJSON  = {
 * 1 MutableRange:  1 week
 * 2 PruneRange: 1 year
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
-* 4 WakeUpTime: sleeping mode wake up random range 5 minutes
+* 4 WakeUpTime: sleeping mode wake up random range 10 minutes
 * 5 GenesisCoins: default coins 1,000,000. Integer, no decimals. 
 * 6 initial difficulty according to the BlockTime.
 * 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
@@ -164,12 +147,8 @@ Miner does not know which peer requesting them, because the relay shields the pe
 
 ## B. Votings, chain choice and state generation
 This process is for multiple chain, multiple relay and mulitple peers.  
-nodes state switching: 节点工作状态微调
-- on power charging: turn on wake lock; charging off: turn off wake lock.
-- on wifi data: start all process A-D; wifi off: stop all process A-D and turn off wake lock.
-- in the sleeping mode, random wake up between 1..WakeUpTime, if Wifi is off, then stop; else run for a cycle of all chains follow up, and check whether in power charging, yes to turn on wake lock. <br/> <br/>
 
-- Notify on the iterface- wifi only for data flow, keep charging to prevent sleep. the data dash board, with a button to pause everything A-D. 
+
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
