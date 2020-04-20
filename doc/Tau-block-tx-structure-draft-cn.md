@@ -8,7 +8,6 @@ User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
 - User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X/total size of the overall video. 
-- provide a hopping players
 - auto seeding is off chain function, downloader will randomless picking up pieces. 
 
 - following a chain and mining/seedinig a chain is diffferent mode. 
@@ -272,12 +271,12 @@ ONE Chain + ONE Relay + ONE peer
 * For saving mobile phone resources, we adopt non-concurrrency execution. The entire download pool is one big file to randomly retrieve.
 
 ```
-1. Generate chain+relay+FileAMT+Seeder+Piece combo: 
+1. Generate chain+relay+FileAMT+Seeder combo: pieces are not following random plan
       Pickup ONE random `chainID` in the myChains[ ],
 according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
 
 call func PickupRelayAndPeer(H)
-Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. use pieceSelection select a piece N from fileAMTroot.count
+Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. use  select a piece N from fileAMTroot.count. // piece selection is not random. 
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
 2. If the piece is in local, go to step (1); 
