@@ -138,9 +138,7 @@ StateJSON  = {
 9. msg; // One Tx
 // CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
-11. `Tminer`Balance = 1,000,000; // GenesisDefaultCoins 币数量
-12. `Tminer`Nonce = 0
-13. signature; //by genesis miner to derive the TAUaddress
+11. signature; //by genesis miner to derive the TAUaddress
 }
 
 // no need to config relay and peers, myRelays and myPeers will be populated when system starts in process E and community chains will use time slots to touch TAU relays and peers. 
@@ -192,11 +190,9 @@ X = {
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
-9. amount = `total tx fee`; // negative value due to coinbase tx is a signed sending transaction. 
-10. IncomeNonce ++;
-11. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-12. msg = TXJSON; //profile info and msg {optcode, TXcode, msg with profile like telegram}; type of txs: send, receive, file, relay in TXJSON
-13. signature; //by genesis miner to derive the TAUaddress
+9. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
+10. msg = TXJSON; //profile info and msg {optcode, TXcode, msg with profile like telegram}; type of txs: send, receive, file, relay in TXJSON
+11. signature; //by genesis miner to derive the TAUaddress
 }  // finish X.
 
 #### contract execute populate HAMT key values
@@ -302,8 +298,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 // 建立区块链，发币邀请，上传
 * 1. Create Blockchain: Own a blockchain with 1 million coins to build a community for video and files sharing. 
      * 一键建立区块链：默认配置5分钟区块时间，自动给名字，自动给创世币数量，提供一个change人口和create创建入口。
-     * 自动起名字提供一个默认名字字典
-* 2. Send Coins:  to friends.  // get their video previews and 2% automatically on the followed friends.  
+     * 自动起名字提供一个默认名字字典  
 * 3. Upload Files: Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. <br/> <br/>
      * 1. File import
      * 2. Choose Chain or Create Blockchain
