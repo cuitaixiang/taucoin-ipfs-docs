@@ -88,7 +88,7 @@ in each transition, following variables will be populated from execution and run
 投票和选链同事长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。
 存储建议：1. mutable range前的放在levelDb. 2. mutable range内的放在hamt, 每天凌晨清除hamt state。
 
-## IPLD stores state chain - one year state chain. Limited time statefull.
+## IPLD stores state chain - 6 months state chain. Limited time statefull.
 ```
 StateJSON  = { 
 1. version;
@@ -113,7 +113,7 @@ StateJSON  = {
 
 ## Constants
 * 1 MutableRange:  3 DAYS
-* 2 PruneRange: 1 YEAR
+* 2 PruneRange: Six Months
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 10 minutes
 * 5 GenesisCoins: default coins 1,000,000. Integer, no decimals. 
@@ -165,7 +165,7 @@ else go to step (7); // verify longest chain.
 
 3. GraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (6)
    myRelays[successed].add{this Relay}
-4. Collect 7 Days ago, full day roots. 
+4. Collect MutableRange ago, full day roots. 
 
 6. At midnight 0:00Am, accounting all the voting results for that day to get immutable block for tomorrow, 统计方法是所有的root的计权重，选最高。
 goto (1)
