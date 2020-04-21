@@ -112,15 +112,15 @@ StateJSON  = {
 * each node only save from PruneRange to MutableRange. 
 
 ## Constants
-* 1 MutableRange:  1 week
-* 2 PruneRange: 1 year
+* 1 MutableRange:  3 DAYS
+* 2 PruneRange: 1 YEAR
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 10 minutes
 * 5 GenesisCoins: default coins 1,000,000. Integer, no decimals. 
 * 6 initial difficulty according to the BlockTime.
 * 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
-* 9 auto-download total daily limit 20mb; files smaller than 2mb, video download 1%; auto-seeding on the download files.
+* 9 files smaller than 10mb, video download 9 frames
 
 ## Community chain
 ### Genesis
