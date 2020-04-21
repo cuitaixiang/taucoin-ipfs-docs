@@ -1,31 +1,35 @@
 # TAU - File sharing on blockchains
 
-User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
+User experienses:= {
 - Core: 1. Create blockchain 2. Upload files
-   - Data dashboard: if (download - upload) > 1G, start ads. display "seeding for ads free download"
- 
+- Data dashboard
+   - if (download - upload) > 1G, start ads. display "seeding for ads free download"
+   - Auto download, Auto Seeding, Mining status. This is applying to all chains. 
 - TAU provides global relay services and chain annoucement.
-- All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
-- User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
-- auto seeding is off chain function, downloader will randomless picking up pieces. 
+- All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key)i think .
+- User uses relay from TAU, own chain records and suzheccessed history, in the weight of 2:1:7
+- auto seeding is off chain function, downloader will randomless picking up peers recorded on chain. 
 
-- chain:
-   - on telcom data: Watching chains for both randomed and followed(2:8). pick up any nodes to read chains info. only take in data, do not provide data, support manual download, config buttons default:
+- app operation mode:
+   - on telcom data: Watching both random and followed chains(2:8). support manual download, config buttons default:
+      - manual download: ON
+      - manual seeding: ON
       - auto download file: OFF
       - auto seeding: OFF
       - mining: OFF
    - on wifi: config buttons default:
+      - manual download: ON
+      - manual seeding: ON
       - auto-download: ON, autdownload files smaller than 10M, 9 key frames. 
       - auto-seeding: ON.
       - mining: ON
    - on wifi + power plug: multiple processes allowed. 
    - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules. <br/> <br/>
-
 }
 
-Business model:= { 商业模式
+Business model:= {
 - Tau foundation will develop TAU App and provide free public relays, in return for admob/mopub ads income to cover relay data cost. Any one can contribute relays on both TAU and own chain. 
-- Individual nodes will see ads to keep using data for free, the more data upload, the less ads. In app, show a stats of uploaded data, download data. 
+- Individual nodes will see ads to keep using data for free, the more data upload, the less ads. 
 - TAUT is tau-torrent, a file sharing service by tau dev. 
 - TAU is a relay annoucement service by tau dev. 
 }
@@ -33,40 +37,33 @@ Business model:= { 商业模式
 
 ## Six core processes
 
-* A. Response with predicted StateRoot. One instatnce per connection to prevent ddos. 
-* B. Collect votings from chain peers. (single thread func)<br/> <br/>
+* A. Response with predicted blockRoot. One instance to prevent ddos. 
+* B. Collect votings from peers. (single thread func)<br/> <br/>
 * C. File Downloader. (download files and logging download data)
-* D. Reponse to file downloader request. (logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位<br/> <br/>
+* D. Reponse to file downloader request. (logging upload data). One instance to prevent ddos. <br/> <br/>
 On Environment
-* E. Process manager, main(); schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
+* E. Process manager; schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
 * F. Resource management: TBD. 
 
-## Persistence variables in database
-in each transition, following variables will be populated from execution and run-time. 
+## Persistence variables in database 
 ```
 1. myChains             map[ChainID] config; //Chains to follow or mining, string is for planned config info
-
-2. myStateRoots         map[ChainID] cbor.cid; // the new contract state
-
-4. myMutableRange       map[ChainID]string
-5. myPruneRange         map[ChainID]string
-   
-6. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
-7. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
-8. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
-9. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
-   
-12. mytotalFileAMTDownloadedData
-13. mytotalFileAMTUploadedData
-
+2. myblockRoots         map[ChainID] cbor.cid; // the new contract block
+3. myMutableRange       map[ChainID]string
+4. myPruneRange         map[ChainID]string
+5. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
+6. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
+7. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
+8. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
+9. mytotalFileAMTDownloadedData
+10. mytotalFileAMTUploadedData
 ```
 
 ## Concept explain
 - Single thread function for chains voting and pool download. To increase performance, run concurrency on top level E. 
-- **Block size is fixed 1, 5 minutes a block **
-- Address system: 
+- **Block size is 1 tx per block, 5 minutes a block **
 - TAU private key: the base for all community chain address generation;
-- ChainID := `Nickname` + signature(privatekey + timestampInRelaySwitchTimeUnit) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
+- ChainID := `Nickname` + signature(privatekey + timestampInRelaySwitchTimeUnit) <br/> <br/>
 
 - TX types
    * coin base, msg is the only transaction attached
@@ -79,37 +76,30 @@ in each transition, following variables will be populated from execution and run
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
    
-投票策略
+- 投票策略
+   - 每天从本机时间0点开始，随意询问其他节点时，一半数据用于投票，一半数据用于选链验证。投票的节点数据不验证。
+   - 投票仅仅取Mutable range天前一整天roots，24小时后选得票最多的root，作为第二天的选最长链的checkpoint，所有验证从这个点开始，在一天内mutable的root是固定的。每天变动一次。
+   - 投票和选链同时长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。//无法在区块中放block的原因
+   - 存储建议：1. mutable range前的放在levelDb. 2. mutable range内的放在hamt, 每天凌晨清除hamt block。
 
-每天从本机时间0点开始，随意询问其他节点时，一半数据用于投票，一半数据用于选链验证。投票的节点数据不验证。
-
-投票仅仅取7天前一整天roots，24小时后选得票最多的root，作为第二天的选最长链的checkpoint， 就是说所有验证从这个点开始，在一天内mutable 的点是固定的。每天变动一次。
-
-投票和选链同事长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。
-存储建议：1. mutable range前的放在levelDb. 2. mutable range内的放在hamt, 每天凌晨清除hamt state。
-
-## IPLD stores state chain - 6 months state chain. Limited time statefull.
+## IPLD stores blockchain
 ```
-StateJSON  = { 
+blockJSON  = { 
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
-3. StateNumber;
-4. PreviousStateRoot; // genesis is built from null. cid.  node.link.
+3. BlockNumber;
+4. PreviousBlockRoot; // genesis is built from null. cid.  node.link.
 5. basetarget;
 6. cummulative difficulty;
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
-// CRITICAL STATE, mostly fungible states, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
+// CRITICAL block, mostly fungible blocks, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. signature; //by genesis miner to derive the TAUaddress
 }
-// FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
+// FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical block key value. 
 ```
-* voting purpose is to find mutable range point, no longer . 
-* for chain choose, verification start from mutable range point by voting. 
-* for every income new state root, half used for voting; half for verification. In voting, there is no verification only counting the roots. 
-* each node only save from PruneRange to MutableRange. 
 
 ## Constants
 * 1 MutableRange:  3 DAYS
@@ -124,21 +114,19 @@ StateJSON  = {
 
 ## Community chain
 ### Genesis
-* with parameters: chain nick name, coins total - default is 1 million.  // initial mining peers is established through issue coins to other addresses. 社区链创世区块
+* with parameters: nick name. 
 ```
 // build genesis block
-
-StateJSON  = { 
+blockJSON  = { 
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
-3. StateNumber:=0 int32;
-4. PreviousStateRoot = null; // genesis is built from null.
+3. BlockNumber:=0 int32;
+4. PreviousBlockRoot = null; // genesis is built from null.
 5. basetarget;
 6. cummulative difficulty int64; // ???
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
-// CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. signature; //by genesis miner to derive the TAUaddress
 }
@@ -147,14 +135,12 @@ StateJSON  = {
 
 ```
 ## A. One miner receives GraphSync request from a relay.  
-Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "StateRoot[]" or null. 
+Miner does not know which peer requesting them, because the relay shields the peers. Two types of requests: "BlockRoot[]" or null. 
 -  Receive the `ChainID` from a graphRelaySync call
--  If `ChainID` exist in myChains, return myStateRoots[`ChainID`] and blocks according to selector; else response null
+-  If `ChainID` exist in myChains, return myblockRoots[`ChainID`] and blocks according to selector; else response null
 
-## B. Votings, chain choice and state generation
+## B. Votings, chain choice and block generation
 This process is for multiple chain, multiple relay and mulitple peers.  
-
-
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (RelaySwitchTimeUnit + chain ID) 
@@ -178,17 +164,17 @@ if received contractJSON shows a more difficult and future root/contract/json/ r
 goto (9)
 }
   else { 
-  failed or err , if the (current time -  state time ) is bigger than MaxBlockTime, then generate a new state on own root, this will cause  miner = previous  miner to trigger voting, go to (9)
+  failed or err , if the (current time -  block time ) is bigger than MaxBlockTime, then generate a new block on own root, this will cause  miner = previous  miner to trigger voting, go to (9)
   }; 
        else go to step 1. 
 
-9. generate new state 
+9. generate new block 
 X = {
 1. version;
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
-3. contractNumber; // hamt_get(PreviousStateRoot,contractJSON) / contractNumber +1;
-4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
-5. PreviousStateRoot; //  type cbor.cid; if mutable range is null, PreviousStateRoot = null, means new block is just carrying transaction. 
+3. contractNumber; // hamt_get(PreviousBlockRoot,contractJSON) / contractNumber +1;
+4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the blockless mode.
+5. PreviousBlockRoot; //  type cbor.cid; if mutable range is null, PreviousBlockRoot = null, means new block is just carrying transaction. 
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
@@ -198,7 +184,7 @@ X = {
 }  // finish X.
 
 #### contract execute populate HAMT key values
-G := hamt(PreviousStateRoot);
+G := hamt(PreviousBlockRoot);
 
 * populate all related HAMT Key-values in the example of sending transaction. 
 ##### send, receive, file, relay output.
@@ -219,10 +205,10 @@ G.hamt_put(cbor)
 
 * populate all database variables. 
 
-* myStateRoots[`ChainID`]
-* mypreviousSafttyStateRootMiner[`ChainID`] = mySaftyStateRootMiner[`ChainID`];
-* mySafttyStateRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
-* myPreviousStateRoots[`ChainID`] = PreviousStateRoot;
+* myblockRoots[`ChainID`]
+* mypreviousSafttyblockRootMiner[`ChainID`] = mySaftyblockRootMiner[`ChainID`];
+* mySafttyblockRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
+* myPreviousBlockRoots[`ChainID`] = PreviousBlockRoot;
 * myPeers[`ChainID`][ ].add(`Tminer);
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``TAUaddress`IPFSaddr)
 * For file upload to chain
@@ -232,7 +218,7 @@ G.hamt_put(cbor)
 * myPeers.add(`Tminer` and ipfs address);
 * myRelays.add; add download and upload, add tx pool...
 
-go to step (1) to get a new ChainID state prediction
+go to step (1) to get a new ChainID block prediction
 ```
 func PickupRelayAndPeer(H)
 ```
@@ -279,10 +265,10 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
  * myChains.add (TAU)
  * myRelays[TAU].add{initial relays} //populate relays. 
- * onGenesisMsg creation, default each chain is "auto-relay", means genesis miner will check tau chain and add  tau relay into own chain.  auto-relay is a local config for the chain creator. any other peer can add relay info on community chain 
+ * onGenesisMsg creation
  * onHamtGraphsyncMsg, 
  if hamtsync not finish, reject; else 
- A.Response HAMT with predicted StateRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
+ A.Response HAMT with predicted blockRoot, which is a hamt cbor.cid. (service response to HamtGraphRelaySync). One instatnce per connection to prevent ddos. 
  * on AMTGraphSyncMsg 
   if amtsync not finish, reject; else 
  D. Reponse AMT cbor.cid to file downloader request. (service response to AMTGraphRelaySync and logging upload data). One instatnce per connection to prevent ddos.  改到以chain 为服务单位
@@ -326,12 +312,8 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 ### Forum 论坛
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 
-### Mining and account balances on different chains. 
-- coins mining config
-
 # To do 
 - [ ] file operation commands planning
 - [ ] resource management process
 - [ ] graphyRelaySync: two step via relay
 - [ ] hamtGraphsync: multiple steps to get kv on the selector
-- [ ] change ipfs block to 1m.  ipld blocksize. 
