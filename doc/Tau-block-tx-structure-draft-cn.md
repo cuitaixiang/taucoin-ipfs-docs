@@ -66,7 +66,7 @@ in each transition, following variables will be populated from execution and run
 - **Block size is fixed 1, 5 minutes a block **
 - Address system: 
 - TAU private key: the base for all community chain address generation;
-- ChainID := `Nickname` + signature(timestamp) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
+- ChainID := `Nickname` + signature(privatekey + timestampInRelaySwitchTimeUnit) // in stateless environment, chain config info needs to be embedded into ChainID, otherwise, might be lost. <br/> <br/>
 
 - TX types
    * coin base, msg is the only transaction attached
@@ -101,7 +101,7 @@ StateJSON  = {
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
 // CRITICAL STATE, mostly fungible states, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
-10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
+10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
@@ -139,7 +139,7 @@ StateJSON  = {
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
 // CRITICAL STATE KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
-10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
+10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. signature; //by genesis miner to derive the TAUaddress
 }
 
