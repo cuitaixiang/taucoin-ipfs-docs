@@ -86,6 +86,8 @@ in each transition, following variables will be populated from execution and run
 投票仅仅取7天前一整天roots，24小时后选得票最多的root，作为第二天的选最长链的checkpoint， 就是说所有验证从这个点开始，在一天内mutable 的点是固定的。每天变动一次。
 
 投票和选链同事长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。
+存储建议：1. mutable range前的放在levelDb. 2. mutable range内的放在hamt, 每天凌晨清除hamt state。
+
 ## IPLD stores state chain - one year state chain. Limited time statefull.
 ```
 StateJSON  = { 
@@ -155,28 +157,28 @@ This process is for multiple chain, multiple relay and mulitple peers.
 
 ```
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
-according to the global time in the base of RelaySwitchTimeUnit, H = hash (time in RelaySwitchTimeUnit base + chain ID) 
+according to the global time in the base of RelaySwitchTimeUnit, H = hash (RelaySwitchTimeUnit + chain ID) 
 - call func PickupRelayAndPeer(H)
 - if the  RelaySwitchTimeUnit is odd number go voting; 
 go to step (3); // 时间戳单数就投票 
-else go to step (7); // it is educated working chain
+else go to step (7); // verify longest chain.
 
-3. GraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (5)
+3. GraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (6)
    myRelays[successed].add{this Relay}
-4. traverse history for states roots collection to get MutableRange.
+4. Collect 7 Days ago, full day roots. 
 
-6. accounting the voting rule, pick up the mutable range root, 统计方法是所有的root的计权重，选最高，时间范围是从prune to mutable range。
+6. At midnight 0:00Am, accounting all the voting results for that day to get immutable block for tomorrow, 统计方法是所有的root的计权重，选最高。
 goto (1)
-// use  map[root string]Uint to count voting. 
 
-7. graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
+7. if mutablerange is null, go to (9)
+graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
    if err= null, myRelays[successed].add{this Relay}
 8. if ok, then verify {
-if received StateRoot/contractJSON shows a more difficult chain than PreviousStateRoot/contractJSON/`difficulty` and future root/contract/json/ root timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions from the MutableRange. in the verify process,it will need `graphRelaySync` to get data from peerID_A;
+if received contractJSON shows a more difficult and future root/contract/json/ root timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions from the MutableRange, ;
 goto (9)
 }
   else { 
-  failed or err , if the (current time -  state time ) is bigger than MaxBlockTime, then generate a new state on own   root, this will cause  miner = previous  miner to trigger voting, go to (9)
+  failed or err , if the (current time -  state time ) is bigger than MaxBlockTime, then generate a new state on own root, this will cause  miner = previous  miner to trigger voting, go to (9)
   }; 
        else go to step 1. 
 
@@ -186,7 +188,7 @@ X = {
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber; // hamt_get(PreviousStateRoot,contractJSON) / contractNumber +1;
 4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the stateless mode.
-5. PreviousStateRoot; //  type cbor.cid
+5. PreviousStateRoot; //  type cbor.cid; if mutable range is null, PreviousStateRoot = null, means new block is just carrying transaction. 
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
