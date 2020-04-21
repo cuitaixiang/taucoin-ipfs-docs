@@ -1,20 +1,24 @@
 # TAU - File sharing on blockchains
 
 User experienses:= { 用户体验 Create blockchain/ Send coins/ Upload files
-- Core: 1. Create blockchain 2. Send coins.  3. Upload files
-   - Data dashboard: if (download - upload) > 1G, start ads. display "seeding to increase free data"
-   - Default config: auto-download on, daily limit 20m, files lower than 2M, video 1%; auto-seeding tx triggered on the download results. 
+- Core: 1. Create blockchain 2. Upload files
+   - Data dashboard: if (download - upload) > 1G, start ads. display "seeding for ads free download"
+ 
 - TAU provides global relay services and chain annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain and suzheccessed history, in the weight of 2:1:7
-- User can config automatic download size file X and daily maximum Y; for files less than X will be downloaded, for video only download X/total size of the overall video. 
 - auto seeding is off chain function, downloader will randomless picking up pieces. 
 
-- chain: random walk on all chains, follow a chain, mining a chain
-   - on telcom data: Watching chains for both randomed and followed. pick up any nodes to read chains info. only take in data, do not provide data, support manual download, do not support auto download and auto seeding; with on/off ; // disregard electricity or not. ( mining, auto download, auto seeding, all OFF)
-   
-   - wifi:  Mining (including upload files on chain) on/off, auto download file(on/off with config) and  seeding on/off (seeding total or not). config buttons on all these
-   - wifi + power plug: multiple processes allowed. 
+- chain:
+   - on telcom data: Watching chains for both randomed and followed(2:8). pick up any nodes to read chains info. only take in data, do not provide data, support manual download, config buttons default:
+      - auto download file: OFF
+      - auto seeding: OFF
+      - mining: OFF
+   - on wifi: config buttons default:
+      - auto-download: ON, autdownload files smaller than 10M, 9 key frames. 
+      - auto-seeding: ON.
+      - mining: ON
+   - on wifi + power plug: multiple processes allowed. 
    - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules. <br/> <br/>
 
 }
@@ -75,6 +79,13 @@ in each transition, following variables will be populated from execution and run
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
    
+投票策略
+
+每天从本机时间0点开始，随意询问其他节点时，一半数据用于投票，一半数据用于选链验证。投票的节点数据不验证。
+
+投票仅仅取7天前一整天roots，24小时后选得票最多的root，作为第二天的选最长链的checkpoint， 就是说所有验证从这个点开始，在一天内mutable 的点是固定的。每天变动一次。
+
+投票和选链同事长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。
 ## IPLD stores state chain - one year state chain. Limited time statefull.
 ```
 StateJSON  = { 
@@ -89,14 +100,9 @@ StateJSON  = {
 9. msg; // One Tx
 // CRITICAL STATE, mostly fungible states, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(signature(timestampInRelaySwitchTimeUnit))
-11. `Tminer`Balance = new balance; // GenesisDefaultCoins 币数量
-12. `TAUaddress`Balance = new balance;
-13. `TAUaddress`Nonce = new nounce; for both sender and receiver
-14. `TAUreceiver`Balance = new balance;
-15. signature; //by genesis miner to derive the TAUaddress
+11. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical state key value. 
-
 ```
 * voting purpose is to find mutable range point, no longer . 
 * for chain choose, verification start from mutable range point by voting. 
