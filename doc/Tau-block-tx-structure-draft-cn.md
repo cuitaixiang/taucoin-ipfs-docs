@@ -33,7 +33,7 @@ Business model:= {
 - TAUT is tau-torrent, a file sharing service by tau dev. 
 - TAU is a relay annoucement service by tau dev. 
 }
-
+--- 
 
 ## Six core processes
 
@@ -76,9 +76,9 @@ On Environment
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
 -   
-- mutable range 单个常数；投票策略设计。
-   - 投票范围：当前mutable point之前的一个mutable range周期为计算票范围。
-   - 每天0AM产生新的mutable point, 得票最高的当选, 同样票数最新的胜利, 如果投票出来的point, 分叉了自己的链，表示finality失败，levelDB要重新建立。
+- 投票策略设计。
+   - 投票范围：当前mutable point之前的一个 `MutableRange` 周期为计算票范围。
+   - 每天`VotesCountingTime`产生新的mutable point, 得票最高的当选, 同样票数最新的胜利, 如果投票出来的point, 分叉了自己的链，表示finality失败，levelDB要重新建立。
    - 新节点上来，mutable point没有时，快速启动策略，随机相信一个链拿到数据，设置mutable point，开始出块做交易，等待第二天投票结果。
    - 存储建议：1. mutable pont 前的放在levelDb. 2. mutable point 内的放在hamt, 每天凌晨清除hamt block。
    - 获得新root，如果是longest chain开始验证，如果不是用于投票. 
@@ -109,14 +109,16 @@ blockJSON  = {
 
 ## Constants
 * 1 MutableRange:  3 DAYS
-* 2 PruneRange: Six Months
+* 2 PruneRange: 6 Months
 * 3 RelaySwitchTimeUnit: relay time base, 15 seconds, which is what peers comes to their scheduled relays. 
 * 4 WakeUpTime: sleeping mode wake up random range 10 minutes
 * 5 GenesisCoins: default coins 1,000,000. Integer, no decimals. 
-* 6 initial difficulty according to the BlockTime.
-* 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
+* 6 GenesisCummulativeDifficulty:  according to the BlockTime.
+* 7 MinBlockTime:  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
-* 9 files smaller than 10mb, video download 9 frames
+* 9 AutoDownloadSize: 9; files smaller than `AutoDownloadSize`MB, video download `AutoDownloadSize`Frames
+* 10 VotesCountingTime: 0:00AM
+* 11 Relay distribution ratio:  2:1:7 tau/self/successHistory.
 
 
 ## Community chain
