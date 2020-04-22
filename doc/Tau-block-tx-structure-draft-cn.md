@@ -8,7 +8,8 @@ User experienses:= {
 - TAU provides global relay services and chain annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key)i think .
 - User uses relay from TAU, own chain records and suzheccessed history, in the weight of 2:1:7
-- auto seeding is off chain function, downloader will randomless picking up peers recorded on chain. 
+- auto seeding is off chain function, downloader will randomless picking up recorded peers as seeders
+- random watching, for chains registerred on TAU, app will take random messages to display on forum panel. 
 
 - app operation mode:
    - on telcom data: Watching both random and followed chains(2:8). support manual download, config buttons default:
