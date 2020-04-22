@@ -160,28 +160,16 @@ This process is for multiple chain, multiple relay and mulitple peers.
 1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (RelaySwitchTimeUnit + chain ID) 
 - call func PickupRelayAndPeer(H)
-- if the  RelaySwitchTimeUnit is odd number go voting; 
-go to step (3); // 时间戳单数就投票 
-else go to step (7); // verify longest chain.
 
-3. GraphRelaySync( Relay, peerID, chainID, null, selector(field:=contractJSON)); if err go to (6)
+2. GraphRelaySync( Relay, peerID, chainID, root, selector); if err go to (1)
    myRelays[successed].add{this Relay}
-4. Collect MutableRange ago, full day roots. 
+3. if received contractJSON shows a difficult higher than current difficulty and blockJSON/PreviousBlockRoot/blockJSON/timestamp is passed present time, 不能在未来再次预测未来, then verify this chain's transactions from the CheckPoint;
+   if verification successful go to (9); // found longest chain
+   if the (current time -  block time ) is bigger than MaxBlockTime, go to (9) // no miners found, you have to make block
+3. Put these receive data into CheckPoint voting pool. 
 
-6. At midnight 0:00Am, accounting all the voting results for that day to get immutable block for tomorrow, 统计方法是所有的root的计权重，选最高。
-goto (1)
-
-7. if mutablerange is null, go to (1)
-graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
-   if err= null, myRelays[successed].add{this Relay}
-8. if ok, then verify {
-if received contractJSON shows a more difficult and future root/contract/json/ root timestamp is passed clock, 不能在未来再次预测未来, then verify this chain's transactions from the MutableRange, ;
-goto (9)
-}
-  else { 
-  failed or err , if the (current time -  block time ) is bigger than MaxBlockTime, then generate a new block on own root, this will cause  miner = previous  miner to trigger voting, go to (9)
-  }; 
-       else go to step 1. 
+6. If the current time is voting count time, accounting all the voting results for that MutableRange to get the block for checkPoint, 统计方法是所有的root的计权重，选最高。
+   goto (1)
 
 9. generate new block 
 X = {
