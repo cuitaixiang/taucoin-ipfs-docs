@@ -79,11 +79,11 @@ On Environment
 - POT use power as square root the nounce. 
 -   
 - 投票策略设计。
-   - 投票范围：当前CheckPoint往后的 `MutableRange` 周期为计算票范围。这个范围会达到未来。
+   - 投票范围：当前CheckPoint**往未来**的 `MutableRange` 周期为计算票范围。这个范围会达到未来。
    - 每到一次新的range结束时，统计投票产生新的CheckPoint, 得票最高的当选, 同样票数时间最近的胜利。
-      - 如果投出来的新CheckPoint, 时间早于上次CheckPoint，表示finality失败，本节点使用新的CheckPoint，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。。
+      - 如果投出来的新CheckPoint, 这个root不在目前链上，表示finality失败，本节点使用新的CheckPoint，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。。
       - 新节点上线，快速启动策略，随机相信一个链拿到数据，设置新链的（顶端-`MutableRange`）为CheckPoint，开始出块做交易，等待下次投票结果。下次大概率checkpoint会早于现在的checkpoint，所以第二天会重组账号信息。
-      - 如果投票出的新CheckPoint，晚于上次CheckPoint而且在同一链上，说明是链的正常发展，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。
+      - 如果投票出的新CheckPoint，root在同一链上，说明是链的正常发展，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。// 新的CheckPoint root不可能早于目前CheckPoint的。
    - 存储建议：1. CheckPoint 前的放在levelDb. 2. CheckPoint 内的放在hamt, 每天凌晨清除hamt block。
    - 获得新root，如果是目前longest chain开始进入验证流程，如果不是进入计票流程. 
 
