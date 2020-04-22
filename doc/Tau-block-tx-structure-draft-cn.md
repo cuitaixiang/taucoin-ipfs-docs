@@ -91,7 +91,7 @@ blockJSON  = {
 12. `Tsender`Balance;
 13. `Tgenesis/Tminer`Balance;
 14. `Treceiver`Balance;
-15. signature; //by genesis miner to derive the TAUaddress
+15. signature;
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical block key value. 
 ```
@@ -128,7 +128,7 @@ blockJSON  = {
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. `Tgenesis`Balance; // 1,000,000
 12. `Tgenesis`Nonce; // 0
-11. signature; //by genesis miner to derive the TAUaddress
+13. signature; //by genesis miner to derive the TAUaddress
 }
 
 // no need to config relay and peers, myRelays and myPeers will be populated when system starts in process E and community chains will use time slots to touch TAU relays and peers. 
@@ -151,9 +151,9 @@ according to the global time in the base of RelaySwitchTimeUnit, H = hash (Relay
 3. if received contractJSON shows a difficult higher than current difficulty and blockJSON/PreviousBlockRoot/blockJSON/timestamp is passed present time, 不能在未来再次预测未来, then verify this chain's transactions from the CheckPoint;
    if verification successful go to (9); // found longest chain
    if the (current time -  block time ) is bigger than MaxBlockTime, go to (9) // no miners found, you have to make block
-3. Put these receive data into CheckPoint voting pool. 
+4. Put received data into CheckPoint voting pool. 
 
-6. If the current time is voting count time, accounting all the voting results for that MutableRange to get the block for checkPoint, 统计方法是所有的root的计权重，选最高。
+6. If the current time arrives at the votes counting time, accounting all the voting results for that MutableRange to get the block for new CheckPoint, 统计方法是所有的root的计权重，选最高。
    goto (1)
 
 9. generate new block 
@@ -162,13 +162,17 @@ X = {
 2. timestampInRelaySwitchTimeUnit;  //  it is timestamp/RelaySwitchTimeUnit
 3. contractNumber; // hamt_get(PreviousBlockRoot,contractJSON) / contractNumber +1;
 4. ChainID := `Nickname`+ `blocktime` + hash(signature(timestampInRelaySwitchTimeUnit)) // chainID is the only information to pass down in the blockless mode.
-5. PreviousBlockRoot; //  type cbor.cid; if mutable range is null, PreviousBlockRoot = null, means new block is just carrying transaction. 
+5. PreviousBlockRoot;
 6. basetarget;
 7. cummulative difficulty int64; 
 8. generation signature;
 9. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 10. msg = TXJSON; //profile info and msg {optcode, TXcode, msg with profile like telegram}; type of txs: send, receive, file, relay in TXJSON
-11. signature; //by genesis miner to derive the TAUaddress
+11. `Tsender`Noune;
+12. `Tsender`Balance;
+13. `Tgenesis/Tminer`Balance;
+14. `Treceiver`Balance;
+15. signature; 
 }  // finish X.
 
 #### contract execute populate HAMT key values
@@ -176,17 +180,8 @@ G := hamt(PreviousBlockRoot);
 
 * populate all related HAMT Key-values in the example of sending transaction. 
 ##### send, receive, file, relay output.
-G.hamt_add(`Tsenderaddress`SpendNonce, ++);  // POT power = senderNounce + receiverNounce
-G.hamt_add(`Tsenderaddress``SpendNonce`TotalSpend, + amount);  
-G.hamt_add(`Tsenderaddress``SpendNonce`JSONs, `3`);  
 
 ##### coinbase tx
-G.hamt_add(`Tmineraddress`IncomeNonce, ++);
-G.hamt_add(`Tmineraddress``IncomeNonce`TotalIncome, TXfee); 
-G.hamt_add(`Tmineraddress``IncomeNonce`JSON = `3`;
-G.hamt_add(`Tmineraddress``IncomeNonce`UTXOhistory, compress(`3`+","+`Tmineraddress``IncomeNonce`UTXOhistory));
-G.hamt_add(ContractNumber,`3`);
-G.hamt_add(Contract0JSON,X);
 
 #### finish contract execution
 G.hamt_put(cbor)
@@ -194,9 +189,6 @@ G.hamt_put(cbor)
 * populate all database variables. 
 
 * myblockRoots[`ChainID`]
-* mypreviousSafttyblockRootMiner[`ChainID`] = mySaftyblockRootMiner[`ChainID`];
-* mySafttyblockRootMiner[`ChainID`] = Tminer;  // this is for deviting go voting or not
-* myPreviousBlockRoots[`ChainID`] = PreviousBlockRoot;
 * myPeers[`ChainID`][ ].add(`Tminer);
 * myFileAMTSeeders[fileAMT][ ].add(`ChainID``TAUaddress`IPFSaddr)
 * For file upload to chain
@@ -270,38 +262,26 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 
 ## App UI 界面
 
-
-// 建立区块链，发币邀请，上传
 * 1. Create Blockchain: Own a blockchain with 1 million coins to build a community for video and files sharing. 
      * 一键建立区块链：默认配置5分钟区块时间，自动给名字，自动给创世币数量，提供一个change人口和create创建入口。
      * 自动起名字提供一个默认名字字典  
-* 3. Upload Files: Seeding files to keep ads free. // next step upload to a new seeding chain or existing chain. <br/> <br/>
-     * 1. File import
+* 2. Share Files:
+     * 1. Point to a File
      * 2. Choose Chain or Create Blockchain
      * 3. Publish
-* Data dashboard:  upload - download = free download data amount, more than 1G, wifi only. "seeding to increase data"<br/> <br/>
 
 ### Community 社区
 - follow chain, first layer
 - follow members, second layer
-- member messages & file, third layer, support import
+- member's messages & file, third layer, support import
 ### Files
-- File imported to TAU will be compressed and chopped by TGZ, which includes directory zip, pictures and files. Chopped file pieces will be added into AMT (Array Mapped Trie) with a `fileAMTroot` as return. Filed downloaded could be decompressed to original structure.  Files downloaded is considerred imported. Only seeded file will be pinned in local. 
-- Video will be only chopped and kept original compression format to support portion play. 
-- Apps autodownload and autoseed; autoseed is not a tx. 
-   - app can auto download files and videos according to config include percentage.
-   - for files only 100% download and accept uplimited for config; for videos, percentage is supported with uplimit. 
-- import files
-- share file to friend
+- File does not store in IPFS repo to save space for mobile phone. 
 - share file to community chain
-- seeding files and unseeding
 - pin a file, no directory at now, sort by timestamps and size
 - delete a file
 ### Forum 论坛
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 
 # To do 
-- [ ] file operation commands planning
 - [ ] resource management process
 - [ ] graphyRelaySync: two step via relay
-- [ ] hamtGraphsync: multiple steps to get kv on the selector
