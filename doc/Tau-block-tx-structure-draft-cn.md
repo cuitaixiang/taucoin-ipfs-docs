@@ -96,6 +96,12 @@ blockJSON  = {
 9. msg; // One Tx
 // CRITICAL block, mostly fungible blocks, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
+add nonce and balance
+genesis noune
+genesis balance
+tsender nonce
+tsender balance
+treceiver blance. 
 11. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical block key value. 
@@ -156,7 +162,7 @@ else go to step (7); // verify longest chain.
 6. At midnight 0:00Am, accounting all the voting results for that day to get immutable block for tomorrow, 统计方法是所有的root的计权重，选最高。
 goto (1)
 
-7. if mutablerange is null, go to (9)
+7. if mutablerange is null, go to (1)
 graphRelaySync( Relay, peerID_A, chainID, null, selector(field:=contractJSON));
    if err= null, myRelays[successed].add{this Relay}
 8. if ok, then verify {
