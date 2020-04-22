@@ -204,15 +204,15 @@ func PickupRelayAndPeer(H)
 ```
 {if H div 10, remainder 余数 is 0
 
-to hash(myRelays[`ChainID`][timestamp less than 3Xmutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[`ChainID`]  )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer // if any one of those fields are null, means the chain is very early, then use null adress move on. //信息不全就是链的早期，继续进行 
 
 else if 1,2
-to hash(myRelays[TAUchain][timestamp within mutable range] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[TAUchain]  )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 
 else 3,4,5,6,7,8,9
-to hash(myRelays[successed][timestamp within 9xmutablerange] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
+to hash(myRelays[successed] )find the closest ONE relays. Randomly request ONE Peer from myPeers[`ChainID`][...]. 
 ONE Chain + ONE Relay + ONE peer 
 }
 ```
