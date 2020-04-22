@@ -57,6 +57,8 @@ On Environment
 8. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 9. mytotalFileAMTDownloadedData
 10. mytotalFileAMTUploadedData
+11. myCheckPoint        map[ChainID] config
+12. myNewCheckPoint     map[ChainID] config 
 ```
 
 ## Concept explain
@@ -77,11 +79,13 @@ On Environment
 - POT use power as square root the nounce. 
 -   
 - 投票策略设计。
-   - 投票范围：当前时间之前的一个 `MutableRange` 周期为计算票范围。
-   - 每天`VotesCountingTime`产生新的check point, 得票最高的当选, 同样票数最新的胜利, 如果投票出来的新check point, 早于上次checkpoint，表示上次finality失败，levelDB要重新建立，新的checkpoint后的链上交易收回到TXpool里面，重新发送，当收到同一个地址nonce一样的交易，以时间新的为准。
-   - 新节点上线check point没有时，快速启动策略，随机相信一个链拿到数据，设置新链的顶端为check point，开始出块做交易，等待第二天投票结果。第二天大概率checkpoint会早于现在的checkpoint，所以第二天会重组账号信息。
-   - 存储建议：1. check point 前的放在levelDb. 2. check point 内的放在hamt, 每天凌晨清除hamt block。
-   - 获得新root，如果是longest chain开始验证，如果不是用于投票. 
+   - 投票范围：当前CheckPoint往后的 `MutableRange` 周期为计算票范围。这个范围会达到未来。
+   - 每到一次新的range结束时，统计投票产生新的CheckPoint, 得票最高的当选, 同样票数时间最近的胜利。
+      - 如果投出来的新CheckPoint, 时间早于上次CheckPoint，表示finality失败，本节点使用新的CheckPoint，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。。
+      - 新节点上线，快速启动策略，随机相信一个链拿到数据，设置新链的（顶端-`MutableRange`）为CheckPoint，开始出块做交易，等待下次投票结果。下次大概率checkpoint会早于现在的checkpoint，所以第二天会重组账号信息。
+      - 如果投票出的新CheckPoint，晚于上次CheckPoint而且在同一链上，说明是链的正常发展，继续发现最长链，在找到新的最长链的情况下，检查下自己的交易以前已经上链的是否在新链上，不在新链上的放回交易池。
+   - 存储建议：1. CheckPoint 前的放在levelDb. 2. CheckPoint 内的放在hamt, 每天凌晨清除hamt block。
+   - 获得新root，如果是目前longest chain开始进入验证流程，如果不是进入计票流程. 
 
 ## IPLD stores blockchain
 ```
@@ -117,7 +121,7 @@ blockJSON  = {
 * 7 MinBlockTime:  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
 * 9 AutoDownloadSize: 9; files smaller than `AutoDownloadSize`MB, video download `AutoDownloadSize`Frames
-* 10 VotesCountingTime: 0:00AM
+
 * 11 Relay distribution ratio:  2:1:7 tau/self/successHistory.
 * 12 RequestTimeSpan: 5 minutes, minblocktime; ChainID+peer Repeat timespan: for same chainID+peer, the time span between repeat request. // when a chain only has few address, this prevents frequent requesting for root. 
 
