@@ -276,6 +276,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 - member's messages & file, third layer, support import
 ### Files
 - File does not store in IPFS repo to save space for mobile phone. 
+- **File relay maybe through Http**
 - share file to community chain
 - pin a file, no directory at now, sort by timestamps and size
 - delete a file
