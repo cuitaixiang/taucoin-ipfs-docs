@@ -3,17 +3,18 @@ User experienses:= {
 - Core: 1. Create blockchain 2. Share files //直接分享，不用上传和转存储
 - Data dashboard: one place to config for all chains, this version does not differentiate chains.
    - Seeding: ON for for commercial free; OFF with commercials.  //简单化，体验好
-   - Preview download: ON/OFF. //
+   - Preview download: ON/OFF
+   - Mining: ON/OFF
 - TAU provides relay and chain genesis annoucement.
 - All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
 - User uses relay from TAU, own chain records and success history, in the weight of 2:1:7. Time frame is `PruneRange`. 
 - app operation mode:
    - on telcom data: show messages on followed chains, default follow TAUT and TAU. support manual download, config buttons default:
-      - Preview: OFF
+      - Preview: OFF; // download files smaller than `PreviewSize`M, video `PreviewSize` key frames. 
       - Seeding: OFF
+      - Mining: OFF
    - on wifi: config buttons default:
-      - Preview: ON, download files smaller than `PreviewSize`M, video `PreviewSize` key frames. 
-      - Seeding: ON
+      - Preview, Seeding, Mining: ON  // 
    - on wifi + power plug: multiple processes allowed. 
    - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules.
 }
