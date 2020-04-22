@@ -75,12 +75,13 @@ On Environment
 - relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
-   
-- 投票策略
-   - 每天从本机时间0点开始，随意询问其他节点时，一半数据用于投票，一半数据用于选链验证。投票的节点数据不验证。
-   - 投票仅仅取Mutable range天前一整天roots，24小时后选得票最多的root，作为第二天的选最长链的checkpoint，所有验证从这个点开始，在一天内mutable的root是固定的。每天变动一次。
-   - 投票和选链同时长期进行。新节点上来，checkpoint没有时，第一天无法选链，但是可以出块提交自己的交易。//无法在区块中放block的原因
-   - 存储建议：1. mutable range前的放在levelDb. 2. mutable range内的放在hamt, 每天凌晨清除hamt block。
+-   
+- mutable range 单个常数；投票策略设计。
+   - 投票范围：当前mutable point之前的一个mutable range周期为计算票范围。
+   - 每天0AM产生新的mutable point, 得票最高的当选, 同样票数最新的胜利, 如果投票出来的point, 分叉了自己的链，表示finality失败，levelDB要重新建立。
+   - 新节点上来，mutable point没有时，快速启动策略，随机相信一个链拿到数据，设置mutable point，开始出块做交易，等待第二天投票结果。
+   - 存储建议：1. mutable pont 前的放在levelDb. 2. mutable point 内的放在hamt, 每天凌晨清除hamt block。
+   - 获得新root，如果是longest chain开始验证，如果不是用于投票. 
 
 ## IPLD stores blockchain
 ```
@@ -96,13 +97,12 @@ blockJSON  = {
 9. msg; // One Tx
 // CRITICAL block, mostly fungible blocks, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
-add nonce and balance
-genesis noune
-genesis balance
-tsender nonce
-tsender balance
-treceiver blance. 
-11. signature; //by genesis miner to derive the TAUaddress
+11. `Tsender`Noune;
+12. `Tsender`Balance;
+13. `Tgenesis/Tminer`Balance;
+14. `Treceiver`Balance;
+ 
+15. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical block key value. 
 ```
@@ -117,6 +117,7 @@ treceiver blance.
 * 7 MinBlockTime :  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
 * 9 files smaller than 10mb, video download 9 frames
+
 
 ## Community chain
 ### Genesis
