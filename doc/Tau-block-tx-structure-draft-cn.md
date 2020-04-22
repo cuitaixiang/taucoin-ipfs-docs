@@ -119,6 +119,7 @@ blockJSON  = {
 * 9 AutoDownloadSize: 9; files smaller than `AutoDownloadSize`MB, video download `AutoDownloadSize`Frames
 * 10 VotesCountingTime: 0:00AM
 * 11 Relay distribution ratio:  2:1:7 tau/self/successHistory.
+* 12 RequestTimeSpan: 5 minutes, minblocktime; ChainID+peer Repeat timespan: for same chainID+peer, the time span between repeat request. // when a chain only has few address, this prevents frequent requesting for root. 
 
 
 ## Community chain
