@@ -1,33 +1,22 @@
 # TAU - File sharing on blockchains
-
 User experienses:= {
-- Core: 1. Create blockchain 2. Upload files
-- Data dashboard
-   - if (download - upload) > 1G, start ads. display "seeding for ads free download"
-   - Auto download, Auto Seeding, Mining status. This is applying to all chains. 
-- TAU provides global relay services and chain annoucement.
-- All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key)i think .
-- User uses relay from TAU, own chain records and suzheccessed history, in the weight of 2:1:7
-- auto seeding is off chain function, downloader will randomless picking up recorded peers as seeders
-- random watching, for chains registerred on TAU, app will take random messages to display on forum panel. 
-
+- Core: 1. Create blockchain 2. Share files //直接分享，不用上传和转存储
+- Data dashboard: one place to config for all chains, this version does not differentiate chains.
+   - Seeding: ON for for commercial free; OFF with commercials.  //简单化，体验好
+   - Preview download: ON/OFF. //
+- TAU provides relay and chain genesis annoucement.
+- All chain addresses are derivative from one private key. Nodes use IPFS peers ID for ipv4 tcp transport. (the association of TAUaddr and IPFS address is through signature using ipfs RSA private key).
+- User uses relay from TAU, own chain records and success history, in the weight of 2:1:7. Time frame is `PruneRange`. 
 - app operation mode:
-   - on telcom data: Watching both random and followed chains(2:8). support manual download, config buttons default:
-      - manual download: ON
-      - manual seeding: ON
-      - auto download file: OFF
-      - auto seeding: OFF
-      - mining: OFF
+   - on telcom data: show messages on followed chains, default follow TAUT and TAU. support manual download, config buttons default:
+      - Preview: OFF
+      - Seeding: OFF
    - on wifi: config buttons default:
-      - manual download: ON
-      - manual seeding: ON
-      - auto-download: ON, autdownload files smaller than 10M, 9 key frames. 
-      - auto-seeding: ON.
-      - mining: ON
+      - Preview: ON, download files smaller than `PreviewSize`M, video `PreviewSize` key frames. 
+      - Seeding: ON
    - on wifi + power plug: multiple processes allowed. 
-   - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules. <br/> <br/>
+   - in the sleeping mode, random wake up between 1..WakeUpTime,  run for one minute follow the above rules.
 }
-
 Business model:= {
 - Tau foundation will develop TAU App and provide free public relays, in return for admob/mopub ads income to cover relay data cost. Any one can contribute relays on both TAU and own chain. 
 - Individual nodes will see ads to keep using data for free, the more data upload, the less ads. 
@@ -35,25 +24,24 @@ Business model:= {
 - TAU is a relay annoucement service by tau dev. 
 }
 --- 
-
 ## Six core processes
 
-* A. Response with predicted blockRoot. One instance to prevent ddos. 
-* B. Collect votings from peers. (single thread func)<br/> <br/>
-* C. File Downloader. (download files and logging download data)
-* D. Reponse to file downloader request. (logging upload data). One instance to prevent ddos. <br/> <br/>
+* A. Response with predicted BlockRoot. 
+* B. Request longest chains and votings from peers.
+* C. File Downloader. 
+* D. Reponse to file downloader request. <br/> <br/>
 On Environment
-* E. Process manager; schedule above 4 processes instance existing and prevent DDOS. Process genesis. 
+* E. Process manager; schedule above 4 processes' instances and prevent DDOS. Process genesis block. 
 * F. Resource management: TBD. 
 
 ## Persistence variables in database 
 ```
 1. myChains             map[ChainID] config; //Chains to follow or mining, string is for planned config info
-2. myblockRoots         map[ChainID] cbor.cid; // the new contract block
+2. myBlockRoots         map[ChainID] cbor.cid; // the new contract block
 3. myMutableRange       map[ChainID]string
 4. myPruneRange         map[ChainID]string
 5. myPeers              map[ChainID]map[TAUaddress]config;// include IPFSAddr
-6. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// incllude timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
+6. myRelays             map[ChainID]map[RelaysMultipleAddr]config;// include timestampInRelaySwitchTimeUnit; timestamp is to selelct relays in the mutable ranges. 
 7. myTXsPool            map[ChainID]map[hash(txjson)]TXJSON; // include timestampInRelaySwitchTimeUnit
 8. myDownloadPool       map[ChainID]map[FileAMT]config;   // when file finish downloaded, remove chainID/fileAMT combo from the pool
 9. mytotalFileAMTDownloadedData
@@ -64,21 +52,18 @@ On Environment
 
 ## Concept explain
 - Single thread function for chains voting and pool download. To increase performance, run concurrency on top level E. 
-- **Block size is 1 tx per block, 5 minutes a block **
-- TAU private key: the base for all community chain address generation;
+- **Block size is fixed on 1 tx per block, 5 minutes a block **
 - ChainID := `Nickname` + signature(privatekey + timestampInRelaySwitchTimeUnit) <br/> <br/>
-
 - TX types
    * coin base, msg is the only transaction attached
    * send, msg is the contract relating to this tx
    * relay, msg is the contract relating to this tx, include the relay info
    * file, msg is the contract relating to this tx 
    * new chain annoucement tx on tau or others<br/> <br/>
-   
-- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7  
+ 
+- relay: each chain config relay on own chain by members, TAU mainchain annouce the relay canditimestamps in the daily basis, each node config own successed relays. three of those sharing the time slots: 1:2:7. Observe window is PruneRange. 
 - download: TAU always download entire myDownloadPool rather than one file. This is like IPFS on a single large file space, than torrents are file specific operation. 
 - POT use power as square root the nounce. 
--   
 - 投票策略设计。
    - 投票范围：当前CheckPoint**往未来**的 `MutableRange` 周期为计算票范围。这个范围会达到未来。
    - 每到一次新的range结束时，统计投票产生新的CheckPoint, 得票最高的当选, 同样票数时间最近的胜利。
@@ -100,13 +85,11 @@ blockJSON  = {
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
 9. msg; // One Tx
-// CRITICAL block, mostly fungible blocks, KV embedded to cover Mutable range roll back. When roll back, update memory for follow variables. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. `Tsender`Noune;
 12. `Tsender`Balance;
 13. `Tgenesis/Tminer`Balance;
 14. `Treceiver`Balance;
- 
 15. signature; //by genesis miner to derive the TAUaddress
 }
 // FileSeeding/RelayRegister/ChainFoundersClaim transactions results are not in critical block key value. 
@@ -121,10 +104,9 @@ blockJSON  = {
 * 6 GenesisCummulativeDifficulty:  according to the BlockTime.
 * 7 MinBlockTime:  5 minutes;  this is fixed block time. do not let user choose as for now.
 * 8 MaxBlockTime: 30 minutes, when no body mining, you have to generate blocks. 
-* 9 AutoDownloadSize: 9; files smaller than `AutoDownloadSize`MB, video download `AutoDownloadSize`Frames
-
-* 11 Relay distribution ratio:  2:1:7 tau/self/successHistory.
-* 12 RequestTimeSpan: 5 minutes, minblocktime; ChainID+peer Repeat timespan: for same chainID+peer, the time span between repeat request. // when a chain only has few address, this prevents frequent requesting for root. 
+* 9 PreviewSize: 9; files smaller than `PreviewSize`MB, video download `PreviewSize`Frames
+* 10 Relay distribution ratio:  2:1:7 tau/self/successHistory.
+* 11 RequestTimeSpan: 5 minutes, minblocktime; ChainID+peer Repeat timespan: for same chainID+peer, the time span between repeat request. // when a chain only has few address, this prevents frequent requesting for root. 
 
 
 ## Community chain
@@ -141,8 +123,10 @@ blockJSON  = {
 6. cummulative difficulty int64; // ???
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-9. msg; // One Tx
+9. msg; // "hello world"
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
+11. `Tgenesis`Balance; // 1,000,000
+12. `Tgenesis`Nonce; // 0
 11. signature; //by genesis miner to derive the TAUaddress
 }
 
@@ -157,10 +141,10 @@ Miner does not know which peer requesting them, because the relay shields the pe
 ## B. Votings, chain choice and block generation
 This process is for multiple chain, multiple relay and mulitple peers.  
 ```
-1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains,
+1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains ACCORDING to myTXsPool Chain weight.
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (RelaySwitchTimeUnit + chain ID) 
 - call func PickupRelayAndPeer(H)
-
+  If chainID+peer is requested within RequestTimeSpan, go to (1); //不要对一个peer重复访问
 2. GraphRelaySync( Relay, peerID, chainID, root, selector); if err go to (1)
    myRelays[successed].add{this Relay}
 3. if received contractJSON shows a difficult higher than current difficulty and blockJSON/PreviousBlockRoot/blockJSON/timestamp is passed present time, 不能在未来再次预测未来, then verify this chain's transactions from the CheckPoint;
@@ -244,7 +228,7 @@ ONE Chain + ONE Relay + ONE peer
 
 ```
 1. Generate chain+relay+FileAMT+Seeder combo: pieces are not following random plan
-      Pickup ONE random `chainID` in the myChains[ ],
+      Pickup ONE random `chainID` in the myChains ACCORDING to myDownloadPool chain weight,
 according to the global time in the base of RelaySwitchTimeUnit, H= hash (time in RelaySwitchTimeUnit base + chain ID)
 
 call func PickupRelayAndPeer(H)
