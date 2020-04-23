@@ -1,6 +1,6 @@
 # TAU - File sharing on blockchains
 User experienses:= {
-- Core: 1. Create blockchain 2. Share files //直接分享，不用上传和转存储
+- Core: 1. Create blockchain 2. Share files //直接分享，不用上传和转存储 to share video on taut to get ads free download. 
 - Data dashboard: one place to config for all chains, this version does not differentiate chains.
    - Seeding: ON for for commercial free; OFF with commercials.  //简单化，体验好
    - Preview download: ON/OFF
@@ -85,7 +85,7 @@ blockJSON  = {
 6. cummulative difficulty;
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-9. msg; // One Tx
+9. msg; // A flexible field that you can put into any string, in which it could be a transaction contract. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. `Tsender`Noune;
 12. `Tsender`Balance;
@@ -124,7 +124,7 @@ blockJSON  = {
 6. cummulative difficulty int64; // ???
 7. generation signature;
 8. IPFSsigOn(minerAddress); //IPFS signature on `minerAddress` to proof association. Verifier decodes siganture to derive IPFSaddress QM..; 
-9. msg; // "hello world"
+9. msg; // {inital acounts state list 初始账户信息列表} using for tau and taut accounts input on the genesis block only. 
 10. ChainID := `Nickname`+ hash(privatekey + timestampInRelaySwitchTimeUnit)
 11. `Tgenesis`Balance; // 1,000,000
 12. `Tgenesis`Nonce; // 0
@@ -270,17 +270,17 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
      * 2. Choose Chain or Create Blockchain
      * 3. Publish
 
-### Community 社区
-- follow chain, first layer
-- follow members, second layer
+### Community - view files from member view
+- followed chain, first layer
+- followed members and members, second layer
 - member's messages & file, third layer, support import
-### Files
+### Files - view files from data, size and type
 - File does not store in IPFS repo to save space for mobile phone. 
 - **File relay maybe through Http**
 - share file to community chain
 - pin a file, no directory at now, sort by timestamps and size
 - delete a file
-### Forum 论坛
+### Forum - view files from timeline
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
 
 # To do 
