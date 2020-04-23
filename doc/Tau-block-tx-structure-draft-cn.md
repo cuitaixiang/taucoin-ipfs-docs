@@ -142,7 +142,7 @@ Miner does not know which peer requesting them, because the relay shields the pe
 ## B. Votings, chain choice and block generation
 This process is for multiple chain, multiple relay and mulitple peers.  
 ```
-1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains ACCORDING to myTXsPool Chain weight.
+1.Generate "chainID+relay+peer" combo, Pick up ONE random `chainID` in the myChains ACCORDING to myTXsPool waiting weight.
 according to the global time in the base of RelaySwitchTimeUnit, H = hash (RelaySwitchTimeUnit + chain ID) 
 - call func PickupRelayAndPeer(H)
   If chainID+peer is requested within RequestTimeSpan, go to (1); //不要对一个peer重复访问
@@ -218,7 +218,6 @@ ONE Chain + ONE Relay + ONE peer
 ```
 ## C. File Downloader - nonconcurrency design // ipfs layer
 * For saving mobile phone resources, we adopt non-concurrrency execution. The entire download pool is one big file to randomly retrieve.
-
 ```
 1. Generate chain+relay+FileAMT+Seeder combo: pieces are not following random plan
       Pickup ONE random `chainID` in the myChains ACCORDING to myDownloadPool chain weight,
@@ -228,17 +227,16 @@ call func PickupRelayAndPeer(H)
 Randomly request ONE File from myDownloadPool[`ChainID`]. Randomly select a seeder from the * myFileAMTSeeders[fileAMT][ChainID][seeder  ]. use  select a piece N from fileAMTroot.count. // piece selection is not random. 
 ONE Chain + ONE Relay + ONE FileAMT + ONE seeder peer + ONE piece. 
 
-2. If the piece is in local, go to step (1); 
+2. If the piece is in localist, go to step (1); 
 else 
-- AMTgraphRelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nonce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
+- RelaySync(relay, chainID, `FileAMTroot``ChainID``Seeding`Nonce`IPFSPeer, `fileAMTroot`, selector(field:=piece N))
 if success, myDownloadPool[`ChainID`][`fileAMTroot`]++; until myDownloadPool[`ChainID`][`fileAMTroot`] = fileAMTroot.count; remove this fileAMT from myDownloadPool[`ChainID`]; add to myFileAMTroots
 go to step (1)
 }
 ```
-## D. reponse to fileAMT request
+## D. reponse to file request: ???
 
-response to AMTgraphRelaySync（ relay, peer, `ChainID`,`fileAMTroot`, selector(piece N))
-If the `fileAMTroot`'s piece N exists, then return the block. else null.
+use relay-TCP to transfer files than AMT trie to save storage on phone. 
 
 ## E. process manager
 // registration message handling 登记, this can also happen in other main func
@@ -263,7 +261,7 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
 ## App UI 界面
 
 * 1. Create Blockchain: Own a blockchain with 1 million coins to build a community for video and files sharing. 
-     * 一键建立区块链：默认配置5分钟区块时间，自动给名字，自动给创世币数量，提供一个change人口和create创建入口。
+     * 一键建立区块链
      * 自动起名字提供一个默认名字字典  
 * 2. Share Files:
      * 1. Point to a File
@@ -271,17 +269,23 @@ If the `fileAMTroot`'s piece N exists, then return the block. else null.
      * 3. Publish
 
 ### Community - view files from member view
-- followed chain, first layer
-- followed members and members, second layer
-- member's messages & file, third layer, support import
+- followed chain, 1st layer
+- followed members and members, 2nd layer
+### Members - view file from member view, this is member's personal "web page" with share, download and messages.
+- shared files on different chains  (public)
+- downloaded files on different chains (public)
+- messages on different chains
 ### Files - view files from data, size and type
 - File does not store in IPFS repo to save space for mobile phone. 
 - **File relay maybe through Http**
 - share file to community chain
 - pin a file, no directory at now, sort by timestamps and size
 - delete a file
-### Forum - view files from timeline
+### Messages - view files from timeline
 - according to the following list, display files uploaded and its description. users can follow sender or blacklist them. 
+```
+   when a file's updated date changed, it is removed from share and download list. do not use hash to protect files. only use date for now. 
+```
 
 # To do 
 - [ ] resource management process
